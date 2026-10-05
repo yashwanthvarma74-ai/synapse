@@ -197,8 +197,8 @@ Honest list, so nothing here is oversold.
 - **Whole documents live in gateway memory** while a room is open, so very large documents cost RAM on every gateway holding them.
 - **Auth is basic.** Invites work only for users who already have an account; there is no email verification or password reset; the login token lives in `localStorage`, and the WebSocket token travels in the URL ([ADR 0007](docs/adr/0007-authentication.md)). The login rate limiter is in memory, per API instance.
 - **Lint covers the web app only.** `cd web && npm run lint` is clean (0 errors, 0 warnings). The server has types and tests but no ESLint configuration yet.
-- **No CI** configured yet.
-- The `web/` folder contains its own nested `.git` created by the Next.js setup.
+- **CI exists but has never run on GitHub.** `.github/workflows/ci.yml` runs the web checks, the server tests against real MongoDB and Redis, and a monitoring-config check. It passes `actionlint`, and I ran every step from a fresh clone locally (which found and fixed one real failure), but GitHub Actions itself was not executed, it targets Node 26 only, and the fault-injection tests are not in CI (they need `redis-server` and `mongod` installed; run them with `npm run test:fault`).
+- There is **no license file** and **no remote**: the repository is local, with two commits. Choose a license before publishing.
 
 ## Interview questions this prepares for
 
