@@ -44,7 +44,12 @@ if (service === 'gateway' || service === 'both') {
 }
 
 if (service === 'api' || service === 'both') {
-  const api = createApi({ c, store, bus, secret, corsOrigin: process.env.WEB_ORIGIN })
+  const api = createApi({
+    c, store, bus, secret,
+    corsOrigin: process.env.WEB_ORIGIN,
+    guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
+    maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
+  })
   const port = Number(process.env.API_PORT ?? 4001)
   api.listen(port, () => console.log(`api listening on :${port}`))
 }

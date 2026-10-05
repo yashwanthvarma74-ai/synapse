@@ -5,6 +5,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors'
 import { z } from 'zod'
 import { ObjectId } from 'mongodb'
+import { randomBytes, randomInt } from 'node:crypto'
 import type { Collections } from './db.js'
 import { oid } from './db.js'
 import type { MongoStore } from './mongoStore.js'
@@ -13,6 +14,7 @@ import type { Role } from './room.js'
 import { hashPassword, verifyPassword, signToken, verifyToken } from './auth.js'
 import { atLeast, roleOnDocument, roleOnWorkspace } from './access.js'
 import { m, recordClientMetric } from './telemetry.js'
+import { createStarterWorkspace } from './onboarding.js'
 
 export interface ApiOptions {
   c: Collections
@@ -20,6 +22,8 @@ export interface ApiOptions {
   bus: Bus
   secret: string
   corsOrigin?: string
+  guestsEnabled?: boolean // one-click guest accounts (default on)
+  maxGuestsPerHour?: number // simple ceiling against abuse
 }
 
 class HttpError extends Error {
@@ -55,7 +59,14 @@ function rateLimit(max: number, windowMs: number) {
   }
 }
 
-export function createApi({ c, store, bus, secret, corsOrigin }: ApiOptions) {
+const ADJECTIVES = ['Curious', 'Brave', 'Calm', 'Clever', 'Gentle', 'Happy', 'Jolly', 'Kind', 'Lively', 'Mellow', 'Swift', 'Witty']
+const ANIMALS = ['Otter', 'Panda', 'Falcon', 'Heron', 'Lynx', 'Koala', 'Fox', 'Owl', 'Dolphin', 'Gecko', 'Badger', 'Robin']
+const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[randomInt(ANIMALS.length)]}`
+// 16 random bytes = 128 bits: not guessable. base64url keeps it safe inside a link.
+const newInviteCode = () => randomBytes(16).toString('base64url')
+const INVITE_DAYS = 7
+
+export function createApi({ c, store, bus, secret, corsOrigin, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
   // comma-separated list of allowed web origins
   app.use(cors({ origin: (corsOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000').split(',') }))
@@ -121,7 +132,42 @@ export function createApi({ c, store, bus, secret, corsOrigin }: ApiOptions) {
       if ((e as { code?: number }).code === 11000) throw new HttpError(409, 'That email is already registered')
       throw e
     }
+    await createStarterWorkspace(c, store, user._id) // a Welcome document and a sample board, so the first screen is not empty
     res.status(201).json({ token: await signToken(user._id.toHexString(), secret), user: publicUser(user) })
+  }))
+
+  // One click, no form: a throwaway account with the same starter content. It can be
+  // upgraded to a real account later without losing anything (POST /auth/upgrade).
+  const guestWindow: number[] = []
+  app.post('/auth/guest', authLimit, h(async (_req, res) => {
+    if (!guestsEnabled) throw new HttpError(403, 'Guest accounts are turned off on this server')
+    const now = Date.now()
+    while (guestWindow.length && now - guestWindow[0] > 3_600_000) guestWindow.shift()
+    if (guestWindow.length >= maxGuestsPerHour) throw new HttpError(429, 'Too many new guests right now, please try again in a little while')
+    guestWindow.push(now)
+    const id = new ObjectId()
+    const user = {
+      _id: id, email: `guest-${id.toHexString()}@guest.invalid`, name: guestName(), guest: true as const,
+      passwordHash: await hashPassword(randomBytes(32).toString('hex')), // nobody knows it: a guest cannot sign in again by password
+      createdAt: new Date(),
+    }
+    await c.users.insertOne(user)
+    const starter = await createStarterWorkspace(c, store, id)
+    res.status(201).json({ token: await signToken(id.toHexString(), secret), user: { ...publicUser(user), guest: true }, starter })
+  }))
+
+  // Turn a guest into a real account, keeping everything they made.
+  app.post('/auth/upgrade', authLimit, needAuth, h(async (req, res) => {
+    const body = parse(z.object({ email, name: z.string().trim().min(1).max(60), password: z.string().min(8).max(200) }), req.body)
+    const me = await c.users.findOne({ _id: idParam(req.userId) })
+    if (!me?.guest) throw new HttpError(400, 'This account is already a full account')
+    try {
+      await c.users.updateOne({ _id: me._id }, { $set: { email: body.email, name: body.name, passwordHash: await hashPassword(body.password) }, $unset: { guest: '' } })
+    } catch (e) {
+      if ((e as { code?: number }).code === 11000) throw new HttpError(409, 'That email is already registered')
+      throw e
+    }
+    res.json({ token: await signToken(me._id.toHexString(), secret), user: { id: me._id.toHexString(), email: body.email, name: body.name } })
   }))
 
   app.post('/auth/login', authLimit, h(async (req, res) => {
@@ -138,7 +184,7 @@ export function createApi({ c, store, bus, secret, corsOrigin }: ApiOptions) {
   app.get('/me', needAuth, h(async (req, res) => {
     const user = await c.users.findOne({ _id: idParam(req.userId) })
     if (!user) throw new HttpError(401, 'Sign in required')
-    res.json(publicUser(user))
+    res.json({ ...publicUser(user), guest: user.guest === true })
   }))
 
   // ---- workspaces and members --------------------------------------------------------
@@ -195,6 +241,61 @@ export function createApi({ c, store, bus, secret, corsOrigin }: ApiOptions) {
     await c.memberships.deleteOne({ workspaceId: wid, userId: uid })
     bus.publishAccess({ userId: uid.toHexString(), workspaceId: wid.toHexString() })
     res.status(204).end()
+  }))
+
+  // ---- invite links --------------------------------------------------------------------
+  // The owner makes a link; anyone who opens it and joins gets the chosen role (never owner).
+  // Links expire after 7 days and can be revoked. Whoever holds the link can join, so share it
+  // like you would share a document link.
+  app.get('/workspaces/:id/invites', needAuth, h(async (req, res) => {
+    const wid = idParam(req.params.id as string)
+    await needWorkspaceRole(req.userId, wid, 'owner')
+    const live = await c.invites.find({ workspaceId: wid, revoked: false, expiresAt: { $gt: new Date() } }).sort({ createdAt: -1 }).limit(50).toArray()
+    res.json(live.map((i) => ({ code: i.code, role: i.role, expiresAt: i.expiresAt, uses: i.uses })))
+  }))
+
+  app.post('/workspaces/:id/invites', needAuth, h(async (req, res) => {
+    const wid = idParam(req.params.id as string)
+    await needWorkspaceRole(req.userId, wid, 'owner')
+    const { role } = parse(z.object({ role: z.enum(['editor', 'commenter', 'viewer']).default('editor') }), req.body ?? {})
+    const invite = { _id: new ObjectId(), code: newInviteCode(), workspaceId: wid, role, createdBy: idParam(req.userId),
+      createdAt: new Date(), expiresAt: new Date(Date.now() + INVITE_DAYS * 86_400_000), revoked: false, uses: 0 }
+    await c.invites.insertOne(invite)
+    res.status(201).json({ code: invite.code, role, expiresAt: invite.expiresAt })
+  }))
+
+  app.delete('/workspaces/:id/invites/:code', needAuth, h(async (req, res) => {
+    const wid = idParam(req.params.id as string)
+    await needWorkspaceRole(req.userId, wid, 'owner')
+    await c.invites.updateOne({ code: String(req.params.code), workspaceId: wid }, { $set: { revoked: true } })
+    res.status(204).end()
+  }))
+
+  // Public: what the link is for, so the page can say "Ravi invited you to Team Alpha as an editor".
+  const inviteLimit = rateLimit(60, 60_000)
+  const liveInvite = async (code: string) => {
+    const inv = await c.invites.findOne({ code })
+    if (!inv || inv.revoked || inv.expiresAt <= new Date()) throw new HttpError(404, 'This invite link is not valid any more. Ask for a new one.')
+    return inv
+  }
+  app.get('/invites/:code', inviteLimit, h(async (req, res) => {
+    const inv = await liveInvite(String(req.params.code))
+    const [ws, inviter] = await Promise.all([c.workspaces.findOne({ _id: inv.workspaceId }), c.users.findOne({ _id: inv.createdBy })])
+    res.json({ workspaceName: ws?.name ?? 'a workspace', inviterName: inviter?.name ?? 'Someone', role: inv.role })
+  }))
+
+  app.post('/invites/:code/accept', inviteLimit, needAuth, h(async (req, res) => {
+    const inv = await liveInvite(String(req.params.code))
+    const userId = idParam(req.userId)
+    const existing = await c.memberships.findOne({ workspaceId: inv.workspaceId, userId })
+    // never downgrade someone who already has more access than the link gives
+    if (!existing || !atLeast(existing.role, inv.role)) {
+      await c.memberships.updateOne({ workspaceId: inv.workspaceId, userId }, { $set: { role: inv.role }, $setOnInsert: { _id: new ObjectId() } }, { upsert: true })
+      bus.publishAccess({ userId: req.userId, workspaceId: inv.workspaceId.toHexString() })
+    }
+    await c.invites.updateOne({ _id: inv._id }, { $inc: { uses: 1 } })
+    const first = await c.documents.find({ workspaceId: inv.workspaceId }).sort({ updatedAt: -1 }).limit(1).toArray()
+    res.json({ workspaceId: inv.workspaceId.toHexString(), documentId: first[0]?._id.toHexString() ?? null })
   }))
 
   // ---- documents ---------------------------------------------------------------------

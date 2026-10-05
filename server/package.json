@@ -11,13 +11,18 @@
     "bench:partition": "tsx bench/partition.ts",
     "bench:load": "tsx bench/load.ts",
     "bench:convergence": "tsx bench/convergence.ts",
-    "test:fault": "vitest run --config vitest.fault.config.ts"
+    "test:fault": "vitest run --config vitest.fault.config.ts",
+    "prune-guests": "tsx src/prune.ts"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/exporter-prometheus": "^0.222.0",
     "@opentelemetry/resources": "^2.11.0",
     "@opentelemetry/sdk-metrics": "^2.11.0",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
+    "@tiptap/y-tiptap": "^3.0.9",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "ioredis": "^6.0.0",

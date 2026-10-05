@@ -21,6 +21,12 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
         ['error text on page', t.danger, t.bg],
         ['error text on panel', t.danger, t.panel],
         ['text on the offline-toggle highlight', '#000000', t.warn],
+        ['body text on cards', t.fg, t.surface],
+        ['muted text on cards', t.muted, t.surface],
+        ['links on cards', t.accent, t.surface],
+        ['error text on cards', t.danger, t.surface],
+        ['body text on the soft highlight (banners, badges, status)', t.fg, t['accent-soft']],
+        ['muted text on the soft highlight', t.muted, t['accent-soft']],
       ]
       for (const [what, fg, bg] of text) {
         it(`${what} is at least 4.5:1`, () => expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5))
@@ -37,7 +43,7 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
   })
 
   it('the stylesheet really defines the tokens the tests rely on', () => {
-    for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn']) {
+    for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn', 'surface', 'accent-soft']) {
       expect(themes.light[k], `light --${k}`).toBeTruthy()
       expect(themes.dark[k], `dark --${k}`).toBeTruthy()
     }

@@ -6,6 +6,7 @@ import { atLeast } from '@/lib/roles'
 import { extractText } from '@/lib/text'
 import { canvasText, objectsMap } from '@/lib/canvasModel'
 import type { Collab } from '@/lib/useCollab'
+import { EmptyDocsArt } from './ui/Illustrations'
 
 export default function History({ docId, collab, role, type }: { docId: string; collab: Collab; role: Role; type: 'doc' | 'canvas' }) {
   const [versions, setVersions] = useState<VersionItem[]>([])
@@ -85,7 +86,13 @@ export default function History({ docId, collab, role, type }: { docId: string; 
           <button className="btn">Save</button>
         </form>
       )}
-      {versions.length === 0 && <p className="muted">No named versions yet.</p>}
+      {versions.length === 0 && (
+        <div className="empty">
+          <EmptyDocsArt />
+          <strong>No saved versions yet</strong>
+          Name a version before a big change. You can preview it and bring it back any time.
+        </div>
+      )}
       <ul className="list">
         {versions.map((v) => (
           <li key={v.version}>

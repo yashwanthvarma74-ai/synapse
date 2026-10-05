@@ -107,6 +107,15 @@ export class MongoStore implements DocStore {
     await this.snapshots.deleteMany({ _id: { $in: snaps.map((s) => s._id) } })
   }
 
+  // Remove everything stored for a document (edits, snapshots, named versions). Used by pruning.
+  async deleteDocument(docId: string) {
+    await Promise.all([
+      this.updates.deleteMany({ docId }),
+      this.snapshots.deleteMany({ docId }),
+      this.counters.deleteOne({ _id: docId }),
+    ])
+  }
+
   // ---- named versions (used by version history) --------------------------------
 
   // Save the document's CURRENT stored state as a named, permanent snapshot.
