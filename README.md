@@ -134,6 +134,7 @@ Environment variables (all optional in development): `MONGO_URL`, `MONGO_DB`,
 cd server && npm test        # 39 tests: sync, roles, revocation, storage, concurrent compaction, self-healing, metrics
 cd web    && npm test        # 64 tests: canvas data model, colour contrast, keyboard and ARIA behaviour, sync-client metrics
 cd web    && npm run lint    # ESLint with Next.js and React 19 rules
+cd web    && npm run typecheck  # generates Next.js types, then runs tsc
 cd server && npm run bench:load   # also: bench:propagation, bench:partition, bench:convergence
 ```
 

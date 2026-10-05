@@ -28,7 +28,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
-      - run: npx tsc --noEmit
+      # Next.js generates some types (LayoutProps, route types); a fresh checkout does not have them yet
+      - run: npm run typecheck
       - run: npm run lint
       - run: npm test
 
