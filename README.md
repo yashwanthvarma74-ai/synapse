@@ -11,6 +11,8 @@ that keep working offline and merge cleanly when you reconnect.
 4. Switch **Simulate offline** back off. The edits merge in tens of milliseconds and nothing is lost.
 5. Check it: a randomized test runs 10,000 times and every copy ends up identical ([numbers](docs/BENCHMARKS.md)).
 
+> **Read first:** [Why Synapse uses a CRDT and not OT](docs/blog/why-a-crdt-not-ot.md), the blog post behind the central design decision.
+
 > **Status.** The core product works and is tested, with real MongoDB and Redis.
 > It is a portfolio project that has only run on one development laptop, not a
 > deployed service. See [what is not built](#what-is-not-built-or-not-proven) before
@@ -169,9 +171,9 @@ server/fault  fault-injection tests (private Redis and MongoDB, killed on purpos
 server/bench  benchmark scripts; results in bench/results/
 web/src       app pages, editor, canvas (canvasModel.ts, canvasRenderer.ts),
               sync client (lib/provider.ts)
-docs          benchmarks, fault-injection, accessibility and observability reports, architecture decision records
+docs          blog post, benchmarks, fault-injection, accessibility and observability reports, architecture decision records
 observability Prometheus config, alert rules, Grafana provisioning and the generated dashboard
-lab           the first Yjs experiment (two documents merging in a terminal)
+lab           Yjs experiments you can run: two documents merging in a terminal, and the demos behind the blog post
 STUDY.md      suggested reading order for the code
 ```
 
@@ -185,7 +187,7 @@ Honest list, so nothing here is oversold.
 - OpenTelemetry **traces** and logs (only metrics exist), the browser OpenTelemetry SDK (browsers use a small beacon instead), an Alertmanager (alert rules exist but notify no one) and an external uptime probe. The browser-reported availability measure cannot see a total outage ([`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md)).
 - Playwright multi-browser end-to-end tests and k6 load tests. Browser behaviour was checked by hand and the load test is a Node script.
 - TanStack Query and Zustand. Plain `fetch` and React state were enough, so they were left out.
-- The "summarize this board" AI action and the CRDT-vs-OT blog post (optional extras).
+- The "summarize this board" AI action (an optional extra).
 
 **Built, but known limits:**
 - **Not deployed**, so there is no real availability data. Nothing measured here includes real network latency.

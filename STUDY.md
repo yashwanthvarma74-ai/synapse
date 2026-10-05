@@ -4,6 +4,8 @@ Read in this order. Each file has comments explaining the why.
 
 ## 0. The idea (you already ran this)
 `lab/01-converge.mjs`: two copies, edits merge, same result everywhere (CRDT).
+`lab/02-merge-demo.mjs`: arrival order, duplicate delivery, what a merge does not understand.
+`docs/blog/why-a-crdt-not-ot.md`: the argument for the design, in one post.
 
 ## 1. Server (`server/src`)
 1. `store.ts`: the DocStore interface, update log + snapshot, memory/file versions.
