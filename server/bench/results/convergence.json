@@ -1,0 +1,18 @@
+{
+  "when": "2026-10-05T20:32:14.674Z",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "cores": 14,
+    "ramGb": 24,
+    "os": "Darwin 27.0.0",
+    "node": "v26.10.0"
+  },
+  "target": "100% identical hashes over 1,000+ runs",
+  "runs": 10000,
+  "contentIdenticalPct": 100,
+  "bytesIdenticalAfterQuiescencePct": 100,
+  "totalOps": 62608,
+  "runsNeedingExtraSyncRounds": 1,
+  "maxExtraRounds": 1,
+  "seconds": 1.1
+}

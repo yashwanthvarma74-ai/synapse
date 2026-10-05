@@ -1,0 +1,45 @@
+{
+  "when": "2026-10-05T21:58:08.382Z",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "cores": 14,
+    "ramGb": 24,
+    "os": "Darwin 27.0.0",
+    "node": "v26.10.0"
+  },
+  "target": "p95 < 250 ms",
+  "results": [
+    {
+      "label": "same gateway",
+      "edits": 1500,
+      "ratePerSec": 20,
+      "received": 1500,
+      "lost": 0,
+      "latencyMs": {
+        "n": 1500,
+        "min": 0.34,
+        "p50": 0.83,
+        "p95": 1.89,
+        "p99": 3.01,
+        "max": 4.4,
+        "mean": 0.96
+      }
+    },
+    {
+      "label": "two gateways via Redis",
+      "edits": 1500,
+      "ratePerSec": 20,
+      "received": 1500,
+      "lost": 0,
+      "latencyMs": {
+        "n": 1500,
+        "min": 0.61,
+        "p50": 1.54,
+        "p95": 3.11,
+        "p99": 4.63,
+        "max": 9.87,
+        "mean": 1.68
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+# Alert rules. Prometheus evaluates these and shows them at http://localhost:9090/alerts.
+# NOTHING IS WIRED TO NOTIFY ANYONE: there is no Alertmanager. Treat these as the
+# definition of "something is wrong", ready to route to email, Slack or a pager.
+groups:
+  - name: synapse
+    rules:
+      - alert: SynapseDown
+        expr: up{job="synapse"} == 0
+        for: 1m
+        labels: { severity: page }
+        annotations:
+          summary: The Synapse server is not answering scrapes.
+
+      - alert: SyncRoundTripSlow
+        # the project target: remote updates reach people in under 250 ms at p95
+        expr: histogram_quantile(0.95, sum by (le) (rate(synapse_client_gateway_rtt_bucket[5m]))) > 250
+        for: 5m
+        labels: { severity: warn }
+        annotations:
+          summary: Browser to gateway round trip p95 is above 250 ms.
+
+      - alert: KeystrokeToPaintSlow
+        expr: histogram_quantile(0.95, sum by (le) (rate(synapse_client_keystroke_to_paint_bucket[10m]))) > 50
+        for: 10m
+        labels: { severity: warn }
+        annotations:
+          summary: Typing feels slow in browsers (key-to-paint p95 above 50 ms).
+
+      - alert: ReconnectSuccessLow
+        # the availability proxy: of the connections that finished, how many reached a synced state.
+        # (cancelled attempts, such as leaving the page while connecting, are not counted as failures)
+        expr: |
+          sum(increase(synapse_client_connections_total{outcome="synced"}[10m]))
+            / (sum(increase(synapse_client_connections_total{outcome="synced"}[10m]) ) + sum(increase(synapse_client_connections_total{outcome="failed"}[10m])))
+              < 0.99
+          and (sum(increase(synapse_client_connections_total{outcome="synced"}[10m])) + sum(increase(synapse_client_connections_total{outcome="failed"}[10m]))) > 20
+        for: 10m
+        labels: { severity: page }
+        annotations:
+          summary: Fewer than 99% of finished browser connections reached a synced state.
+
+      - alert: RelayDown
+        expr: min(synapse_relay_up) == 0
+        for: 1m
+        labels: { severity: page }
+        annotations:
+          summary: The Redis relay is down; people on different gateways cannot see each other live.
+
+      - alert: EditsNotBeingSaved
+        expr: sum(synapse_gateway_dirty_rooms) > 0
+        for: 2m
+        labels: { severity: page }
+        annotations:
+          summary: Rooms are holding edits the database has not accepted (database down or failing).
+
+      - alert: PersistFailures
+        expr: sum(increase(synapse_gateway_persist_failures_total[5m])) > 0
+        labels: { severity: warn }
+        annotations:
+          summary: Database writes failed in the last 5 minutes.
+
+      - alert: EventLoopLagHigh
+        expr: max(synapse_process_event_loop_lag_p99) > 100
+        for: 5m
+        labels: { severity: warn }
+        annotations:
+          summary: The server process is overloaded (event loop delay p99 above 100 ms).
+
+      - alert: ApiErrorRateHigh
+        expr: |
+          sum(rate(synapse_http_request_duration_count{status_class="5xx"}[5m]))
+            / sum(rate(synapse_http_request_duration_count[5m])) > 0.01
+        for: 5m
+        labels: { severity: warn }
+        annotations:
+          summary: More than 1% of API requests are failing with a server error.
+
+      - alert: BadMessagesSpike
+        expr: sum(increase(synapse_gateway_bad_messages_total[5m])) > 20
+        labels: { severity: warn }
+        annotations:
+          summary: Many malformed WebSocket messages; a buggy client or someone probing the gateway.
