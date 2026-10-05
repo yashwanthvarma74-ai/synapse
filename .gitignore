@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.infra/
+server/.data/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+
+# local-only notes that include throwaway passwords
+TEST_ACCOUNTS.md

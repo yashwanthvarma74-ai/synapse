@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# the least access the jobs need
+permissions:
+  contents: read
+
+# a newer push to the same branch cancels the older run
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web (types, lint, tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm test
+
+  server:
+    name: Server (types, tests against real MongoDB and Redis)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    # the tests talk to MongoDB on 27017 and Redis on 6379, exactly like local development
+    services:
+      mongodb:
+        image: mongo:8
+        ports: ['27017:27017']
+      redis:
+        image: redis:8
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+
+  observability:
+    name: Monitoring config (alert rules valid, dashboard up to date)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the Prometheus config and alert rules
+        run: |
+          docker run --rm --entrypoint promtool -v "$PWD/observability:/obs" prom/prometheus:latest check config /obs/prometheus.yml
+      - name: The committed dashboard matches its generator
+        run: |
+          python3 observability/build-dashboard.py
+          git diff --exit-code -- observability/grafana/dashboards/synapse.json
