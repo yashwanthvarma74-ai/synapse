@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useEditor, EditorContent, type Editor as TiptapEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import type { Collab } from '@/lib/useCollab'
@@ -24,6 +25,7 @@ export default function Editor({
       extensions: [
         // Yjs brings its own undo, which only undoes YOUR edits, not everyone's
         StarterKit.configure({ undoRedo: false }),
+        Placeholder.configure({ placeholder: readOnly ? 'This document is empty.' : 'Start writing here…' }),
         Collaboration.configure({ document: collab.doc }),
         CollaborationCaret.configure({
           provider: { awareness: collab.awareness },

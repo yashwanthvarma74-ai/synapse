@@ -61,7 +61,7 @@ export default function Presence({ collab }: { collab: Collab }) {
           </li>
         ))}
       </ul>
-      <span className="muted">{peers.length} here</span>
+      <span className="muted">{peers.length <= 1 ? "Just you here" : `${peers.length} people here`}</span>
       <span className="sr-only" role="status">{announcement}</span>
     </div>
   )

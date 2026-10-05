@@ -6,6 +6,7 @@ import { ySyncPluginKey, absolutePositionToRelativePosition, relativePositionToA
 import { api, type CommentItem, type Role } from '@/lib/api'
 import { atLeast } from '@/lib/roles'
 import type { Collab } from '@/lib/useCollab'
+import { EmptyCommentsArt } from './ui/Illustrations'
 
 // A comment is anchored with Yjs RELATIVE positions. Unlike a plain character
 // offset, a relative position follows the text it was attached to, so the comment
@@ -78,7 +79,13 @@ export default function Comments({ docId, collab, editor, role, userId }: {
     <section aria-label="Comments" className="panel">
       <h2>Comments</h2>
       {error && <p role="alert" className="error">{error}</p>}
-      {roots.length === 0 && <p className="muted">No comments yet.</p>}
+      {roots.length === 0 && (
+        <div className="empty">
+          <EmptyCommentsArt />
+          <strong>No comments yet</strong>
+          {editor ? 'Select some text in the page, then write a comment here. It stays attached to those words.' : 'Write a comment to start a conversation.'}
+        </div>
+      )}
       <ul className="list">
         {roots.map((c) => (
           <li key={c.id} className={c.resolved ? 'resolved' : ''}>

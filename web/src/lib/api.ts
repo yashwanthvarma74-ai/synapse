@@ -2,6 +2,9 @@
 // as a Bearer header. (httpOnly cookies are safer against XSS; see docs/adr for the tradeoff.)
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001'
 
+// Tell other parts of the page (the header) that the person signed in or out
+const announce = () => typeof window !== 'undefined' && window.dispatchEvent(new Event('synapse:auth'))
+
 export const tokenStore = {
   get(): string | null {
     try {
@@ -14,11 +17,13 @@ export const tokenStore = {
     try {
       localStorage.setItem('synapse:token', token)
     } catch {}
+    announce()
   },
   clear() {
     try {
       localStorage.removeItem('synapse:token')
     } catch {}
+    announce()
   },
 }
 
@@ -49,7 +54,7 @@ export async function apiBytes(path: string): Promise<Uint8Array> {
 }
 
 export type Role = 'owner' | 'editor' | 'commenter' | 'viewer'
-export interface User { id: string; email: string; name: string }
+export interface User { id: string; email: string; name: string; guest?: boolean }
 export interface WorkspaceItem { id: string; name: string; role: Role }
 export interface DocItem { id: string; title: string; type: 'doc' | 'canvas'; updatedAt: string }
 export interface Member extends User { role: Role }

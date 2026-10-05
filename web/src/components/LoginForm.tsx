@@ -1,11 +1,16 @@
 'use client'
-import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, type FormEvent } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { api, tokenStore, type User } from '@/lib/api'
+import { startGuest } from '@/lib/guest'
 import { usePageTitle } from '@/lib/usePageTitle'
 
-export default function LoginForm() {
+// Only follow a "go back to" address if it stays inside this site
+const safeNext = (next: string | null) => (next && next.startsWith('/') && !next.startsWith('//') ? next : '/')
+
+function Form() {
   const router = useRouter()
+  const next = safeNext(useSearchParams().get('next'))
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
@@ -20,7 +25,7 @@ export default function LoginForm() {
       const body = mode === 'login' ? { email: form.email, password: form.password } : form
       const r = await api<{ token: string; user: User }>(`/auth/${mode}`, { body })
       tokenStore.set(r.token)
-      router.replace('/')
+      router.replace(next)
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -28,25 +33,46 @@ export default function LoginForm() {
     }
   }
 
+  async function guest() {
+    setBusy(true)
+    setError('')
+    try {
+      const s = await startGuest()
+      router.replace(next === '/' ? `/doc/${s.welcomeId}` : next)
+    } catch (err) {
+      setError((err as Error).message)
+      setBusy(false)
+    }
+  }
+
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value })
 
   return (
-    <div className="shell narrow">
-      <h1>Synapse</h1>
+    <div className="page" style={{ maxWidth: 440 }}>
       <form onSubmit={submit} className="card stack" aria-describedby={error ? 'form-error' : undefined}>
-        <h2>{mode === 'login' ? 'Sign in' : 'Create account'}</h2>
+        <h1 style={{ fontSize: '1.5rem', margin: 0 }}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+        <p className="muted" style={{ margin: 0 }}>{mode === 'login' ? 'Sign in to pick up where you left off.' : 'Free, and it takes a few seconds.'}</p>
         {mode === 'register' && (
-          <label>Name<input value={form.name} onChange={set('name')} required maxLength={60} autoComplete="name" /></label>
+          <label>Your name<input value={form.name} onChange={set('name')} required maxLength={60} autoComplete="name" placeholder="How others will see you" /></label>
         )}
-        <label>Email<input type="email" value={form.email} onChange={set('email')} required autoComplete="email" /></label>
-        <label>Password<input type="password" value={form.password} onChange={set('password')} required minLength={mode === 'register' ? 8 : 1}
-          autoComplete={mode === 'login' ? 'current-password' : 'new-password'} /></label>
+        <label>Email<input type="email" value={form.email} onChange={set('email')} required autoComplete="email" placeholder="you@example.com" /></label>
+        <label>Password
+          <input type="password" value={form.password} onChange={set('password')} required minLength={mode === 'register' ? 8 : 1}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'} aria-describedby={mode === 'register' ? 'pw-hint' : undefined} />
+        </label>
+        {mode === 'register' && <p id="pw-hint" className="hint" style={{ margin: 0 }}>At least 8 characters.</p>}
         {error && <p role="alert" id="form-error" className="error">{error}</p>}
-        <button className="btn" disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
+        <button className="btn large" disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
         <button type="button" className="link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}>
-          {mode === 'login' ? 'New here? Create an account' : 'Have an account? Sign in'}
+          {mode === 'login' ? 'New here? Create an account' : 'Already have an account? Sign in'}
         </button>
+        <hr style={{ border: 0, borderTop: '1px solid var(--line)', width: '100%' }} />
+        <button type="button" className="btn secondary" onClick={guest} disabled={busy}>Just let me try it, no account</button>
       </form>
     </div>
   )
+}
+
+export default function LoginForm() {
+  return <Suspense><Form /></Suspense>
 }

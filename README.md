@@ -3,13 +3,29 @@
 A local-first collaborative workspace: rich-text documents and a shared canvas
 that keep working offline and merge cleanly when you reconnect.
 
-**The demo in five steps**
+![Synapse landing page](docs/images/landing.jpg)
 
-1. Open the same document in two browsers, as two different people. Live cursors and a "who's here" bar appear.
-2. Switch on **Simulate offline** in the built-in network simulator in one window.
-3. Edit the same paragraph in both windows, and drag the same shape on a canvas.
-4. Switch **Simulate offline** back off. The edits merge in tens of milliseconds and nothing is lost.
-5. Check it: a randomized test runs 10,000 times and every copy ends up identical ([numbers](docs/BENCHMARKS.md)).
+## Try it in one minute
+
+You need Node 22+, MongoDB and Redis installed (`brew install redis` and
+`brew tap mongodb/brew && brew install mongodb-community` on a Mac). Then:
+
+```bash
+./dev.sh
+```
+
+Open <http://localhost:3000> and press **Try it now**. No sign-up: you get a guest account, a
+Welcome document that teaches the app, and a sample whiteboard. Press **Share**, copy the invite
+link and open it in a second window to see two people editing live. Switch on **Try offline mode**,
+type in both windows, switch it off, and watch everything merge.
+
+| Document and toolbar | Whiteboard | Invite people with a link |
+|---|---|---|
+| ![Document](docs/images/document.jpg) | ![Whiteboard](docs/images/whiteboard.jpg) | ![Share dialog](docs/images/share.jpg) |
+
+Guest accounts are temporary; **Save your work** turns one into a real account. On a public server
+you can turn guests off with `GUESTS_ENABLED=false` and clear old ones with
+`cd server && npm run prune-guests -- --days 30` (add `--delete` to really remove them).
 
 > **Read first:** [Why Synapse uses a CRDT and not OT](docs/blog/why-a-crdt-not-ot.md), the blog post behind the central design decision.
 
@@ -133,8 +149,8 @@ Environment variables (all optional in development): `MONGO_URL`, `MONGO_DB`,
 ## Tests and benchmarks
 
 ```bash
-cd server && npm test        # 39 tests: sync, roles, revocation, storage, concurrent compaction, self-healing, metrics
-cd web    && npm test        # 64 tests: canvas data model, colour contrast, keyboard and ARIA behaviour, sync-client metrics
+cd server && npm test        # 58 tests: sync, roles, revocation, storage, concurrent compaction, self-healing, metrics
+cd web    && npm test        # 100 tests: canvas data model, colour contrast, keyboard and ARIA behaviour, sync-client metrics
 cd web    && npm run lint    # ESLint with Next.js and React 19 rules
 cd web    && npm run typecheck  # generates Next.js types, then runs tsc
 cd server && npm run bench:load   # also: bench:propagation, bench:partition, bench:convergence

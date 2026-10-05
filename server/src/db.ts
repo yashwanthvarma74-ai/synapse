@@ -8,6 +8,7 @@ export interface User {
   email: string
   name: string
   passwordHash: string
+  guest?: boolean // a one-click "try it" account; can be upgraded to a real one
   createdAt: Date
 }
 export interface Workspace {
@@ -44,12 +45,26 @@ export interface Comment {
   createdAt: Date
 }
 
+// A shareable link that adds whoever opens it to a workspace with a fixed role.
+export interface Invite {
+  _id: ObjectId
+  code: string // unguessable, travels in the link
+  workspaceId: ObjectId
+  role: 'editor' | 'commenter' | 'viewer' // never 'owner'
+  createdBy: ObjectId
+  createdAt: Date
+  expiresAt: Date
+  revoked: boolean
+  uses: number
+}
+
 export interface Collections {
   users: Collection<User>
   workspaces: Collection<Workspace>
   memberships: Collection<Membership>
   documents: Collection<DocumentMeta>
   comments: Collection<Comment>
+  invites: Collection<Invite>
 }
 
 export function collections(db: Db): Collections {
@@ -59,6 +74,7 @@ export function collections(db: Db): Collections {
     memberships: db.collection('memberships'),
     documents: db.collection('documents'),
     comments: db.collection('comments'),
+    invites: db.collection('invites'),
   }
 }
 
@@ -70,6 +86,8 @@ export async function ensureIndexes(c: Collections) {
   await c.documents.createIndex({ workspaceId: 1, updatedAt: -1 })
   await c.documents.createIndex({ title: 'text', text: 'text' }, { name: 'doc_text' })
   await c.comments.createIndex({ docId: 1, createdAt: 1 })
+  await c.invites.createIndex({ code: 1 }, { unique: true })
+  await c.invites.createIndex({ workspaceId: 1, createdAt: -1 })
 }
 
 export const oid = (s: string): ObjectId | null => (ObjectId.isValid(s) && s.length === 24 ? new ObjectId(s) : null)

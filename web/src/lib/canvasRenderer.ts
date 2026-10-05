@@ -19,6 +19,7 @@ export interface RendererOptions {
   onEdit: (id: string) => void // user asked to edit this object's text
   onTool: (tool: Tool) => void
   announce: (message: string) => void
+  onZoom?: (scale: number) => void // so the toolbar can show "125%"
 }
 
 const MIN_SCALE = 0.1
@@ -161,6 +162,15 @@ export class CanvasRenderer {
     moveBy(this.doc, this.selection, dx, dy)
   }
 
+  // Change the colour of every selected shape (connectors have no fill)
+  setColorOfSelection(color: string) {
+    if (this.opts.readOnly) return
+    for (const id of this.selection) {
+      const o = this.objects.find((x) => x.id === id)
+      if (o && o.kind !== 'connector') updateObject(this.doc, id, { color })
+    }
+  }
+
   // Keyboard alternative to dragging the corner handle (WCAG 2.1.1)
   resizeSelected(dw: number, dh: number) {
     if (this.opts.readOnly || this.selection.size !== 1) return
@@ -212,9 +222,11 @@ export class CanvasRenderer {
     this.world.position.set(cx - (cx - this.world.x) * k, cy - (cy - this.world.y) * k)
     this.world.scale.set(next)
     this.draw() // remote cursors keep a constant on-screen size
+    this.opts.onZoom?.(next)
     this.opts.announce(`Zoom ${Math.round(next * 100)} percent`)
   }
   resetView() {
+    this.opts.onZoom?.(1)
     this.world.scale.set(1)
     this.world.position.set(this.host.clientWidth / 2, this.host.clientHeight / 2)
   }
