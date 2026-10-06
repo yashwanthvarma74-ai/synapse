@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Next 16 writes AGENTS.md and CLAUDE.md into the project on first start; keep a fresh clone's `git status` clean
+  agentRules: false,
   // The end-to-end tests build into their own folder so they never disturb a running dev server
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // Lets a second dev origin (127.0.0.1) work, so two different accounts can be
