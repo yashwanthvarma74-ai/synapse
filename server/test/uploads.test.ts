@@ -119,6 +119,11 @@ describe('the real signer (no network: signing is pure computation)', () => {
     expect(url.searchParams.get('X-Amz-Expires')).toBe('600')
     expect(url.searchParams.get('response-content-disposition')).toContain('attachment')
   })
+  it('signs with the address browsers use when it differs from the server\'s own', async () => {
+    const both = s3Settings({ S3_BUCKET: 'b', S3_ENDPOINT: 'http://minio:9000', S3_PUBLIC_ENDPOINT: 'http://localhost:9000', S3_ACCESS_KEY_ID: 'AK', S3_SECRET_ACCESS_KEY: 'SK' } as NodeJS.ProcessEnv)!
+    expect(new URL(await s3Storage(both).presignPut('d/k.png', 'image/png', 9)).host).toBe('localhost:9000')
+    expect(new URL(await s3Storage(both).presignGet('d/k.png')).host).toBe('localhost:9000')
+  })
   it('stays off unless all three settings exist', () => {
     expect(s3Settings({} as NodeJS.ProcessEnv)).toBeNull()
     expect(s3Settings({ S3_BUCKET: 'b' } as NodeJS.ProcessEnv)).toBeNull()
