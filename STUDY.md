@@ -42,8 +42,22 @@ Read in this order. Each file has comments explaining the why.
 6. `components/Workspace.tsx` (document page), `WorkspaceView.tsx`, `Search.tsx`.
 7. `lib/api.ts`, `lib/useSession.ts`: talking to the API.
 
+## 3b. Added after the first pass (read after the sections above)
+- `web/src/lib/queries.ts`, `uiStore.ts`: server data with TanStack Query, UI-only state with Zustand
+  (`docs/adr/0015`). Compare `Comments.tsx` with how it used to fetch by hand (`git log -p`).
+- `web/src/lib/slashItems.ts`, `slashCommand.ts`: the "/" menu. Note why it has no `aria-expanded`.
+- `server/src/storage.ts`, `web/src/lib/uploads.ts`, `uploadExtension.ts`: the pre-signed upload,
+  end to end (`docs/adr/0014`). Why can't the browser change the file type or size after signing?
+- `server/src/summarize.ts`: the AI call and its prompt-injection guard rails (`docs/adr/0016`).
+- `server/src/onboarding.ts`, the guest and invite routes in `api.ts` (`docs/adr/0012`).
+- `server/src/logger.ts`: structured logs. `server/ops/uptime.ts`: the outside-in probe.
+- `e2e/tests/`: the Playwright tests. Start with `collaboration.spec.ts`, the offline merge demo.
+- `load/k6/editors.js`: the k6 load test, and `docs/BENCHMARKS.md` section 4b for why 100 editors looks slow.
+- `observability/tests/slo_test.yml` with the burn-rate rules in `alerts.yml`.
+- `docs/DEPLOY.md`: how this goes on the internet.
+
 ## 4. Accessibility
-- `docs/ACCESSIBILITY.md`: what the audit found and fixed (17 items), the keyboard map,
+- `docs/ACCESSIBILITY.md`: what the audit found and fixed (22 items), the keyboard map,
   and what is NOT verified.
 - `web/src/components/Tabs.tsx`: the ARIA tabs pattern, with `Tabs.test.tsx`.
 - `web/src/test/a11y.test.ts`: colour contrast computed from the real stylesheet.
@@ -56,7 +70,7 @@ Read in this order. Each file has comments explaining the why.
 - `observability/`: Prometheus config, alert rules, `build-dashboard.py` (generates the dashboard).
 
 ## Run it
-Infra (data kept in `.infra/`, nothing runs at login):
+Easiest: `./dev.sh` starts everything. By hand, infra (data kept in `.infra/`, nothing runs at login):
 ```
 redis-server --port 6379 --dir .infra/redis --save "" --appendonly no
 mongod --dbpath .infra/mongo --port 27017 --bind_ip 127.0.0.1
@@ -83,4 +97,9 @@ people can be signed in at once.
 - Why can axe report zero violations and the page still fail someone?
 - Why does the dashboard use an echo round trip instead of timestamps on edits?
 - Why can the browser-reported availability number not see a total outage?
+- What is an error-budget burn rate, and why does the fast-burn alert need two windows?
+- Why does a pre-signed upload URL sign the content type and size?
+- Why is the AI summary text shown as plain text and the board passed inside tags?
+- Why does k6 at 100 editors report a slow p95 when the server is almost idle?
+- Why did I need `exact: true` and a scripted caret in the end-to-end tests?
 - Why are cancelled connections not counted as failures?

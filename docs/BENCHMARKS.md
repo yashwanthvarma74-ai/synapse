@@ -27,7 +27,7 @@ Everything here was measured with scripts in `server/bench/`; raw numbers are in
 | Remote update p95 < 250 ms | **0.82 ms** (one gateway), **1.25 ms** (two gateways via Redis) | Met, loopback only |
 | Convergence < 2 s after a 5-minute partition | **13-18 ms** (5 min of edits), **44-58 ms** (30 min) | Met, loopback only |
 | 100% identical across 1,000+ randomized runs | **10,000 runs**, 100% | Met (see note) |
-| 50+ editors in one room, published | **50, 100 and 200 editors**, 0 messages lost | Met |
+| 50+ editors in one room, published | **50, 100 and 200 editors** (Node harness) and **50 and 100 with k6**, 0 messages lost | Met (see section 4b for k6 at 100) |
 | Keystroke-to-paint p95 < 50 ms | **16.6 ms and 17.4 ms** (two clean runs, 300 keystrokes each, 20,000-word document) | Met |
 | 60 FPS with 500+ canvas objects | **~120 FPS** on a 120 Hz display with 506 objects, including while panning and dragging a shape | Met |
 | 99.9% availability (SLO) | **Cannot be measured locally** | See bottom |
@@ -114,6 +114,36 @@ with no loss and about 30% of one core. The limit was not reached, so this does
 **not** say where it breaks. A "what breaks first at 10x" answer needs a
 heavier run (more editors, higher rates, a slower MongoDB).
 
+## 4b. The same test with k6 (added 6 October 2026)
+
+The brief names k6. `load/k6/editors.js` runs each editor as a k6 virtual user that creates a guest,
+joins a workspace through an invite link, opens the real WebSocket and speaks the Yjs sync protocol
+(Yjs is bundled into one file for k6 by `npm run build` in `load/k6`). Same rules as above: one laptop,
+loopback, a throwaway gateway and local MongoDB, 30 seconds, 2 edits per second per editor, every edit
+timestamped and measured by every other editor.
+
+| Editors | Edits sent | Deliveries | Lost | Update delay p50 / p95 / p99 | Target p95 < 250 ms |
+|---|---|---|---|---|---|
+| 10 | 190 | 1,710 | 0 | 2 / 6 / 8 ms | met |
+| 50 | 2,946 | 144,354 | 0 | 3 / 7 / 13 ms | met |
+| 100 | 5,325 | 527,175 | 0 | 54 / 283 / 420 ms | **crossed, but see below** |
+
+("Lost 0" means deliveries equal edits sent times (editors minus one), exactly.) **The 100-editor row is one run. A second run, the one I used to watch CPU, delivered 517,865 of 518,265 expected edits (400 short, 0.08%).** The most likely reason is edits still in flight when the sockets closed 1.5 seconds after the last send, while the overloaded generator was running up to 1.1 seconds behind; I did not prove that, so treat "no loss at 100 editors with k6" as shown once and not shown twice. The Node harness (section 4) delivered 100% on all three of its runs.
+
+**The 100-editor delay is the load generator, not the server.** I checked instead of assuming:
+during a second 100-editor run, `ps` showed **k6 using about 1,250% CPU (12 of 14 cores, 815 MB)
+while the gateway used about 17% of one core**. Every k6 virtual user runs a full Yjs document and
+applies about 200 edits a second, so k6 became the bottleneck, and its queueing shows up in the
+measured delay. The Node harness in section 4, which uses 4 lightweight worker processes, measured
+100 editors at p95 5.1 ms and is the better latency measurement at that size. What the k6 run does
+confirm at 100 editors is that nothing was lost and the server had plenty of room. **I have not found
+where the gateway itself breaks.** (The k6 test also needed three rate limits raised on the throwaway
+server: `AUTH_RATE_LIMIT`, `MAX_GUESTS_PER_HOUR` and `INVITE_RATE_LIMIT`.)
+
+An early version of the script used k6's `sleep()` to keep each user alive, and I suspected it held up
+the timers. Replacing it with a wait on the socket closing gave the same latencies, so it was not the
+cause.
+
 ## 5. Browser measurements
 
 Run in the app's built-in browser (Chromium 152, device pixel ratio 2) on the same
@@ -177,6 +207,14 @@ and jitter, live access re-checks, and a `/health` endpoint to probe.
 ## Cost of the metrics
 
 Switching metrics on costs roughly 1 to 3 points of gateway CPU and 12 MB of memory at 100 editors, with latency unchanged within noise (single runs; table in [OBSERVABILITY.md](OBSERVABILITY.md)). The numbers above were taken before metrics existed.
+
+## Browser end-to-end merge time (Playwright)
+
+The signature demo from the brief, in real browsers (`e2e/tests/collaboration.spec.ts`): two windows go
+offline, both type at the end of the same page, both reconnect, and the test times how long until the
+two screens show identical text containing both edits. **Chromium: 113 to 128 ms. WebKit: 352 to 421 ms**
+(several runs; local server, no real network; includes Playwright's polling interval). Firefox could not
+be run on this machine. The test fails if it takes 2 seconds or more.
 
 ## What these benchmarks do not cover
 
