@@ -3,6 +3,8 @@
 A local-first collaborative workspace: rich-text documents and a shared canvas
 that keep working offline and merge cleanly when you reconnect.
 
+Built by [Yashwanth Varma](https://github.com/yashwanthvarma74-ai). Live demo: <https://synapse-app-beta.vercel.app> (the server sleeps when idle on the free tier, so the first load can take up to a minute).
+
 ![Synapse landing page](docs/images/landing.jpg)
 
 ## Try it in one minute
