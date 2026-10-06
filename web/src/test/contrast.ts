@@ -12,10 +12,9 @@ export function contrast(a: string, b: string) {
   return (hi + 0.05) / (lo + 0.05)
 }
 
-// Read the colour tokens (--name: #hex) out of globals.css, for light and dark
+// Read the colour tokens (--name: #hex) out of globals.css. Synapse has one theme: light.
 export function readThemes(css: string) {
-  const grab = (block: string) => Object.fromEntries([...block.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map((m) => [m[1], m[2]]))
-  const light = css.match(/:root\s*{([^}]*)}/)![1]
-  const dark = css.match(/prefers-color-scheme:\s*dark\)\s*{\s*:root\s*{([^}]*)}/)![1]
-  return { light: grab(light), dark: { ...grab(light), ...grab(dark) } } // dark inherits anything it does not override
+  const root = css.match(/:root\s*{([^}]*)}/)![1]
+  const light = Object.fromEntries([...root.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map((m) => [m[1], m[2]]))
+  return { light }
 }

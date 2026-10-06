@@ -45,7 +45,6 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
   it('the stylesheet really defines the tokens the tests rely on', () => {
     for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn', 'surface', 'accent-soft']) {
       expect(themes.light[k], `light --${k}`).toBeTruthy()
-      expect(themes.dark[k], `dark --${k}`).toBeTruthy()
     }
   })
 })
