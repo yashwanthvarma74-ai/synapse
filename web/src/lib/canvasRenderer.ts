@@ -65,13 +65,12 @@ export class CanvasRenderer {
   }
 
   async init() {
-    const dark = matchMedia('(prefers-color-scheme: dark)').matches
     await this.app.init({
       resizeTo: this.host,
       antialias: true,
       autoDensity: true,
       resolution: window.devicePixelRatio || 1,
-      background: dark ? 0x14171d : 0xf8f9fb,
+      background: 0xf8f9fb,
     })
     if (this.destroyed) {
       this.app.destroy(true, { children: true })
