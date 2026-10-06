@@ -18,7 +18,8 @@
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--fg); }
-body { font-family: var(--font-geist-sans), system-ui, sans-serif; line-height: 1.55; font-size: 16px; }
+body { font-family: var(--font-geist-sans), system-ui, sans-serif; line-height: 1.55; font-size: 16px; min-height: 100dvh; display: flex; flex-direction: column; }
+main { flex: 1 0 auto; width: 100%; }
 h1, h2, h3 { line-height: 1.2; letter-spacing: -0.01em; }
 h1 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); margin: 0 0 8px; }
 h2 { font-size: 1.25rem; margin: 24px 0 8px; }
@@ -270,3 +271,8 @@ kbd { font: inherit; font-size: 0.85em; padding: 1px 7px; border: 1px solid var(
 
 /* AI summary text: plain text, wrapped, never HTML */
 .summary-text { white-space: pre-wrap; word-break: break-word; font: inherit; background: var(--accent-soft); border-radius: var(--radius); padding: 12px 14px; margin: 0; }
+
+/* credit line at the bottom of every page */
+.site-footer { border-top: 1px solid var(--line); margin-top: 32px; padding: 20px 16px 28px; text-align: center; font-size: 0.9rem; }
+.site-footer p { margin: 0 0 4px; }
+.site-footer a { display: inline-block; padding: 2px 0; }
