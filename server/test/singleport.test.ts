@@ -42,7 +42,7 @@ describe('API and WebSocket gateway on one port', () => {
 
   it('answers /health from the gateway and normal routes from the API', async () => {
     expect((await http().get('/health')).body).toMatchObject({ ok: true, rooms: expect.any(Number) })
-    expect((await http().get('/config')).body).toEqual({ uploads: false, summaries: false })
+    expect((await http().get('/config')).body).toEqual({ uploads: false, summaries: false, chat: false })
     const missing = await http().get('/nope')
     expect(missing.status).toBe(404)
     expect(missing.body).toEqual({ error: 'Not found' }) // the API's own 404, not the gateway's empty one

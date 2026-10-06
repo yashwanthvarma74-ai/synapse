@@ -27,6 +27,7 @@ function createInstruments() {
   sockets: meter.createUpDownCounter('synapse_gateway_open_sockets', { description: 'WebSockets currently open on this gateway' }),
   joins: meter.createCounter('synapse_gateway_joins', { description: 'Attempts to join a room, by result (accepted or rejected)' }),
   messages: meter.createCounter('synapse_gateway_messages', { description: 'Protocol messages received from clients, by kind' }),
+  chatMessages: meter.createCounter('synapse_chat_messages', { description: 'Chat messages, by result (sent, or the reason it was refused)' }),
   writesDropped: meter.createCounter('synapse_gateway_writes_dropped', { description: 'Writes refused because the sender lacks write access' }),
   badMessages: meter.createCounter('synapse_gateway_bad_messages', { description: 'Malformed messages (the socket is closed)' }),
   revocations: meter.createCounter('synapse_gateway_revocations', { description: 'Open connections closed because access was removed' }),

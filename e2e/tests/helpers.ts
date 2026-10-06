@@ -1,4 +1,16 @@
-import { expect, type APIRequestContext, type Browser, type Page } from '@playwright/test'
+import { expect as pwExpect, test as base, type APIRequestContext, type Browser, type Page } from '@playwright/test'
+
+// Every spec imports `test` from here. It closes any browser window a test opened by hand (windowFor and
+// browser.newContext), because windows left open pile up through a file and slow the browser to a crawl,
+// WebKit most of all.
+export const test = base.extend<{ closeStrayWindows: void }>({
+  closeStrayWindows: [async ({ browser }, use) => {
+    const before = new Set(browser.contexts())
+    await use()
+    for (const c of browser.contexts()) if (!before.has(c)) await c.close().catch(() => {})
+  }, { auto: true }],
+})
+export const expect = pwExpect
 
 const API = 'http://127.0.0.1:4101'
 
@@ -24,8 +36,8 @@ export async function windowFor(browser: Browser, token: string): Promise<Page> 
 
 export async function openDoc(page: Page, docId: string) {
   await page.goto(`/doc/${docId}`)
-  await expect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
-  await expect(page.getByRole('status').filter({ hasText: /Connected/ })).toBeVisible()
+  await pwExpect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
+  await pwExpect(page.getByRole('status').filter({ hasText: /Connected/ })).toBeVisible()
 }
 
 export const editor = (page: Page) => page.getByRole('textbox', { name: 'Document editor' })

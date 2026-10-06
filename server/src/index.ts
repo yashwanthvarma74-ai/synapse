@@ -7,6 +7,7 @@ import { collections, ensureIndexes, ensureSearchIndex, oid } from './db.js'
 import { logger } from './logger.js'
 import { ensureBucket, s3Settings, s3Storage } from './storage.js'
 import { anthropicSummarizer } from './summarize.js'
+import { MongoChatStore } from './chat.js'
 import { RedisBus } from './redisBus.js'
 import { NoBus } from './bus.js'
 import { createGateway } from './gateway.js'
@@ -27,6 +28,8 @@ const store = new MongoStore(process.env.MONGO_URL ?? 'mongodb://127.0.0.1:27017
 await store.init()
 const c = collections(store.db)
 await ensureIndexes(c)
+const chat = new MongoChatStore(store.db)
+await chat.init()
 // Atlas Search is on automatically for mongodb+srv:// (Atlas) URLs; ATLAS_SEARCH=false/true overrides
 const atlasSearch = process.env.ATLAS_SEARCH ? process.env.ATLAS_SEARCH === 'true' : (process.env.MONGO_URL ?? '').startsWith('mongodb+srv://')
 if (atlasSearch) await ensureSearchIndex(c).catch((err) => logger.error({ err: String(err) }, 'could not create the Atlas Search index; search will use the $text index'))
@@ -47,6 +50,7 @@ const api = service === 'gateway' ? null : createApi({
   corsOrigin: process.env.WEB_ORIGIN,
   atlasSearch,
   storage: s3 ? s3Storage(s3) : null,
+  chat,
   summarize: process.env.ANTHROPIC_API_KEY ? anthropicSummarizer({ apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.SUMMARY_MODEL }) : null,
   publicUrl: process.env.PUBLIC_API_URL,
   guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
@@ -57,6 +61,7 @@ if (service === 'gateway' || service === 'both') {
   const gateway = createGateway({
     port: singlePort ? Number(process.env.PORT) : Number(process.env.GATEWAY_PORT ?? 4000),
     fallback: singlePort && api ? (req, res) => api(req, res) : undefined,
+    chat,
     store,
     bus,
     authorize: makeAuthorize(c, secret),

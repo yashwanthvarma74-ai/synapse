@@ -5,12 +5,17 @@ export interface TabDef {
   id: string
   label: string
   content: ReactNode
+  badge?: number // unread items: shown as a small count, and spoken as "(3 new)"
 }
 
 // WAI-ARIA tabs pattern: one tab is in the Tab order (roving tabindex), arrow keys
 // move between tabs, Home and End jump to the ends, and each tab controls a panel.
-export default function Tabs({ tabs, label }: { tabs: TabDef[]; label: string }) {
-  const [active, setActive] = useState(tabs[0].id)
+export default function Tabs({ tabs, label, onChange }: { tabs: TabDef[]; label: string; onChange?: (id: string) => void }) {
+  const [active, setActiveState] = useState(tabs[0].id)
+  const setActive = (id: string) => {
+    setActiveState(id)
+    onChange?.(id)
+  }
   const base = useId()
   const refs = useRef(new Map<string, HTMLButtonElement>())
 
@@ -44,6 +49,12 @@ export default function Tabs({ tabs, label }: { tabs: TabDef[]; label: string })
             onKeyDown={(e) => onKeyDown(e, i)}
           >
             {t.label}
+            {t.badge ? (
+              <>
+                <span className="tab-badge" aria-hidden="true">{t.badge > 99 ? '99+' : t.badge}</span>
+                <span className="sr-only"> ({t.badge} new)</span>
+              </>
+            ) : null}
           </button>
         ))}
       </div>

@@ -67,6 +67,15 @@ simpler vocabulary). Everything below was re-checked.
 | 21 | **Slash menu: scrolled but not keyboard-reachable, and arrowing down did not scroll the highlighted row into view** (axe: `scrollable-region-focusable`; a real keyboard bug) | Compact one-line rows so all blocks fit; the highlighted row now scrolls into view |
 | 22 | Dead invite links and missing documents had no page title or heading | Titles and headings added |
 
+- **Chat tab (added later the same day).** Designed for screen readers from the start and scanned with axe in
+  real browsers with messages and a refusal showing; no violations. The choices: the message list is a
+  keyboard-focusable named region (a scrolling area must be reachable by keyboard); a new message from someone
+  else is spoken once, politely, through a separate status region (your own messages and old history are
+  never spoken, so you do not hear yourself or the whole backlog); an unread count on the tab is spoken as
+  "(3 new)" and the tab name still starts with the visible word "Chat"; focus is never moved when a message
+  arrives (tested: typing in the page continues uninterrupted); a refused message returns to the box with a
+  plain explanation. **Not verified with a real screen reader**, so how busy the announcements feel in a lively
+  chat is unknown.
 - **A browser difference, not a bug:** Safari (WebKit) does not tab to links unless a setting is
   turned on; Option+Tab is its shortcut. The keyboard test uses it for WebKit.
 - **Renamed:** the "Simulate offline" button (item 9) is now **"Offline mode"**, with the same

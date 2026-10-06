@@ -10,6 +10,7 @@ import type { Bus } from './bus.js'
 import type { DocStore } from './store.js'
 import { m } from './telemetry.js'
 import { logger } from './logger.js'
+import { MSG_CHAT, MSG_CHAT_ERROR, TokenBucket, cleanChatText, type ChatErrorCode, type ChatMessage, type ChatStore } from './chat.js'
 
 export const MSG_SYNC = 0
 export const MSG_AWARENESS = 1
@@ -26,6 +27,7 @@ const ORIGIN_BUS = 'bus'
 interface Conn {
   role: Role
   userId: string
+  name: string
   awarenessIds: Set<number>
 }
 
@@ -37,6 +39,7 @@ export interface RoomOptions {
   onEmpty: (room: Room) => void
   // Called a moment after edits stop (debounced). Used to refresh the search index.
   onSettled?: (docId: string, doc: Y.Doc) => void
+  chat?: ChatStore
 }
 
 export class Room {
@@ -48,6 +51,8 @@ export class Room {
   private unsubscribeBus: () => void = () => {}
   private writeChain: Promise<void> = Promise.resolve()
   private settleTimer: ReturnType<typeof setTimeout> | null = null
+  private chatChain: Promise<void> = Promise.resolve() // chat is saved in arrival order
+  private chatLimits = new Map<string, TokenBucket>() // per person, not per tab
 
   constructor(private opts: RoomOptions) {
     // The server has no cursor of its own
@@ -67,8 +72,8 @@ export class Room {
 
   // ---- connections ------------------------------------------------------
 
-  addConn(ws: WebSocket, role: Role, userId: string) {
-    this.conns.set(ws, { role, userId, awarenessIds: new Set() })
+  addConn(ws: WebSocket, role: Role, userId: string, name = 'Someone') {
+    this.conns.set(ws, { role, userId, name, awarenessIds: new Set() })
 
     // Start the sync handshake: "here is my state vector, send me what I'm missing".
     const enc = encoding.createEncoder()
@@ -139,6 +144,13 @@ export class Room {
       return
     }
 
+    if (type === MSG_CHAT) {
+      const text = decoding.readVarString(decoder)
+      const cid = decoding.readVarString(decoder).slice(0, 64)
+      this.handleChat(ws, conn, text, cid)
+      return
+    }
+
     if (type === MSG_SYNC) {
       // Sub-types: 0 = step1 (state vector), 1 = step2 (diff), 2 = update.
       // Step2 and update carry writes. Role is checked here, on EVERY message,
@@ -165,6 +177,49 @@ export class Room {
         ws,
       )
     }
+  }
+
+  // ---- chat ---------------------------------------------------------------------------------
+
+  private chatReject(ws: WebSocket, cid: string, code: ChatErrorCode) {
+    m.chatMessages.add(1, { result: code })
+    const enc = encoding.createEncoder()
+    encoding.writeVarUint(enc, MSG_CHAT_ERROR)
+    encoding.writeVarString(enc, cid)
+    encoding.writeVarString(enc, code)
+    this.send(ws, encoding.toUint8Array(enc))
+  }
+
+  // Who may chat is decided HERE, on every message, from the role the server holds for this socket:
+  // owners, editors and commenters may send; viewers may read. The author's name and the time come
+  // from the server too, so a client can not pretend to be someone else.
+  private handleChat(ws: WebSocket, conn: Conn, rawText: string, cid: string) {
+    m.messages.add(1, { kind: 'chat' })
+    if (conn.role === 'viewer') return this.chatReject(ws, cid, 'forbidden')
+    const text = cleanChatText(rawText)
+    if (!text) return this.chatReject(ws, cid, 'invalid')
+    let bucket = this.chatLimits.get(conn.userId)
+    if (!bucket) this.chatLimits.set(conn.userId, (bucket = new TokenBucket()))
+    if (!bucket.take()) return this.chatReject(ws, cid, 'rate')
+    const store = this.opts.chat
+    if (!store) return this.chatReject(ws, cid, 'unavailable')
+    const { userId, name } = conn
+    this.chatChain = this.chatChain.then(async () => {
+      try {
+        // saved first: a message everyone saw must still be there after a refresh
+        const saved: ChatMessage = { ...(await store.append(this.opts.docId, { userId, name, text })), cid }
+        m.chatMessages.add(1, { result: 'sent' })
+        const enc = encoding.createEncoder()
+        encoding.writeVarUint(enc, MSG_CHAT)
+        encoding.writeVarString(enc, JSON.stringify(saved))
+        const msg = encoding.toUint8Array(enc)
+        for (const other of this.conns.keys()) this.send(other, msg)
+        this.opts.bus.publish(this.opts.docId, msg) // and the other gateways' people
+      } catch (err) {
+        logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'chat message not saved')
+        this.chatReject(ws, cid, 'unavailable')
+      }
+    })
   }
 
   // ---- outgoing: doc changes -> sockets, store and bus ---------------------
@@ -217,6 +272,9 @@ export class Room {
         syncProtocol.readSyncMessage(decoder, encoding.createEncoder(), this.doc, ORIGIN_BUS)
       } else if (type === MSG_AWARENESS) {
         awarenessProtocol.applyAwarenessUpdate(this.awareness, decoding.readVarUint8Array(decoder), ORIGIN_BUS)
+      } else if (type === MSG_CHAT) {
+        // already saved by the gateway that received it: just hand it to the people connected here
+        for (const ws of this.conns.keys()) this.send(ws, message)
       }
     } catch (err) {
       logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'ignored a malformed relay message')
@@ -314,7 +372,7 @@ export class Room {
   }
 
   flush() {
-    return this.writeChain
+    return Promise.all([this.writeChain, this.chatChain]).then(() => undefined)
   }
 
   private send(ws: WebSocket, msg: Uint8Array) {

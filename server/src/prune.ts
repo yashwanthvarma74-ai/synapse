@@ -7,6 +7,7 @@
 import type { ObjectId } from 'mongodb'
 import type { Collections } from './db.js'
 import type { MongoStore } from './mongoStore.js'
+import { MongoChatStore } from './chat.js'
 
 export interface PruneResult {
   guests: number
@@ -38,6 +39,7 @@ export async function pruneGuests(c: Collections, store: MongoStore, opts: { old
 
   for (const d of docs) await store.deleteDocument(d._id.toHexString())
   await c.comments.deleteMany({ docId: { $in: docs.map((d) => d._id) } })
+  for (const d of docs) await new MongoChatStore(store.db).deleteDocument(d._id.toHexString())
   await c.documents.deleteMany({ workspaceId: { $in: doomed } })
   await c.invites.deleteMany({ workspaceId: { $in: doomed } })
   await c.memberships.deleteMany({ workspaceId: { $in: doomed } })

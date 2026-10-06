@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import { editor, newGuest, openDoc, typeAtEnd, windowFor } from './helpers'
+
+import { expect, test, editor, newGuest, openDoc, typeAtEnd, windowFor } from './helpers'
 
 test('slash commands turn a line into a block', async ({ browser, request }) => {
   const g = await newGuest(request)

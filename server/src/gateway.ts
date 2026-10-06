@@ -11,6 +11,7 @@ import { m, observeGauge } from './telemetry.js'
 export interface AuthResult {
   userId: string
   role: Role
+  name?: string // shown as the author of chat messages
 }
 
 // Called when a socket tries to join a room. Return null to reject.
@@ -33,6 +34,8 @@ export interface GatewayOptions {
   // message heals on its own. 0 turns it off.
   resyncMs?: number
   onSettled?: (docId: string, doc: import('yjs').Doc) => void
+  // Where chat messages are saved. Without it, chat is unavailable (the sender is told so).
+  chat?: import('./chat.js').ChatStore
   // Single-port mode: plain HTTP requests (anything that is not the WebSocket upgrade or /health)
   // go to this handler, normally the API. Hosts that expose one port per service need this.
   fallback?: (req: http.IncomingMessage, res: http.ServerResponse) => void
@@ -69,6 +72,7 @@ export function createGateway(opts: GatewayOptions) {
           bus: opts.bus,
           compactEvery: opts.compactEvery ?? 100,
           onSettled: opts.onSettled,
+          chat: opts.chat,
           onEmpty: (r) => {
             // Close the room shortly after the last person leaves. The grace
             // period covers quick refreshes and a join racing with the cleanup.
@@ -160,7 +164,7 @@ export function createGateway(opts: GatewayOptions) {
     room = await getRoom(docId)
     if (room.closed) room = await getRoom(docId) // raced with a shutdown: get the fresh room
     if (ws.readyState !== ws.OPEN) return // closed while the room was loading
-    room.addConn(ws, auth.role, auth.userId)
+    room.addConn(ws, auth.role, auth.userId, auth.name ?? 'Someone')
     for (const m of buffered) handle(room, m)
   }
 

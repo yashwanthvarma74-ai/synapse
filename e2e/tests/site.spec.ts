@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-
+import { expect, test } from './helpers'
 test('every page credits the author and links to the source', async ({ page }) => {
   for (const path of ['/', '/login']) {
     await page.goto(path)

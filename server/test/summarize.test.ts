@@ -152,7 +152,7 @@ describe('POST /documents/:id/summarize', () => {
   it('is off (501) when no key is configured, and /config tells the app so', async () => {
     const u = await user('hal')
     expect((await ask(off, u.token, u.doc)).status).toBe(501)
-    expect((await request(off).get('/config')).body).toEqual({ uploads: false, summaries: false })
+    expect((await request(off).get('/config')).body).toEqual({ uploads: false, summaries: false, chat: false })
     expect((await request(api).get('/config')).body).toMatchObject({ summaries: true })
   })
   it('caps what is sent to the model', () => expect(MAX_CONTENT_CHARS).toBe(20_000))

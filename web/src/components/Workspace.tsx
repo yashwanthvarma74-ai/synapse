@@ -18,6 +18,8 @@ import OfflineDemo from './OfflineDemo'
 import Comments from './Comments'
 import History from './History'
 import Summary from './Summary'
+import Chat from './Chat'
+import { useChat } from '@/lib/useChat'
 import Tabs from './Tabs'
 import ShareDialog from './ShareDialog'
 import { NotFoundArt } from './ui/Illustrations'
@@ -76,6 +78,7 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
   const sharing = useUi((s) => s.shareOpen)
   const setSharing = useUi((s) => s.setShareOpen)
   const config = useConfig().data
+  const chat = useChat(docId, userId, collab?.provider ?? null, !!config?.chat)
   const status = useStatus(collab?.provider ?? null)
   const revoked = status === 'revoked'
   const canEdit = !revoked && atLeast(meta.role, 'editor')
@@ -141,9 +144,11 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
           <aside>
             <Tabs
               label="Document tools"
+              onChange={(id) => chat.store?.setOpen(id === 'chat')}
               tabs={[
                 { id: 'comments', label: 'Comments', content: <Comments docId={docId} collab={collab} editor={editor} role={meta.role} userId={userId} /> },
                 { id: 'history', label: 'History', content: <History docId={docId} collab={collab} role={meta.role} type={meta.type} /> },
+                ...(config?.chat ? [{ id: 'chat', label: 'Chat', badge: chat.view.unread, content: <Chat store={chat.store} view={chat.view} me={userId} canWrite={!revoked && meta.role !== 'viewer'} connected={status === 'connected'} /> }] : []),
                 ...(config?.summaries ? [{ id: 'summary', label: 'Summary', content: <Summary docId={docId} type={meta.type} /> }] : []),
               ]}
             />

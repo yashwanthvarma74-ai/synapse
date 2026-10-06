@@ -2,8 +2,8 @@
 // Automated rules find roughly a third of accessibility problems. A pass here is necessary, not
 // sufficient: it is not a substitute for a screen reader (see docs/ACCESSIBILITY.md).
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
-import { editor, newGuest, openDoc, typeAtEnd, windowFor } from './helpers'
+import { type Page } from '@playwright/test'
+import { expect, test, editor, newGuest, openDoc, typeAtEnd, windowFor } from './helpers'
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 async function scan(page: Page) {
@@ -59,6 +59,17 @@ test('document page, History tab', async ({ browser, request }) => {
   await openDoc(p, g.docId)
   await p.getByRole('tab', { name: 'History' }).click()
   await expect(p.getByRole('heading', { name: 'Version history' })).toBeVisible()
+  await scan(p)
+})
+
+test('document page, Chat tab, with messages', async ({ browser, request }) => {
+  const g = await newGuest(request)
+  const p = await windowFor(browser, g.token)
+  await openDoc(p, g.docId)
+  await p.getByRole('tab', { name: /^Chat/ }).click()
+  await p.getByLabel('Message', { exact: true }).fill('Hello, this is a test message')
+  await p.getByLabel('Message', { exact: true }).press('Enter')
+  await expect(p.getByRole('region', { name: 'Chat messages' })).toContainText('Hello, this is a test message')
   await scan(p)
 })
 

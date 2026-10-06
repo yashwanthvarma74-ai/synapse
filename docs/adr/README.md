@@ -22,5 +22,6 @@ answer "why not X?".
 | [0014](0014-uploads-with-presigned-urls.md) | Uploads straight to S3/R2 with pre-signed URLs |
 | [0015](0015-client-state-query-and-zustand.md) | TanStack Query for server data, Zustand for UI-only state |
 | [0016](0016-ai-summary.md) | The AI summary action and its guard rails |
+| [0017](0017-chat.md) | Per-document chat: a separate log, server-checked on every message |
 
 Related: [benchmarks](../BENCHMARKS.md), [fault injection](../FAULT-INJECTION.md), [accessibility](../ACCESSIBILITY.md), [observability](../OBSERVABILITY.md), [project README](../../README.md).

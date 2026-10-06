@@ -66,4 +66,26 @@ describe('Tabs (WAI-ARIA tabs pattern)', () => {
     expect(notPrevented).toBe(true)
     expect(b.getAttribute('aria-selected')).toBe('false')
   })
+
+  it('shows an unread count that is spoken as "(3 new)", and keeps the tab\'s own name inside it', () => {
+    render(<Tabs label="Document tools" tabs={[three[0], { id: 'chat', label: 'Chat', badge: 3, content: <p>chat here</p> }]} />)
+    const tab = screen.getByRole('tab', { name: /^Chat/ })
+    expect(tab.textContent).toContain('3')
+    expect(tab.textContent?.replace(/\s+/g, ' ')).toMatch(/^Chat.*\(3 new\)$/) // the spoken text starts with the visible word and ends with the count
+  })
+
+  it('shows no badge for zero, and caps big numbers', () => {
+    const { rerender } = render(<Tabs label="t" tabs={[{ id: 'chat', label: 'Chat', badge: 0, content: null }]} />)
+    expect(screen.getByRole('tab', { name: 'Chat' })).toBeTruthy()
+    rerender(<Tabs label="t" tabs={[{ id: 'chat', label: 'Chat', badge: 250, content: null }]} />)
+    expect(screen.getByRole('tab').textContent).toContain('99+')
+  })
+
+  it('tells the page which tab is now showing', () => {
+    const seen: string[] = []
+    render(<Tabs label="t" tabs={three} onChange={(id) => seen.push(id)} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'History' }))
+    fireEvent.keyDown(screen.getAllByRole('tab')[1], { key: 'ArrowRight' })
+    expect(seen).toEqual(['b', 'c'])
+  })
 })

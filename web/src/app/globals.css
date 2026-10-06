@@ -276,3 +276,16 @@ kbd { font: inherit; font-size: 0.85em; padding: 1px 7px; border: 1px solid var(
 .site-footer { border-top: 1px solid var(--line); margin-top: 32px; padding: 20px 16px 28px; text-align: center; font-size: 0.9rem; }
 .site-footer p { margin: 0 0 4px; }
 .site-footer a { display: inline-block; padding: 2px 0; }
+
+/* chat */
+.tabs { flex-wrap: wrap; }
+.tab-badge { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 0.75rem; line-height: 18px; text-align: center; font-weight: 700; }
+.chat-hint { margin-bottom: 8px; }
+.chat-scroll { max-height: 340px; min-height: 120px; overflow-y: auto; padding: 4px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.chat-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); max-width: 92%; align-self: flex-start; }
+.chat-msg.mine { align-self: flex-end; background: var(--accent-soft); border-color: transparent; }
+.chat-msg.sending { opacity: 0.75; }
+.chat-meta { font-size: 0.8rem; color: var(--muted); }
+.chat-meta strong { color: var(--fg); }
+.chat-text { white-space: pre-wrap; overflow-wrap: anywhere; }

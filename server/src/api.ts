@@ -18,6 +18,7 @@ import { m, recordClientMetric } from './telemetry.js'
 import { createStarterWorkspace } from './onboarding.js'
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, type Storage } from './storage.js'
 import { describe, type Summarizer } from './summarize.js'
+import { PAGE_SIZE, type ChatStore } from './chat.js'
 import { mergeStored } from './store.js'
 import * as Y from 'yjs'
 
@@ -29,6 +30,7 @@ export interface ApiOptions {
   corsOrigin?: string
   storage?: Storage | null // object storage for uploads (S3 / R2 / MinIO); null = uploads off
   summarize?: Summarizer | null // the AI summary action; null = off
+  chat?: ChatStore | null // saved chat messages; null = chat history is empty
   publicUrl?: string // the public address of this API, used in file links
   atlasSearch?: boolean // use Atlas Search for /search (needs MongoDB Atlas); otherwise the $text index
   guestsEnabled?: boolean // one-click guest accounts (default on)
@@ -76,7 +78,7 @@ const newInviteCode = () => randomBytes(16).toString('base64url')
 const INVITE_DAYS = 7
 const GUEST_TOKEN_DAYS = 30
 
-export function createApi({ c, store, bus, secret, corsOrigin, storage = null, summarize = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
+export function createApi({ c, store, bus, secret, corsOrigin, storage = null, summarize = null, chat = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
   // comma-separated list of allowed web origins
   app.use(cors({ origin: (corsOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000').split(',') }))
@@ -441,7 +443,22 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, s
   }))
 
   // What this server can do, so the app only offers buttons that will work
-  app.get('/config', (_req, res) => void res.json({ uploads: !!storage, summaries: !!summarize }))
+  app.get('/config', (_req, res) => void res.json({ uploads: !!storage, summaries: !!summarize, chat: !!chat }))
+
+  // ---- chat history ----------------------------------------------------------------------------------
+  // Anyone who can READ the document can read its chat. Sending happens over the WebSocket (room.ts),
+  // where the same role rules apply to every single message. Newest page first; pass `before` (the id of
+  // the oldest message you have) to go further back.
+  app.get('/documents/:id/chat', needAuth, h(async (req, res) => {
+    const did = idParam(req.params.id as string)
+    await needDocRole(req.userId, did, 'viewer')
+    const { before, limit } = parse(z.object({
+      before: z.string().regex(/^[a-f0-9]{1,40}$/).optional(),
+      limit: z.coerce.number().int().min(1).max(100).default(PAGE_SIZE),
+    }), req.query)
+    res.set('cache-control', 'no-store')
+    res.json(chat ? await chat.list(did.toHexString(), { before, limit }) : [])
+  }))
 
   // ---- AI summary ---------------------------------------------------------------------------------------
   // Anyone who can READ the document may ask for a summary. Each person gets a few an hour, because

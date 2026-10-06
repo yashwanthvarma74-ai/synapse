@@ -109,6 +109,7 @@ platforms that cannot hold a WebSocket open (Vercel functions) are not suitable 
 | `GUESTS_ENABLED`, `MAX_GUESTS_PER_HOUR` | Guest accounts (ADR 0012) |
 | `AUTH_RATE_LIMIT`, `INVITE_RATE_LIMIT`, `UPLOAD_RATE_LIMIT`, `SUMMARIES_PER_HOUR` | Abuse limits (in memory, per instance) |
 | `METRICS_PORT` | Prometheus metrics (default 9464, bound to localhost; `0` turns it off) |
+| `CHAT_RETENTION_DAYS` | How long chat messages are kept (default 180). They expire on their own through a MongoDB TTL index |
 | `LOG_LEVEL` | `info` (default), `debug`, `warn`... Logs are JSON, one per line |
 | `NODE_ENV=production` | Makes a missing `JWT_SECRET` a hard error |
 

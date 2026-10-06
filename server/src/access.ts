@@ -31,6 +31,10 @@ export function makeAuthorize(c: Collections, secret: string): Authorize {
     const userId = await verifyToken(url.searchParams.get('token'), secret)
     if (!userId) return null
     const role = await roleOnDocument(c, userId, docId)
-    return role ? { userId, role } : null
+    if (!role) return null
+    // the author's name for chat comes from the account, so nobody can send a message as someone else
+    const u = oid(userId)
+    const user = u ? await c.users.findOne({ _id: u }, { projection: { name: 1 } }) : null
+    return { userId, role, name: user?.name ?? 'Someone' }
   }
 }

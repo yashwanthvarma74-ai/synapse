@@ -65,6 +65,10 @@ label of every metric for anything shaped like an id. Browsers are untrusted, so
 server accepts only a fixed list of names, fixed label values and sane numbers, and counts
 everything else as "refused" (tested).
 
+Chat adds one counter, `synapse_chat_messages{result}`, where the result is `sent` or the reason a message
+was refused (`forbidden`, `invalid`, `rate`, `unavailable`). It is **not on the dashboard yet**, and `unavailable`
+(chat could not be saved) has no alert. Chat is also counted in `synapse_gateway_messages{kind="chat"}`.
+
 ## The dashboard
 
 31 panels in 7 rows, each with a plain-language description of what it means and what bad

@@ -11,9 +11,15 @@ const MSG_SYNC = 0
 const MSG_AWARENESS = 1
 const MSG_PING = 2
 const MSG_PONG = 3
+const MSG_CHAT = 4 // [4, text, clientId] to send; [4, json] from the server
+const MSG_CHAT_ERROR = 5 // [5, clientId, code] the server refused a message
 const PING_EVERY_MS = 5000
 
 export type Status = 'connecting' | 'connected' | 'offline' | 'revoked'
+
+export interface ChatMessage { id: string; userId: string; name: string; text: string; at: string; cid?: string }
+export type ChatErrorCode = 'forbidden' | 'invalid' | 'rate' | 'unavailable'
+export type ChatEvent = { type: 'message'; message: ChatMessage } | { type: 'error'; cid: string; code: ChatErrorCode }
 
 export interface ProviderOptions {
   url: string // e.g. ws://localhost:4000/collab/<docId>?user=...
@@ -46,6 +52,7 @@ export class SynapseProvider {
   private lostAt: number | null = null // when the last synced connection was lost
   private pingTimer: ReturnType<typeof setInterval> | null = null
   private listeners = new Set<() => void>()
+  private chatListeners = new Set<(e: ChatEvent) => void>()
   private pendingAwareness = new Set<number>()
   private awarenessTimer: ReturnType<typeof setTimeout> | null = null
   private opts: ProviderOptions
@@ -65,6 +72,22 @@ export class SynapseProvider {
   subscribe(fn: () => void) {
     this.listeners.add(fn)
     return () => void this.listeners.delete(fn)
+  }
+
+  // ---- chat (see server/src/chat.ts) ----
+  onChat(fn: (e: ChatEvent) => void) {
+    this.chatListeners.add(fn)
+    return () => void this.chatListeners.delete(fn)
+  }
+  // Returns false when the message could not even be handed to the connection (offline).
+  sendChat(text: string, cid: string): boolean {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.synced || this.partitioned) return false
+    const enc = encoding.createEncoder()
+    encoding.writeVarUint(enc, MSG_CHAT)
+    encoding.writeVarString(enc, text)
+    encoding.writeVarString(enc, cid)
+    this.send(encoding.toUint8Array(enc))
+    return true
   }
 
   setPartitioned(on: boolean) {
@@ -98,6 +121,7 @@ export class SynapseProvider {
     awarenessProtocol.removeAwarenessStates(this.awareness, [this.doc.clientID], 'destroy')
     this.ws?.close()
     this.listeners.clear()
+    this.chatListeners.clear()
   }
 
   // ---- connection lifecycle -----------------------------------------------
@@ -196,6 +220,15 @@ export class SynapseProvider {
         decoding.readVarUint8Array(decoder),
         this,
       )
+    } else if (type === MSG_CHAT) {
+      try {
+        const message = JSON.parse(decoding.readVarString(decoder)) as ChatMessage
+        this.chatListeners.forEach((fn) => fn({ type: 'message', message }))
+      } catch { /* a malformed message from the server is ignored */ }
+    } else if (type === MSG_CHAT_ERROR) {
+      const cid = decoding.readVarString(decoder)
+      const code = decoding.readVarString(decoder) as ChatErrorCode
+      this.chatListeners.forEach((fn) => fn({ type: 'error', cid, code }))
     } else if (type === MSG_PONG) {
       // The gateway echoed our timestamp: the difference is the round trip
       const echoed = decoding.readFloat64(decoding.createDecoder(decoding.readVarUint8Array(decoder)))

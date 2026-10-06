@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import { editor, inviteCode, newGuest, openDoc, text, typeAtEnd, windowFor } from './helpers'
+
+import { expect, test, editor, inviteCode, newGuest, openDoc, text, typeAtEnd, windowFor } from './helpers'
 
 test('two people see each other and each other\'s typing, live', async ({ browser, request }) => {
   const ann = await newGuest(request, 'Ann')
