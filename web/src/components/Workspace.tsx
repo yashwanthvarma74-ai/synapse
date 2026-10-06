@@ -132,7 +132,7 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
             ) : (
               <>
                 <EditorToolbar editor={editor} disabled={!canEdit} />
-                <Editor collab={collab} readOnly={!canEdit} onEditor={setEditor} />
+                <Editor docId={docId} collab={collab} readOnly={!canEdit} onEditor={setEditor} />
               </>
             )}
           </div>

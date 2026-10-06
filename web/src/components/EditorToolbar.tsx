@@ -36,6 +36,9 @@ export default function EditorToolbar({ editor, disabled }: { editor: Editor | n
       {btn('Numbers', 'Ctrl+Shift+7', s?.numbers ?? false, run((c) => c.toggleOrderedList()), 'Numbers')}
       {btn('Quote', 'Ctrl+Shift+B', s?.quote ?? false, run((c) => c.toggleBlockquote()), 'Quote')}
       {btn('Code block', 'Ctrl+Alt+C', s?.code ?? false, run((c) => c.toggleCodeBlock()), 'Code')}
+      <span className="sep" />
+      {btn('Image', '', null, () => editor?.commands.chooseFile('image'), 'Image')}
+      {btn('File', '', null, () => editor?.commands.chooseFile('file'), 'File')}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { MongoStore } from './mongoStore.js'
 import { collections, ensureIndexes, ensureSearchIndex, oid } from './db.js'
 import { logger } from './logger.js'
+import { ensureBucket, s3Settings, s3Storage } from './storage.js'
 import { RedisBus } from './redisBus.js'
 import { NoBus } from './bus.js'
 import { createGateway } from './gateway.js'
@@ -47,11 +48,17 @@ if (service === 'gateway' || service === 'both') {
   logger.info(`gateway listening on :${await gateway.listen()}`)
 }
 
+const s3 = s3Settings()
+if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch((err) => logger.error({ err: String(err) }, 'could not create the bucket'))
+if (!s3) logger.warn('S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set: uploads are turned off')
+
 if (service === 'api' || service === 'both') {
   const api = createApi({
     c, store, bus, secret,
     corsOrigin: process.env.WEB_ORIGIN,
     atlasSearch,
+    storage: s3 ? s3Storage(s3) : null,
+    publicUrl: process.env.PUBLIC_API_URL,
     guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
     maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
   })

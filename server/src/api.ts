@@ -16,6 +16,7 @@ import { hashPassword, verifyPassword, signToken, verifyToken } from './auth.js'
 import { atLeast, roleOnDocument, roleOnWorkspace } from './access.js'
 import { m, recordClientMetric } from './telemetry.js'
 import { createStarterWorkspace } from './onboarding.js'
+import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, type Storage } from './storage.js'
 
 export interface ApiOptions {
   c: Collections
@@ -23,6 +24,8 @@ export interface ApiOptions {
   bus: Bus
   secret: string
   corsOrigin?: string
+  storage?: Storage | null // object storage for uploads (S3 / R2 / MinIO); null = uploads off
+  publicUrl?: string // the public address of this API, used in file links
   atlasSearch?: boolean // use Atlas Search for /search (needs MongoDB Atlas); otherwise the $text index
   guestsEnabled?: boolean // one-click guest accounts (default on)
   maxGuestsPerHour?: number // simple ceiling against abuse
@@ -68,7 +71,7 @@ const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[r
 const newInviteCode = () => randomBytes(16).toString('base64url')
 const INVITE_DAYS = 7
 
-export function createApi({ c, store, bus, secret, corsOrigin, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
+export function createApi({ c, store, bus, secret, corsOrigin, storage = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
   // comma-separated list of allowed web origins
   app.use(cors({ origin: (corsOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000').split(',') }))
@@ -428,6 +431,41 @@ export function createApi({ c, store, bus, secret, corsOrigin, atlasSearch = fal
       .sort({ score: { $meta: 'textScore' } }).limit(20).toArray()
     res.json(found.map((d) => ({ id: d._id.toHexString(), title: d.title, workspaceId: d.workspaceId.toHexString(),
       snippet: snippet(d.text, q) })))
+  }))
+
+  // ---- uploads (pre-signed, straight to object storage) ----------------------------------------------
+  // 1. The editor asks for permission to upload ONE file: name, type, size. Editors only.
+  // 2. We answer with a short-lived URL signed for exactly that key, type and size.
+  // 3. The browser PUTs the bytes to the bucket itself. Our server never sees them.
+  // 4. The document stores the file's link, /files/<doc>/<random-name>. That link is a capability:
+  //    the 128-bit random name cannot be guessed, and it redirects to a fresh short-lived download URL.
+  const uploadLimit = rateLimit(Number(process.env.UPLOAD_RATE_LIMIT ?? 60), 60_000)
+  app.post('/documents/:id/uploads', uploadLimit, needAuth, h(async (req, res) => {
+    if (!storage) throw new HttpError(501, 'Uploads are not set up on this server')
+    const did = idParam(req.params.id as string)
+    await needDocRole(req.userId, did, 'editor')
+    const { name, contentType, size } = parse(z.object({
+      name: z.string().trim().min(1).max(200),
+      contentType: z.string().max(100),
+      size: z.number().int().positive(),
+    }), req.body)
+    const kind = ALLOWED_TYPES[contentType]
+    if (!kind) throw new HttpError(415, 'That kind of file is not allowed. Use PNG, JPEG, GIF, WebP, PDF or plain text.')
+    if (size > MAX_UPLOAD_BYTES) throw new HttpError(413, `That file is too big. The limit is ${MAX_UPLOAD_BYTES / 1024 / 1024} MB.`)
+    const fileName = `${randomBytes(16).toString('hex')}.${kind.ext}`
+    const key = `${did.toHexString()}/${fileName}`
+    const base = publicUrl ?? `${req.protocol}://${req.get('host')}`
+    res.status(201).json({ uploadUrl: await storage.presignPut(key, contentType, size), url: `${base}/files/${key}`, name, image: kind.image })
+  }))
+
+  // Public by design (see above). Redirects to a download URL that expires in minutes.
+  app.get('/files/:doc/:name', h(async (req, res) => {
+    if (!storage) throw new HttpError(404, 'Not found')
+    const doc = String(req.params.doc), name = String(req.params.name)
+    if (!/^[a-f0-9]{24}$/.test(doc) || !/^[a-f0-9]{32}\.(png|jpg|gif|webp|pdf|txt)$/.test(name)) throw new HttpError(404, 'Not found')
+    const image = /\.(png|jpg|gif|webp)$/.test(name)
+    res.set('cache-control', 'private, max-age=300')
+    res.redirect(302, await storage.presignGet(`${doc}/${name}`, image ? undefined : { download: name }))
   }))
 
   // Browsers report timings here (round trip, time to sync, key-to-paint, reconnects).

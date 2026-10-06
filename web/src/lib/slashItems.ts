@@ -20,6 +20,8 @@ export const slashItems: SlashItem[] = [
   { id: 'numbers', title: 'Numbered list', hint: 'A list with 1, 2, 3', words: ['ol', 'ordered', 'list'], run: (e, r) => start(e, r).toggleOrderedList().run() },
   { id: 'quote', title: 'Quote', hint: 'Set a passage apart', words: ['blockquote', 'cite'], run: (e, r) => start(e, r).toggleBlockquote().run() },
   { id: 'code', title: 'Code block', hint: 'Fixed-width code', words: ['snippet', 'pre'], run: (e, r) => start(e, r).toggleCodeBlock().run() },
+  { id: 'image', title: 'Image', hint: 'Upload a picture', words: ['picture', 'photo', 'upload', 'png'], run: (e, r) => { start(e, r).run(); e.commands.chooseFile('image') } },
+  { id: 'file', title: 'File', hint: 'Attach a PDF or text file', words: ['attach', 'pdf', 'upload', 'document'], run: (e, r) => { start(e, r).run(); e.commands.chooseFile('file') } },
   { id: 'divider', title: 'Divider', hint: 'A horizontal line', words: ['line', 'rule', 'hr', 'separator'], run: (e, r) => start(e, r).setHorizontalRule().run() },
 ]
 
