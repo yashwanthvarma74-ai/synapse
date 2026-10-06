@@ -1,0 +1,109 @@
+# Run the whole of Synapse with one command:
+#
+#   cp .env.example .env      # then set JWT_SECRET (instructions inside)
+#   docker compose up --build
+#
+# Open http://localhost:3000. Data lives in Docker volumes; `docker compose down -v` erases it.
+# Two gateways run behind a small load balancer on purpose: edit in one browser and watch it
+# arrive in another even when the two are connected to different gateways (that is Redis at work).
+name: synapse
+
+services:
+  mongo:
+    image: mongo:8
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # S3-compatible storage for uploaded images and files. In production, point the S3_* settings
+  # at Cloudflare R2 or AWS S3 instead and delete this service. See docs/DEPLOY.md.
+  minio:
+    image: minio/minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-synapse}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-change-me-minio-secret}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+    volumes: [minio-data:/data]
+    ports: ["9000:9000"] # browsers upload straight to this address (pre-signed URLs)
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./server
+    environment: &server-env
+      SERVICE: api
+      API_PORT: "4001"
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}
+      MONGO_DB: synapse
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4001}
+      METRICS_PORT: "9464"
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-synapse-uploads}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-synapse}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-change-me-minio-secret}
+      S3_CREATE_BUCKET: "true"
+    ports: ["4001:4001"]
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+
+  gateway-a:
+    build: ./server
+    environment:
+      <<: *server-env
+      SERVICE: gateway
+      GATEWAY_PORT: "4000"
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  gateway-b:
+    build: ./server
+    environment:
+      <<: *server-env
+      SERVICE: gateway
+      GATEWAY_PORT: "4000"
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  gateways:
+    image: caddy:2-alpine
+    volumes: ["./deploy/Caddyfile:/etc/caddy/Caddyfile:ro"]
+    ports: ["4000:4000"]
+    depends_on: [gateway-a, gateway-b]
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4001}
+        NEXT_PUBLIC_GATEWAY_URL: ${PUBLIC_GATEWAY_URL:-ws://localhost:4000}
+    ports: ["3000:3000"]
+    depends_on: [api, gateways]
+
+volumes:
+  mongo-data:
+  minio-data:

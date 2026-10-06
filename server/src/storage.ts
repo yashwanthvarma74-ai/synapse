@@ -23,12 +23,15 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 const PUT_SECONDS = 5 * 60
 const GET_SECONDS = 10 * 60
 
-export interface S3Settings { endpoint?: string; region: string; bucket: string; accessKeyId: string; secretAccessKey: string }
+export interface S3Settings { endpoint?: string; publicEndpoint?: string; region: string; bucket: string; accessKeyId: string; secretAccessKey: string }
 
 export function s3Settings(env = process.env): S3Settings | null {
   if (!env.S3_BUCKET || !env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY) return null
   return {
     endpoint: env.S3_ENDPOINT || undefined, // R2: https://<account>.r2.cloudflarestorage.com, MinIO: http://127.0.0.1:9000
+    // The address BROWSERS use, when it differs from the one this server uses (for example inside Docker,
+    // where the server says http://minio:9000 and browsers say http://localhost:9000). Signed URLs carry it.
+    publicEndpoint: env.S3_PUBLIC_ENDPOINT || undefined,
     region: env.S3_REGION || 'auto',
     bucket: env.S3_BUCKET,
     accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -36,11 +39,11 @@ export function s3Settings(env = process.env): S3Settings | null {
   }
 }
 
-export function makeS3Client(s: S3Settings) {
+export function makeS3Client(s: S3Settings, endpoint = s.endpoint) {
   return new S3Client({
     region: s.region,
-    endpoint: s.endpoint,
-    forcePathStyle: !!s.endpoint, // MinIO needs path-style; R2 accepts it
+    endpoint,
+    forcePathStyle: !!endpoint, // MinIO needs path-style; R2 accepts it
     credentials: { accessKeyId: s.accessKeyId, secretAccessKey: s.secretAccessKey },
     // R2 and MinIO do not support the SDK's newer default checksum headers on pre-signed uploads
     requestChecksumCalculation: 'WHEN_REQUIRED',
@@ -48,7 +51,8 @@ export function makeS3Client(s: S3Settings) {
   })
 }
 
-export function s3Storage(s: S3Settings, client = makeS3Client(s)): Storage {
+// Signing never touches the network, so this client can use the browsers' address
+export function s3Storage(s: S3Settings, client = makeS3Client(s, s.publicEndpoint ?? s.endpoint)): Storage {
   return {
     presignPut: (key, contentType, size) =>
       getSignedUrl(client, new PutObjectCommand({ Bucket: s.bucket, Key: key, ContentType: contentType, ContentLength: size }), {
