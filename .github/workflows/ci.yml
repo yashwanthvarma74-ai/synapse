@@ -21,7 +21,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -48,7 +48,7 @@ jobs:
         image: redis:8
         ports: ['6379:6379']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -62,7 +62,7 @@ jobs:
     name: Monitoring config (alert rules valid, dashboard up to date)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validate the Prometheus config and alert rules
         run: |
           docker run --rm --entrypoint promtool -v "$PWD/observability:/obs" prom/prometheus:latest check config /obs/prometheus.yml
@@ -82,7 +82,7 @@ jobs:
         image: mongo:8
         ports: ['27017:27017']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
