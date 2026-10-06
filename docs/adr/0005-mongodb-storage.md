@@ -38,10 +38,9 @@ from a document 3 seconds after edits stop (`server/src/text.ts`) and stores it
 on the document record. Search only looks inside workspaces the caller belongs
 to (tested).
 
-**Atlas Search was not used.** It needs MongoDB Atlas (or a local search
-process), which this development setup does not have. The text index gives
-working search with weaker ranking and no fuzzy matching. Moving to Atlas Search
-would change only the one query in `api.ts`.
+**Update:** on MongoDB Atlas, search now uses Atlas Search (typo tolerant, scoped to the caller's
+workspaces) and falls back to this text index elsewhere. See [ADR 0013](0013-atlas-search.md). The
+production database is Atlas (free M0 tier, Mumbai) rather than the local `mongod` used in tests.
 
 ## What would tip the choice to Postgres
 

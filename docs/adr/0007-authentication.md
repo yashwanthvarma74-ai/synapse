@@ -7,7 +7,7 @@ real users.
 
 - **Passwords:** hashed with `scrypt` (built into Node, memory-hard), a random
   16-byte salt per user, compared in constant time (`server/src/auth.ts`).
-- **Sessions:** a signed JWT (HS256, `jose`) valid for 12 hours, sent as a
+- **Sessions:** a signed JWT (HS256, `jose`) valid for 12 hours (30 days for guest accounts, which have no password to sign in with again), sent as a
   `Authorization: Bearer` header to the API.
 - **WebSocket:** the same token is sent as `?token=` in the connection URL and
   verified **before** the upgrade, together with the user's membership.
@@ -34,7 +34,9 @@ picture.
 | 12-hour token, no revocation list | A stolen token works until it expires, though losing workspace access still blocks documents immediately | Short tokens plus refresh tokens |
 | In-memory login rate limit | Per API instance only | Shared limiter in Redis |
 | No email verification, no password reset | Real accounts need both | Add an email flow |
-| Invites only for existing users | Awkward for new teammates | Invite links with expiry |
+| ~~Invites only for existing users~~ | Fixed: invite links with expiry and roles (ADR 0012) | New risk: a link is a capability, reusable until it expires or is revoked |
+| Guest accounts have no password | The token is the account (30 days); clearing browser storage loses it | "Save your work" upgrades it; prune old guests (ADR 0012) |
+| `/files/...` links need no login | An `<img>` cannot send a header; safety rests on a random name (ADR 0014) | Signed cookies or a proxy that checks the document role |
 
 ## Consequences
 

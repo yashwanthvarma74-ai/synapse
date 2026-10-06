@@ -74,6 +74,7 @@ const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[r
 // 16 random bytes = 128 bits: not guessable. base64url keeps it safe inside a link.
 const newInviteCode = () => randomBytes(16).toString('base64url')
 const INVITE_DAYS = 7
+const GUEST_TOKEN_DAYS = 30
 
 export function createApi({ c, store, bus, secret, corsOrigin, storage = null, summarize = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
@@ -165,7 +166,9 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, s
     }
     await c.users.insertOne(user)
     const starter = await createStarterWorkspace(c, store, id)
-    res.status(201).json({ token: await signToken(id.toHexString(), secret), user: { ...publicUser(user), guest: true }, starter })
+    // A guest has no password, so an expired token means losing the account. Give guests a month (the same
+    // length the cleanup script keeps them for); "Save your work" turns the account into a normal one.
+    res.status(201).json({ token: await signToken(id.toHexString(), secret, GUEST_TOKEN_DAYS + 'd'), user: { ...publicUser(user), guest: true }, starter })
   }))
 
   // Turn a guest into a real account, keeping everything they made.

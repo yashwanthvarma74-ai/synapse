@@ -1,7 +1,8 @@
 // Type "/" at the start of a line (or after a space) to open a menu of blocks. Arrow keys move,
 // Enter or Tab picks, Escape closes. The menu is a listbox that the editor points at with
 // aria-activedescendant, so screen reader users hear the highlighted option while focus
-// stays in the text.
+// stays in the text. (aria-expanded is NOT allowed on a text box, which axe caught; a polite
+// status message says the menu opened instead.)
 import { Extension } from '@tiptap/core'
 import Suggestion from '@tiptap/suggestion'
 import { filterSlashItems, slashItems, type SlashItem } from './slashItems'
@@ -25,6 +26,7 @@ export const SlashCommand = Extension.create({
           let active = 0
           let pick: ((item: SlashItem) => void) | null = null
           let dom: HTMLElement | null = null
+          let note: HTMLDivElement | null = null
 
           const draw = () => {
             if (!list) return
@@ -50,6 +52,8 @@ export const SlashCommand = Extension.create({
             const cur = items[active]
             if (cur) dom?.setAttribute('aria-activedescendant', `${LIST_ID}-${cur.id}`)
             else dom?.removeAttribute('aria-activedescendant')
+            // keep the highlighted row visible when the list scrolls (short windows, zoomed text)
+            list.children[active]?.scrollIntoView?.({ block: 'nearest' })
           }
           const place = (rect: DOMRect | null | undefined) => {
             if (!list || !rect) return
@@ -58,8 +62,8 @@ export const SlashCommand = Extension.create({
           }
           const close = () => {
             list?.remove(); list = null
+            note?.remove(); note = null
             dom?.removeAttribute('aria-activedescendant')
-            dom?.removeAttribute('aria-expanded')
             dom?.removeAttribute('aria-controls')
           }
           return {
@@ -72,8 +76,12 @@ export const SlashCommand = Extension.create({
               list.setAttribute('role', 'listbox')
               list.setAttribute('aria-label', 'Insert a block')
               document.body.append(list)
-              dom.setAttribute('aria-expanded', 'true')
               dom.setAttribute('aria-controls', LIST_ID)
+              note = document.createElement('div')
+              note.className = 'sr-only'
+              note.setAttribute('role', 'status')
+              note.textContent = 'Block menu. Use the up and down arrow keys, Enter to choose, Escape to close.'
+              document.body.append(note)
               draw(); place(p.clientRect?.())
             },
             onUpdate: (p) => {
