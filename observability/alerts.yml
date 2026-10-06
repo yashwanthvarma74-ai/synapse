@@ -80,3 +80,54 @@ groups:
         labels: { severity: warn }
         annotations:
           summary: Many malformed WebSocket messages; a buggy client or someone probing the gateway.
+
+  # ---- the 99.9% availability SLO --------------------------------------------------------------
+  # SLI: of the browser connections that finished, the share that reached a synced state.
+  # Budget: 0.1% may fail (about 43 minutes a month). These rules alert on how FAST the budget
+  # is being spent, using the multiwindow burn-rate method from the Google SRE Workbook:
+  #   fast burn: 14.4x the allowed rate for 1 hour (and still happening in the last 5 minutes)
+  #              spends 2% of a 30-day budget in an hour. Page.
+  #   slow burn:  6x for 6 hours (and still happening in the last 30 minutes)
+  #              spends 5% of the budget in 6 hours. Ticket.
+  # Requires traffic: with too few connections the ratio is noise, so each alert also needs
+  # a minimum number of finished connections.
+  - name: synapse-slo
+    rules:
+      - record: synapse:connection_error_ratio:rate5m
+        expr: &ratio |
+          sum(rate(synapse_client_connections_total{outcome="failed"}[5m]))
+            / (sum(rate(synapse_client_connections_total{outcome="synced"}[5m])) + sum(rate(synapse_client_connections_total{outcome="failed"}[5m])))
+      - record: synapse:connection_error_ratio:rate30m
+        expr: |
+          sum(rate(synapse_client_connections_total{outcome="failed"}[30m]))
+            / (sum(rate(synapse_client_connections_total{outcome="synced"}[30m])) + sum(rate(synapse_client_connections_total{outcome="failed"}[30m])))
+      - record: synapse:connection_error_ratio:rate1h
+        expr: |
+          sum(rate(synapse_client_connections_total{outcome="failed"}[1h]))
+            / (sum(rate(synapse_client_connections_total{outcome="synced"}[1h])) + sum(rate(synapse_client_connections_total{outcome="failed"}[1h])))
+      - record: synapse:connection_error_ratio:rate6h
+        expr: |
+          sum(rate(synapse_client_connections_total{outcome="failed"}[6h]))
+            / (sum(rate(synapse_client_connections_total{outcome="synced"}[6h])) + sum(rate(synapse_client_connections_total{outcome="failed"}[6h])))
+
+      - alert: AvailabilityBudgetFastBurn
+        expr: |
+          synapse:connection_error_ratio:rate1h > (14.4 * 0.001)
+            and synapse:connection_error_ratio:rate5m > (14.4 * 0.001)
+            and sum(increase(synapse_client_connections_total[1h])) > 50
+        labels: { severity: page }
+        annotations:
+          summary: Spending the 99.9% availability budget 14x too fast (2% of a month's budget per hour).
+
+      - alert: AvailabilityBudgetSlowBurn
+        expr: |
+          synapse:connection_error_ratio:rate6h > (6 * 0.001)
+            and synapse:connection_error_ratio:rate30m > (6 * 0.001)
+            and sum(increase(synapse_client_connections_total[6h])) > 200
+        labels: { severity: warn }
+        annotations:
+          summary: Spending the 99.9% availability budget 6x too fast (5% of a month's budget in 6 hours).
+
+      # The outside view: the uptime probe (ops/uptime.mjs, or any external checker) reports to
+      # nothing here, because a total outage also silences the browsers that would report it.
+      # This rule only covers "Prometheus cannot reach the server" (SynapseDown above).

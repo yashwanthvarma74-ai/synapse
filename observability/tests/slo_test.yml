@@ -1,0 +1,50 @@
+# Run with:  promtool test rules tests/slo_test.yml     (from the observability/ folder)
+# Feeds synthetic connection counters and checks that the burn-rate alerts fire (and stay quiet) when they should.
+rule_files: [../alerts.yml]
+evaluation_interval: 1m
+
+tests:
+  - name: healthy traffic (0.05% failures, within budget) never alerts
+    interval: 1m
+    input_series:
+      - series: 'synapse_client_connections_total{outcome="synced"}'
+        values: '0+1999x400'   # 1999 per minute
+      - series: 'synapse_client_connections_total{outcome="failed"}'
+        values: '0+1x400'      # 1 per minute = 0.05%
+    alert_rule_test:
+      - { eval_time: 380m, alertname: AvailabilityBudgetFastBurn, exp_alerts: [] }
+      - { eval_time: 380m, alertname: AvailabilityBudgetSlowBurn, exp_alerts: [] }
+
+  - name: a serious outage (10% failing for over an hour) pages
+    interval: 1m
+    input_series:
+      - series: 'synapse_client_connections_total{outcome="synced"}'
+        values: '0+10x30 300+90x70'      # fine, then 90/min
+      - series: 'synapse_client_connections_total{outcome="failed"}'
+        values: '0+0x30 0+10x70'         # then 10/min failing = 10%
+    alert_rule_test:
+      - eval_time: 95m
+        alertname: AvailabilityBudgetFastBurn
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "Spending the 99.9% availability budget 14x too fast (2% of a month's budget per hour)." }
+
+  - name: a brief blip (failures stopped) does not page, because the short window has recovered
+    interval: 1m
+    input_series:
+      - series: 'synapse_client_connections_total{outcome="synced"}'
+        values: '0+100x120'
+      - series: 'synapse_client_connections_total{outcome="failed"}'
+        values: '0+5x20 100+0x100'       # 5% failing for 20 minutes, then clean
+    alert_rule_test:
+      - { eval_time: 110m, alertname: AvailabilityBudgetFastBurn, exp_alerts: [] }
+
+  - name: too little traffic never alerts, even at 100% failures
+    interval: 1m
+    input_series:
+      - series: 'synapse_client_connections_total{outcome="synced"}'
+        values: '0x120'
+      - series: 'synapse_client_connections_total{outcome="failed"}'
+        values: '0+1x2 2x118'            # a couple of failures, then nothing
+    alert_rule_test:
+      - { eval_time: 10m, alertname: AvailabilityBudgetFastBurn, exp_alerts: [] }

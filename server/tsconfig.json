@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "bench", "test", "fault", "vitest.fault.config.ts", "vitest.config.ts"]
+  "include": ["src", "ops", "bench", "test", "fault", "vitest.fault.config.ts", "vitest.config.ts"]
 }
