@@ -4,6 +4,7 @@
 import { Redis } from 'ioredis'
 import type { AccessEvent, Bus, BusHandler } from './bus.js'
 import { m, observeGauge } from './telemetry.js'
+import { logger } from './logger.js'
 
 const channel = (docId: string) => `synapse:room:${docId}`
 const ACCESS_CHANNEL = 'synapse:access'
@@ -66,7 +67,7 @@ export class RedisBus implements Bus {
   // clients keep working, and cross-gateway relay resumes when Redis returns.
   private onError = (err: Error) => {
     m.relayErrors.add(1)
-    console.error('redis bus:', err.message)
+    logger.error({ err: err.message }, 'redis bus error')
   }
 
   onResync(handler: () => void) {

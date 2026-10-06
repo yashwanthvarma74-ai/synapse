@@ -1,0 +1,340 @@
+######## PAGE 5
+Project 1  Synapse Architecture and build plan
+Architecture
+The big picture a reviewer should grasp in ten seconds. Put a Mermaid version of this diagram at
+the top of your README.
+Browser (each collaborator)
+React UI
+Tiptap editor + PixiJS canvas
+Yjs document
+Shared CRDT state
+IndexedDB
+Offline copy via y-indexeddb
+Awareness
+Cursors and presence, never saved
+API server
+Express: auth, roles, comments
+Collab gateway ×N
+Node + ws + y-protocols, stateless
+Redis pub/sub
+Relays room updates between gateways
+Object storage
+S3 / R2 assets, pre-signed uploads
+MongoDB Atlas
+Workspaces, roles, comments, snapshots,
+update log
+Atlas Search
+Full-text workspace search
+OpenTelemetry + Grafana
+Sync latency, reconnects and socket counts from browser, gateway and API
+persist
+REST
+WebSocket
+presence
+authorize join
+pub / sub
+uploads
+snapshots
+indexes
+Runs in the browser Your service Data store External provider
+How an edit travels
+The walkthrough you give when an interviewer says “take me through a request.”
+1 You type. Tiptap turns the keystroke into a small Yjs update
+and the screen paints immediately, before any network call.
+2 y-indexeddb stores the update in the browser, so it survives
+a refresh or a dead connection.
+3 The update travels over the WebSocket to whichever
+gateway instance holds your connection.
+4 The gateway checks your role (viewers can’t write), applies
+the update to the room and publishes it on Redis.
+5 Every other gateway with that room open forwards it to its
+clients, where Yjs merges it deterministically.
+6 Updates are appended to a log in MongoDB and periodically
+compacted into a snapshot.
+Build plan
+7 weeks of focused work, in order. Don’t start a phase until the previous one works end to end.
+Wk 1
+Foundations
+Editor UX, data
+model, what
+state lives where
+Wk 2
+Single user
+IndexedDB and
+MongoDB
+persistence
+Wk 3–4
+Sync
+Yjs, gateway, presence, multi-client
+tests
+Wk 5
+Product
+Roles,
+comments,
+history, search,
+canvas
+Wk 6
+Harden
+Perf,
+accessibility,
+fault injection,
+load tests
+Wk 7
+Show
+README, ADRs,
+benchmarks,
+demo video
+Core spec Synapse, from MAANG 2027 Full-Stack MERN Portfolio Projects
+Canvas mode Multiplayer Canvas (5 Portfolio Projects) and the WebGL canvas from the 2027 FAANG Blueprint
+Extras “Summarize this board” AI action and a CRDT-vs-OT blog post (5 Portfolio Projects)
+Five portfolio projects for big tech 5 / 31
+######## PAGE 6
+Project 1  Synapse Key concepts and data
+Key concepts
+The ideas you must be able to explain on a whiteboard. Each one deserves a short section in your
+case study.
+CRDT or OT? The decision interviewers probe
+Both let many people edit one document. They differ in who decides how edits combine.
+OT (operational transformation) CRDT (what Synapse uses)
+How it works A central server orders edits and transforms each one
+against those it hasn’t seen.
+Every edit carries IDs and metadata, so any copy can
+merge edits in any order.
+Central server Required to order every edit. Not required for correctness; copies converge on
+their own.
+Offline editing Hard: long offline sessions need complex rebasing. Natural: edits merge whenever they arrive.
+Cost Simple data, complex server logic. Extra metadata in memory, so it needs compaction.
+Typical fit Always-online editors with one authoritative server. Offline-first apps and multi-server sync.
+Synapse uses a CRDT (Yjs) because offline editing is a core feature, not an add-on. Being able to say that sentence, and defend
+it, is the point of this project.
+Two consistency domains
+The single most important design decision in the project. Write an ADR about it.
+Document content
+Eventually consistent
+vs
+Access control
+Server-authoritative
+Keeping documents small: update log plus snapshots
+u1 u2 u3 u4 u5 u6 u7 u8 u9 u10
+Every edit is appended to doc_updates. compact
+Snapshot v7 u11 u12
+Load = latest snapshot + newer updates. Named versions stay as
+their own snapshots.
+Data model (MongoDB)
+The core collections. Index every field you filter or sort on, and commit the explain plans.
+workspaces
+_id, name, ownerId
+createdAt
+memberships
+workspaceId, userId
+role: owner | editor |
+  commenter | viewer
+documents
+_id, workspaceId, title
+type: doc | canvas
+latestSnapshot, updatedAt
+doc_snapshots
+docId, version, label?
+state: Binary
+createdAt
+doc_updates
+docId, seq
+update: Binary
+userId, createdAt
+comments
+docId, body, authorId
+anchor: Yjs relative pos.
+resolved
+Merged automatically by Yjs
+Editable offline, synced later
+Temporary differences between copies are fine
+Checked on room join and on every write
+Never stored inside the CRDT
+Revoking access takes effect immediately
+Five portfolio projects for big tech 6 / 31
+######## PAGE 7
+Project 1  Synapse Tech stack and features
+Tech stack
+Every choice comes with a reason. Interviewers care far more about the “why” column than the
+logos.
+Frontend React 19 + TypeScript + Next.js App shell, routing and fast share pages
+Editor Tiptap (ProseMirror) + y-prosemirror Mature rich-text editor with a first-class Yjs binding
+Canvas PixiJS (WebGL) Holds 60 FPS with hundreds of shapes on screen
+CRDT Yjs Proven shared types for text, maps and arrays; compact binary updates
+Presence Yjs awareness protocol Cursors and selections are broadcast but never persisted
+Offline y-indexeddb Stores updates in the browser so work survives refresh and outages
+Client state TanStack Query + Zustand Query for server data like roles and comments; Zustand for UI-only state
+Realtime server Node.js + ws + y-protocols Write it yourself (Hocuspocus is a good reference) so you can explain
+every step
+Fan-out Redis pub/sub Any gateway can serve any room; no single instance is special
+API Express + Zod Auth, roles, comments and search, with every request validated
+Database MongoDB Atlas + Atlas Search Metadata, snapshots, update log, comments and full-text search
+Storage S3 or Cloudflare R2 Images and files uploaded directly with pre-signed URLs
+Testing Vitest + fast-check, Playwright, k6 Property-based convergence tests, multi-browser E2E, WebSocket load
+Observability OpenTelemetry + Grafana Sync latency, reconnects and open sockets on one dashboard
+Core features
+What a user can actually do. Ship all eight before polishing.
+Block editor
+Slash commands, keyboard-first
+editing and per-user undo.
+Canvas mode
+Shapes, sticky notes and
+connectors with pan and zoom.
+Live cursors
+Named cursors, selections and a
+who’s-here bar.
+Offline editing
+Keep working with no network;
+merge on reconnect.
+Comments
+Anchored to text that keeps its
+place during edits.
+Version history
+Named snapshots you can
+preview and restore.
+Sharing and roles
+Owner, editor, commenter,
+viewer, enforced by the server.
+Network simulator
+Drop, delay or partition
+connections during the demo.
+Choices to defend
+Each one is the seed of an architecture decision record (ADR). Interviewers love “why not X?”
+Yjs over Automerge
+Yjs has the most mature editor bindings
+(ProseMirror, awareness) and very
+compact updates. Automerge is a
+strong alternative with a JSON-like
+model; name it in your ADR.
+A custom ws gateway over
+Socket.IO
+The Yjs sync protocol is binary and
+already handles catch-up after
+reconnects, so Socket.IO’s extra layers
+add little. Writing it yourself is the
+learning.
+MongoDB over Postgres
+Snapshots and update logs are binary
+blobs keyed by document, and Atlas
+adds search. Postgres would work
+equally well; say so, and explain what
+would tip the choice.
+Five portfolio projects for big tech 7 / 31
+######## PAGE 8
+Project 1  Synapse Hard problems and proof
+Hard problems and proof
+Solve these yourself; they are the conversation. Then publish the numbers, each with how you
+measured it.
+Hard problems you’ll solve
+Each one is a ready-made interview story: the problem, the options, what you chose and why.
+Permissions can’t live in the shared document
+Approach. Keep content eventually consistent, but check roles
+on the server when a client joins a room and on every incoming
+update. The gateway drops writes from viewers.
+Documents grow forever
+Approach. Append updates to a log, merge them into a
+snapshot every N updates, then trim the log. Keep named
+versions as separate snapshots so history survives compaction.
+Reconnecting after a long partition
+Approach. Yjs exchanges state vectors on connect, so each side
+sends only what the other is missing: no duplicates, no loss.
+Reconnect with exponential backoff and jitter.
+Scaling WebSockets past one server
+Approach. Gateways are stateless. Each room subscribes to a
+Redis channel, so any instance can serve any client, and
+MongoDB (not a server) holds the truth.
+Typing stays fast in big documents
+Approach. Keep the editor out of React re-render paths, throttle
+presence updates to every 50–100 ms, and measure keystroke-
+to-paint with the Performance API.
+Accessible live collaboration
+Approach. Announce joins with a polite live region, never move
+focus because of a remote edit, and make every canvas action
+reachable by keyboard.
+Targets to measure and publish
+Report the number you actually get, with hardware, network and dataset noted. Honest numbers beat impressive ones.
+< 50 ms
+Keystroke-to-paint, p95
+Performance API on a documented laptop
+< 250 ms
+Remote update propagation, p95
+Same region, send and apply timestamps
+< 2 s
+Convergence after a 5-minute
+partition
+Network simulator plus timing log
+100%
+Randomized runs with identical
+hashes
+fast-check harness, 1,000+ runs
+60 FPS
+Canvas with 500+ objects
+Chrome DevTools performance trace
+99.9%
+Availability target (SLO)
+Uptime checks and reconnect success rate
+Interview questions this prepares you for
+Practice answering each one out loud using this project.
+Design Google Docs. How do concurrent edits merge? CRDT or OT: which would you pick, and why?
+How would you add offline support to an existing web app? How do you scale WebSockets beyond one server?
+What breaks first at 10x and 100x users?
+Stand-out extras, if you have time
+Only after everything above is finished and measured.
+Load test with 50+ simulated editors in
+one room, results published
+An AI action that summarizes or tidies
+the board
+A blog post: why a CRDT and not OT
+Five portfolio projects for big tech 8 / 31
+######## PAGE 9
+What you’re building
+Users upload PDFs, notes and images into a private workspace. A background pipeline indexes them.
+Then they ask questions and get streamed answers grounded in their own documents, with every claim
+linked to the exact page and passage it came from.
+Why it gets you interviews
+The skill teams are hiring for
+AI features are what most product teams
+are shipping in 2026, and retrieval-
+augmented generation (RAG) is the most
+common architecture behind them.
+Evidence instead of vibes
+Recall@10, citation accuracy and cost per
+answer turn “it looks smart” into numbers a
+reviewer trusts.
+Security most AI demos ignore
+Tenant isolation and prompt-injection
+defenses show senior-level judgment.
+Difficulty
+Hard
+Time
+5–6 weeks
+Core signal
+Production AI systems
+Best fit
+Google NVIDIA Meta
+Microsoft
+The signature demo
+A 60–90 second video that opens your README.
+Skills it proves
+Strength of the evidence, out of 5.
+AI and LLM systems
+Security and privacy
+Testing and evaluation
+Backend and async jobs
+Observability
+Streaming UX
+Project 2 of 5  /  Your AI project Overview
+2 Atlas AI
+A private knowledge copilot: upload your documents, ask questions, and
+get streamed answers with citations you can check.
+1 Upload live
+Status moves: queued, parsing, embedding, indexed.
+2 Ask and stream
+The answer streams in; time-to-first-token is shown.
+3 Click a citation
+The exact page opens with the passage highlighted.
+4 Open the trace
+Retrieval time, model time, tokens and cost, split out.
+5 Run the eval
+Before and after a retrieval change: the score moves.
+Five portfolio projects for big tech 9 / 31

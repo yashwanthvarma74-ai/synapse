@@ -90,4 +90,19 @@ export async function ensureIndexes(c: Collections) {
   await c.invites.createIndex({ workspaceId: 1, createdAt: -1 })
 }
 
+// Atlas Search (Lucene) index. Only Atlas supports it; local MongoDB keeps the $text index above.
+export const SEARCH_INDEX = 'doc_search'
+export async function ensureSearchIndex(c: Collections) {
+  const existing = await c.documents.listSearchIndexes(SEARCH_INDEX).toArray()
+  if (existing.length) return
+  await c.documents.createSearchIndex({
+    name: SEARCH_INDEX,
+    definition: { mappings: { dynamic: false, fields: {
+      title: { type: 'string' },
+      text: { type: 'string' },
+      workspaceId: { type: 'objectId' }, // lets us filter to the caller's workspaces inside the search itself
+    } } },
+  })
+}
+
 export const oid = (s: string): ObjectId | null => (ObjectId.isValid(s) && s.length === 24 ? new ObjectId(s) : null)
