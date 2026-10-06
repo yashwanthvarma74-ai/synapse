@@ -1,0 +1,13 @@
+{
+  "name": "synapse-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:local": "playwright test --project=chromium --project=webkit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

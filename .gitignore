@@ -9,3 +9,7 @@ server/.data/
 
 # local-only notes that include throwaway passwords
 TEST_ACCOUNTS.md
+
+.next-e2e/
+e2e/test-results/
+e2e/playwright-report/
