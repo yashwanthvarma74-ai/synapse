@@ -31,7 +31,7 @@ extra checks found more. All were fixed and re-tested.
 | 7 | Every page had the same title | Per-page titles ("Roadmap – Synapse"), set with Next.js metadata and refined once data loads |
 | 8 | Comments/History tabs were half-built ARIA tabs (no panels, no arrow keys) | Proper tabs pattern: roving tabindex, arrows, Home/End, labelled panels (`Tabs.tsx`, with tests) |
 | 9 | The offline button changed its label **and** used `aria-pressed` (reads as "Go online, pressed") | Constant name "Simulate offline", state in `aria-pressed`, plus "(on)" text so it is not colour only |
-| 10 | Repeated "Resolve", "Delete", "Preview", "Restore" buttons had no context | Each names its target ("Delete comment by Ravi", "Restore version First draft") |
+| 10 | Repeated "Resolve", "Delete", "Preview", "Restore" buttons had no context | Each names its target ("Delete comment by Yash", "Restore version First draft") |
 | 11 | People shown as initials in a `span` | Names in a list; the initials are decoration (`aria-hidden`) |
 | 12 | Back link was 21 px tall (minimum target is 24 px) | 24 px minimum on all controls; links in a labelled `<nav>` |
 | 13 | Focus visibility relied on browser defaults; the editor had `outline: none` | One clear 2 px ring for every focusable element; the editor wrapper shows it |

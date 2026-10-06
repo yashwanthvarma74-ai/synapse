@@ -40,10 +40,10 @@ beforeAll(async () => {
   })
   port = await gw.listen()
 
-  for (const n of ['ravi', 'sai', 'eve']) await signup(n)
-  wsId = (await request(api).post('/workspaces').set(as('ravi')).send({ name: 'Team' })).body.id
-  docId = (await request(api).post(`/workspaces/${wsId}/documents`).set(as('ravi')).send({ title: 'Plan' })).body.id
-  await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'sai@test.dev', role: 'viewer' })
+  for (const n of ['yash', 'kalyan', 'eve']) await signup(n)
+  wsId = (await request(api).post('/workspaces').set(as('yash')).send({ name: 'Team' })).body.id
+  docId = (await request(api).post(`/workspaces/${wsId}/documents`).set(as('yash')).send({ title: 'Plan' })).body.id
+  await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'kalyan@test.dev', role: 'viewer' })
 })
 afterAll(async () => {
   await gw.close()
@@ -57,14 +57,14 @@ const connect = (name: string | null, doc = docId) =>
 describe('accounts', () => {
   it('rejects bad input and duplicate emails, never stores plaintext passwords', async () => {
     expect((await request(api).post('/auth/register').send({ email: 'nope', name: 'x', password: 'short' })).status).toBe(400)
-    expect((await request(api).post('/auth/register').send({ email: 'ravi@test.dev', name: 'dup', password: 'password123' })).status).toBe(409)
-    const u = await c.users.findOne({ email: 'ravi@test.dev' })
+    expect((await request(api).post('/auth/register').send({ email: 'yash@test.dev', name: 'dup', password: 'password123' })).status).toBe(409)
+    const u = await c.users.findOne({ email: 'yash@test.dev' })
     expect(u!.passwordHash).not.toContain('password123')
   })
   it('logs in, and gives the same error for a wrong password and an unknown email', async () => {
-    const ok = await request(api).post('/auth/login').send({ email: 'ravi@test.dev', password: 'password123' })
+    const ok = await request(api).post('/auth/login').send({ email: 'yash@test.dev', password: 'password123' })
     expect(ok.status).toBe(200)
-    const bad = await request(api).post('/auth/login').send({ email: 'ravi@test.dev', password: 'wrongwrong' })
+    const bad = await request(api).post('/auth/login').send({ email: 'yash@test.dev', password: 'wrongwrong' })
     const none = await request(api).post('/auth/login').send({ email: 'ghost@test.dev', password: 'wrongwrong' })
     expect([bad.status, none.status]).toEqual([401, 401])
     expect(bad.body).toEqual(none.body)
@@ -81,21 +81,21 @@ describe('API roles', () => {
     expect((await request(api).get(`/documents/${docId}`).set(as('eve'))).status).toBe(404)
   })
   it('lets a viewer read but not create documents or change members', async () => {
-    expect((await request(api).get(`/documents/${docId}`).set(as('sai'))).body.role).toBe('viewer')
-    expect((await request(api).post(`/workspaces/${wsId}/documents`).set(as('sai')).send({ title: 'x' })).status).toBe(403)
-    expect((await request(api).put(`/workspaces/${wsId}/members`).set(as('sai')).send({ email: 'eve@test.dev', role: 'owner' })).status).toBe(403)
+    expect((await request(api).get(`/documents/${docId}`).set(as('kalyan'))).body.role).toBe('viewer')
+    expect((await request(api).post(`/workspaces/${wsId}/documents`).set(as('kalyan')).send({ title: 'x' })).status).toBe(403)
+    expect((await request(api).put(`/workspaces/${wsId}/members`).set(as('kalyan')).send({ email: 'eve@test.dev', role: 'owner' })).status).toBe(403)
   })
   it('enforces comment permissions', async () => {
-    expect((await request(api).post(`/documents/${docId}/comments`).set(as('sai')).send({ body: 'hi' })).status).toBe(403) // viewer
-    await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'sai@test.dev', role: 'commenter' })
-    const r = await request(api).post(`/documents/${docId}/comments`).set(as('sai')).send({ body: 'looks good' })
+    expect((await request(api).post(`/documents/${docId}/comments`).set(as('kalyan')).send({ body: 'hi' })).status).toBe(403) // viewer
+    await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'kalyan@test.dev', role: 'commenter' })
+    const r = await request(api).post(`/documents/${docId}/comments`).set(as('kalyan')).send({ body: 'looks good' })
     expect(r.status).toBe(201)
-    expect((await request(api).get(`/documents/${docId}/comments`).set(as('ravi'))).body).toHaveLength(1)
+    expect((await request(api).get(`/documents/${docId}/comments`).set(as('yash'))).body).toHaveLength(1)
     expect((await request(api).patch(`/comments/${r.body.id}`).set(as('eve')).send({ resolved: true })).status).toBe(404)
-    await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'sai@test.dev', role: 'viewer' }) // reset
+    await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'kalyan@test.dev', role: 'viewer' }) // reset
   })
   it("won't demote the workspace owner", async () => {
-    const r = await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'ravi@test.dev', role: 'viewer' })
+    const r = await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'yash@test.dev', role: 'viewer' })
     expect(r.status).toBe(400)
   })
 })
@@ -108,8 +108,8 @@ describe('gateway access control', () => {
   })
 
   it('viewer can read but the server drops their writes', async () => {
-    const owner = connect('ravi')
-    const viewer = connect('sai')
+    const owner = connect('yash')
+    const viewer = connect('kalyan')
     await owner.connect()
     await viewer.connect()
     owner.doc.getText('body').insert(0, 'owner text')
@@ -122,45 +122,45 @@ describe('gateway access control', () => {
   })
 
   it('revoking access closes the open socket immediately', async () => {
-    const sai = connect('sai')
-    await sai.connect()
+    const kalyan = connect('kalyan')
+    await kalyan.connect()
     let closed = false
-    sai.ws.on('close', (code: number) => {
+    kalyan.ws.on('close', (code: number) => {
       closed = code === 4403
     })
-    await request(api).delete(`/workspaces/${wsId}/members/${users.sai.id}`).set(as('ravi'))
+    await request(api).delete(`/workspaces/${wsId}/members/${users.kalyan.id}`).set(as('yash'))
     await waitFor(() => closed, 2000)
     // and they can't get back in
-    await expect(connect('sai').connect()).rejects.toBeTruthy()
+    await expect(connect('kalyan').connect()).rejects.toBeTruthy()
   })
 
   it('a role change from editor to viewer takes effect on the live socket', async () => {
-    await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'sai@test.dev', role: 'editor' })
-    const owner = connect('ravi')
-    const sai = connect('sai')
+    await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'kalyan@test.dev', role: 'editor' })
+    const owner = connect('yash')
+    const kalyan = connect('kalyan')
     await owner.connect()
-    await sai.connect()
-    sai.doc.getText('body').insert(0, 'a')
+    await kalyan.connect()
+    kalyan.doc.getText('body').insert(0, 'a')
     await waitFor(() => owner.text().includes('a'))
-    await request(api).put(`/workspaces/${wsId}/members`).set(as('ravi')).send({ email: 'sai@test.dev', role: 'viewer' })
+    await request(api).put(`/workspaces/${wsId}/members`).set(as('yash')).send({ email: 'kalyan@test.dev', role: 'viewer' })
     await new Promise((r) => setTimeout(r, 200))
     const before = owner.text()
-    sai.doc.getText('body').insert(0, 'ILLEGAL')
+    kalyan.doc.getText('body').insert(0, 'ILLEGAL')
     await new Promise((r) => setTimeout(r, 200))
     expect(owner.text()).toBe(before)
     owner.close()
-    sai.close()
+    kalyan.close()
   })
 })
 
 describe('version history', () => {
   it('saves, lists and returns a named version', async () => {
-    expect((await request(api).post(`/documents/${docId}/versions`).set(as('sai')).send({ label: 'x' })).status).toBe(403)
-    const r = await request(api).post(`/documents/${docId}/versions`).set(as('ravi')).send({ label: 'Draft 1' })
+    expect((await request(api).post(`/documents/${docId}/versions`).set(as('kalyan')).send({ label: 'x' })).status).toBe(403)
+    const r = await request(api).post(`/documents/${docId}/versions`).set(as('yash')).send({ label: 'Draft 1' })
     expect(r.status).toBe(201)
-    const list = await request(api).get(`/documents/${docId}/versions`).set(as('sai'))
+    const list = await request(api).get(`/documents/${docId}/versions`).set(as('kalyan'))
     expect(list.body.map((v: { label: string }) => v.label)).toEqual(['Draft 1'])
-    const state = await request(api).get(`/documents/${docId}/versions/${r.body.version}`).set(as('sai')).buffer(true).parse((res, cb) => {
+    const state = await request(api).get(`/documents/${docId}/versions/${r.body.version}`).set(as('kalyan')).buffer(true).parse((res, cb) => {
       const chunks: Buffer[] = []
       res.on('data', (d: Buffer) => chunks.push(d))
       res.on('end', () => cb(null, Buffer.concat(chunks)))
@@ -173,7 +173,7 @@ describe('version history', () => {
 describe('search', () => {
   it("only returns documents from the caller's own workspaces", async () => {
     await c.documents.updateOne({ _id: (await c.documents.findOne({}))!._id }, { $set: { text: 'quarterly roadmap discussion' } })
-    const mine = await request(api).get('/search?q=roadmap').set(as('ravi'))
+    const mine = await request(api).get('/search?q=roadmap').set(as('yash'))
     expect(mine.body).toHaveLength(1)
     const theirs = await request(api).get('/search?q=roadmap').set(as('eve')) // eve belongs to no workspace
     expect(theirs.body).toHaveLength(0)
@@ -183,7 +183,7 @@ describe('search', () => {
 describe('rate limiting', () => {
   it('slows down repeated login attempts', async () => {
     let last = 0
-    for (let i = 0; i < 40; i++) last = (await request(api).post('/auth/login').send({ email: 'ravi@test.dev', password: 'nopenope1' })).status
+    for (let i = 0; i < 40; i++) last = (await request(api).post('/auth/login').send({ email: 'yash@test.dev', password: 'nopenope1' })).status
     expect(last).toBe(429)
   })
 })

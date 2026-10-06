@@ -3,13 +3,13 @@
 *About a 10 minute read. Everything shown here comes from [Synapse](../../README.md), a collaborative
 editor I built to understand this properly. The code is in `lab/` and `server/`.*
 
-Two people open the same document. It says `Hello`. Both lose their connection. Ravi types
-` world` at the end. Sai types ` there` at the end. They reconnect.
+Two people open the same document. It says `Hello`. Both lose their connection. Yash types
+` world` at the end. Kalyan types ` there` at the end. They reconnect.
 
 What should the document say?
 
 You cannot keep one version, because someone's work disappears. You cannot just paste both
-in whatever order they arrive, because then Ravi and Sai could end up looking at different
+in whatever order they arrive, because then Yash and Kalyan could end up looking at different
 documents. Every collaborative editor has to answer this, and there are two well known
 answers: **operational transformation (OT)** and **CRDTs**. I picked a CRDT (the library
 [Yjs](https://github.com/yjs/yjs)) for Synapse. This post is why, what it cost me, and the
@@ -33,15 +33,15 @@ it is a rule every copy follows identically.
 
 ## A demo you can run
 
-`lab/02-merge-demo.mjs` is 60 lines. Here is the first experiment. Ravi and Sai both start from
+`lab/02-merge-demo.mjs` is 60 lines. Here is the first experiment. Yash and Kalyan both start from
 `Hello`, go offline, and type at the same spot. Two observers receive their edits in
 **opposite orders**:
 
 ```js
-ravi.getText('t').insert(5, ' world') // offline
-sai.getText('t').insert(5, ' there')  // offline, same spot
-sync(ravi, a); sync(sai, a)           // observer A hears Ravi first
-sync(sai, b);  sync(ravi, b)          // observer B hears Sai first
+yash.getText('t').insert(5, ' world') // offline
+kalyan.getText('t').insert(5, ' there')  // offline, same spot
+sync(yash, a); sync(kalyan, a)           // observer A hears Yash first
+sync(kalyan, b);  sync(yash, b)          // observer B hears Kalyan first
 ```
 
 ```
@@ -100,15 +100,15 @@ None of this is free.
 document is bigger than its visible text. You have to compact. Synapse stores an append-only log
 of edits plus snapshots, and merges the log into a new snapshot every 100 edits.
 
-**It merges, it does not understand.** The third experiment in the demo: Ravi deletes the word
-`editor` from `ship the editor first` while Sai, still looking at the old version, types `XX`
+**It merges, it does not understand.** The third experiment in the demo: Yash deletes the word
+`editor` from `ship the editor first` while Kalyan, still looking at the old version, types `XX`
 in the middle of it. Both copies end up with:
 
 ```
 "ship the XX first"
 ```
 
-Both copies agree, which is the CRDT's promise. But is it what either person wanted? Sai's
+Both copies agree, which is the CRDT's promise. But is it what either person wanted? Kalyan's
 `XX` survived inside a word that no longer exists. A CRDT guarantees convergence, not
 good intent. OT has the same limit in different forms; neither is a mind reader.
 
@@ -147,8 +147,8 @@ have either believed a stronger claim than the library makes or blamed the wrong
 ## Permissions cannot live inside the CRDT
 
 One more lesson, and it applies to anything built this way. Content can be eventually
-consistent: it is fine for two copies to differ for a moment. Permissions cannot. "Ravi no
-longer has access" must not wait for Ravi's laptop to reconnect, and it must not be an edit that
+consistent: it is fine for two copies to differ for a moment. Permissions cannot. "Yash no
+longer has access" must not wait for Yash's laptop to reconnect, and it must not be an edit that
 anyone with write access could make.
 
 So Synapse has two separate worlds. Document content is merged freely by the CRDT. Access is

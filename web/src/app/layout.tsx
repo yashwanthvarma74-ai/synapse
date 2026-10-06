@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: "Synapse",
     title: "Synapse – write together, even offline",
     description: DESCRIPTION,
-    images: [{ url: "/social.jpg", width: 800, height: 512, alt: "Synapse: a shared document and whiteboard" }],
+    images: [{ url: "/social.jpg", width: 1200, height: 630, alt: "Synapse: a shared document and whiteboard" }],
   },
   twitter: { card: "summary_large_image", title: "Synapse – write together, even offline", description: DESCRIPTION, images: ["/social.jpg"] },
 };

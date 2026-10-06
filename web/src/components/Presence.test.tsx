@@ -16,7 +16,7 @@ afterEach(() => {
 function setup() {
   const doc = new Y.Doc()
   const awareness = new Awareness(doc)
-  awareness.setLocalState({ user: { name: 'Ravi', color: '#c2255c' } })
+  awareness.setLocalState({ user: { name: 'Yash', color: '#c2255c' } })
   const view = render(<Presence collab={{ awareness } as unknown as Collab} />)
   // another person appears (a remote awareness state)
   const join = (id: number, name: string) =>
@@ -41,10 +41,10 @@ describe('Presence', () => {
 
   it('gives screen readers real names and hides the decorative initials', () => {
     const { container, join } = setup()
-    join(2, 'Sai')
+    join(2, 'Kalyan')
     const list = screen.getByRole('list', { name: 'People in this document' })
-    expect(list.textContent).toContain('Ravi')
-    expect(list.textContent).toContain('Sai')
+    expect(list.textContent).toContain('Yash')
+    expect(list.textContent).toContain('Kalyan')
     const initials = container.querySelectorAll('.avatar')
     expect(initials.length).toBe(2)
     for (const el of initials) expect(el.getAttribute('aria-hidden')).toBe('true')
@@ -53,7 +53,7 @@ describe('Presence', () => {
   it('announces joins and leaves politely, but not the people already here on arrival', () => {
     const { join, leave } = setup()
     const status = screen.getByRole('status')
-    join(2, 'Sai') // arrives during the first 2 seconds: part of the initial burst
+    join(2, 'Kalyan') // arrives during the first 2 seconds: part of the initial burst
     expect(status.textContent).toBe('')
     act(() => void vi.advanceTimersByTime(2100))
     join(3, 'Mira')

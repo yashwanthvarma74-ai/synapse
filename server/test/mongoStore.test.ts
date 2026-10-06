@@ -81,7 +81,7 @@ describe('MongoStore', () => {
   it('keeps named versions separate from compaction', async () => {
     const doc = new Y.Doc()
     await store.appendUpdate('d4', edit(doc, 'draft one'))
-    const v = await store.saveNamedVersion('d4', 'First draft', 'ravi')
+    const v = await store.saveNamedVersion('d4', 'First draft', 'yash')
     await store.appendUpdate('d4', edit(doc, ' + more'))
     await store.compact('d4')
     await store.compact('d4')

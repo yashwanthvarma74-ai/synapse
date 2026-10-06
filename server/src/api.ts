@@ -286,7 +286,7 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, s
     res.status(204).end()
   }))
 
-  // Public: what the link is for, so the page can say "Ravi invited you to Team Alpha as an editor".
+  // Public: what the link is for, so the page can say "Yash invited you to Team Alpha as an editor".
   const inviteLimit = rateLimit(Number(process.env.INVITE_RATE_LIMIT ?? 60), 60_000)
   const liveInvite = async (code: string) => {
     const inv = await c.invites.findOne({ code })

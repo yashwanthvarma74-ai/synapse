@@ -8,14 +8,14 @@ const make = (id) => { const d = new Y.Doc(); d.clientID = id; return d }
 
 // 1. Two people type at the same spot while disconnected. Does the order they sync in matter?
 {
-  const ravi = make(1), sai = make(2)
-  ravi.getText('t').insert(0, 'Hello')
-  sync(ravi, sai)                       // both start from "Hello"
-  ravi.getText('t').insert(5, ' world') // offline
-  sai.getText('t').insert(5, ' there')  // offline, same spot
+  const yash = make(1), kalyan = make(2)
+  yash.getText('t').insert(0, 'Hello')
+  sync(yash, kalyan)                       // both start from "Hello"
+  yash.getText('t').insert(5, ' world') // offline
+  kalyan.getText('t').insert(5, ' there')  // offline, same spot
   const a = make(10), b = make(11)      // two fresh observers that receive the edits in opposite orders
-  sync(ravi, a); sync(sai, a)
-  sync(sai, b);  sync(ravi, b)
+  sync(yash, a); sync(kalyan, a)
+  sync(kalyan, b);  sync(yash, b)
   console.log('1. same spot, opposite arrival orders')
   console.log('   observer A :', JSON.stringify(text(a)))
   console.log('   observer B :', JSON.stringify(text(b)))
@@ -23,24 +23,24 @@ const make = (id) => { const d = new Y.Doc(); d.clientID = id; return d }
 
 // 2. Delivering the same update twice changes nothing
 {
-  const ravi = make(1), sai = make(2)
-  ravi.getText('t').insert(0, 'once')
-  const update = Y.encodeStateAsUpdate(ravi)
-  Y.applyUpdate(sai, update); Y.applyUpdate(sai, update); Y.applyUpdate(sai, update)
-  console.log('2. same update applied three times:', JSON.stringify(text(sai)))
+  const yash = make(1), kalyan = make(2)
+  yash.getText('t').insert(0, 'once')
+  const update = Y.encodeStateAsUpdate(yash)
+  Y.applyUpdate(kalyan, update); Y.applyUpdate(kalyan, update); Y.applyUpdate(kalyan, update)
+  console.log('2. same update applied three times:', JSON.stringify(text(kalyan)))
 }
 
 // 3. What does a merge NOT understand? One person deletes a word while another types inside it.
 {
-  const ravi = make(1), sai = make(2)
-  ravi.getText('t').insert(0, 'ship the editor first')
-  sync(ravi, sai)
-  ravi.getText('t').delete(9, 6)        // Ravi deletes "editor"
-  sai.getText('t').insert(12, 'XX')     // Sai types "XX" in the middle of "editor"
-  sync(ravi, sai); sync(sai, ravi)
+  const yash = make(1), kalyan = make(2)
+  yash.getText('t').insert(0, 'ship the editor first')
+  sync(yash, kalyan)
+  yash.getText('t').delete(9, 6)        // Yash deletes "editor"
+  kalyan.getText('t').insert(12, 'XX')     // Kalyan types "XX" in the middle of "editor"
+  sync(yash, kalyan); sync(kalyan, yash)
   console.log('3. delete a word vs type inside it')
-  console.log('   Ravi sees  :', JSON.stringify(text(ravi)))
-  console.log('   Sai sees   :', JSON.stringify(text(sai)))
+  console.log('   Yash sees  :', JSON.stringify(text(yash)))
+  console.log('   Kalyan sees:', JSON.stringify(text(kalyan)))
 }
 
 // 4. Reconnecting sends only what the other side is missing

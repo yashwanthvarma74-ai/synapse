@@ -34,14 +34,14 @@ export function HeroArt({ className }: { className?: string }) {
       <rect x="62" y="70" width="396" height="18" style={fill('var(--panel)')} />
       <circle cx="88" cy="68" r="5" style={fill('var(--line)')} /><circle cx="106" cy="68" r="5" style={fill('var(--line)')} /><circle cx="124" cy="68" r="5" style={fill('var(--line)')} />
       <Line x={92} y={112} w={170} color="var(--muted)" h={12} />
-      {/* Ravi's line, highlighted */}
+      {/* Yash's line, highlighted */}
       <rect x={90} y={140} width={252} height={14} rx={4} style={fill(A, { opacity: 0.18 })} />
       <Line x={92} y={143} w={248} /><Line x={92} y={170} w={300} /><Line x={92} y={197} w={210} />
-      {/* Sai's line, highlighted */}
+      {/* Kalyan's line, highlighted */}
       <rect x={90} y={222} width={222} height={14} rx={4} style={fill(B, { opacity: 0.18 })} />
       <Line x={92} y={225} w={216} /><Line x={92} y={252} w={282} /><Line x={92} y={279} w={150} />
-      <Cursor x={346} y={132} color={A} name="Ravi" />
-      <Cursor x={314} y={214} color={B} name="Sai" />
+      <Cursor x={346} y={132} color={A} name="Yash" />
+      <Cursor x={314} y={214} color={B} name="Kalyan" />
       {/* offline, still safe */}
       <g transform="translate(250 338)">
         <rect width="238" height="46" rx="23" style={fill('var(--surface)', { stroke: 'var(--line)', strokeWidth: 2 })} />
@@ -62,8 +62,8 @@ export function WriteTogetherArt() {
       <rect x={60} y={64} width={140} height={12} rx={4} style={fill(A, { opacity: 0.2 })} /><Line x={62} y={66} w={136} />
       <Line x={62} y={90} w={190} /><Line x={62} y={112} w={160} />
       <rect x={60} y={132} width={120} height={12} rx={4} style={fill(B, { opacity: 0.2 })} /><Line x={62} y={134} w={116} />
-      <Cursor x={190} y={56} color={A} name="Ravi" />
-      <Cursor x={156} y={122} color={B} name="Sai" />
+      <Cursor x={190} y={56} color={A} name="Yash" />
+      <Cursor x={156} y={122} color={B} name="Kalyan" />
     </svg>
   )
 }

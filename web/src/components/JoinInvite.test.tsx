@@ -14,7 +14,7 @@ vi.mock('@/lib/useSession', () => ({ useSession: () => session }))
 import JoinInvite from './JoinInvite'
 import { violationsIn } from '@/test/axe'
 
-const INFO = { workspaceName: 'Team Alpha', inviterName: 'Ravi', role: 'editor' }
+const INFO = { workspaceName: 'Team Alpha', inviterName: 'Yash', role: 'editor' }
 beforeEach(() => {
   session = { user: null, ready: true }
   apiMock.mockImplementation((path: string) => {
@@ -30,21 +30,21 @@ afterEach(() => {
 describe('JoinInvite', () => {
   it('says who invited you to what, and what you will be able to do', async () => {
     render(<JoinInvite code="abc" />)
-    expect(await screen.findByRole('heading', { name: 'Ravi invited you' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Yash invited you' })).toBeTruthy()
     expect(screen.getByText('Team Alpha')).toBeTruthy()
     expect(screen.getByText(/edit documents and boards/)).toBeTruthy()
   })
 
   it('has no axe violations', async () => {
     const { container } = render(<JoinInvite code="abc" />)
-    await screen.findByRole('heading', { name: 'Ravi invited you' })
+    await screen.findByRole('heading', { name: 'Yash invited you' })
     expect(await violationsIn(container)).toEqual([])
   })
 
   it('a signed-in person joins with one click and lands in the document', async () => {
-    session = { user: { name: 'Sai' }, ready: true }
+    session = { user: { name: 'Kalyan' }, ready: true }
     render(<JoinInvite code="abc" />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Join as Sai' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Join as Kalyan' }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/d1'))
   })
 
