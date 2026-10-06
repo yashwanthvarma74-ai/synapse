@@ -49,6 +49,19 @@ async function signup(name: string) {
   return { token: r.body.token as string, id: r.body.user.id as string }
 }
 
+import { decodeJwt } from 'jose'
+
+describe('guest sign-in lasts long enough to come back', () => {
+  it('a guest token is valid for about a month, while a normal login stays at 12 hours', async () => {
+    const g = await request(api).post('/auth/guest').send({})
+    const guest = decodeJwt(g.body.token)
+    expect((guest.exp! - guest.iat!) / 86400).toBeCloseTo(30, 0)
+    const u = await signup('regular')
+    const regular = decodeJwt(u.token)
+    expect((regular.exp! - regular.iat!) / 3600).toBeCloseTo(12, 0)
+  })
+})
+
 describe('first-run content', () => {
   it('every new account gets a workspace with a Welcome document and a sample board', async () => {
     const u = await signup('newbie')
