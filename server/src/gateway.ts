@@ -33,6 +33,9 @@ export interface GatewayOptions {
   // message heals on its own. 0 turns it off.
   resyncMs?: number
   onSettled?: (docId: string, doc: import('yjs').Doc) => void
+  // Single-port mode: plain HTTP requests (anything that is not the WebSocket upgrade or /health)
+  // go to this handler, normally the API. Hosts that expose one port per service need this.
+  fallback?: (req: http.IncomingMessage, res: http.ServerResponse) => void
 }
 
 export function createGateway(opts: GatewayOptions) {
@@ -47,6 +50,7 @@ export function createGateway(opts: GatewayOptions) {
       res.end(JSON.stringify({ ok: true, rooms: rooms.size, ...stats }))
       return
     }
+    if (opts.fallback) return opts.fallback(req, res)
     res.writeHead(404).end()
   })
 

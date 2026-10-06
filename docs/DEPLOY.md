@@ -5,6 +5,50 @@ and every setting named here were run on a laptop. **Nothing has been deployed t
 `docker compose` was **not run** (Docker is not installed on the development machine); its YAML was only
 checked for structure. Expect to fix small things the first time.
 
+## Free deployment (no credit card): Vercel + Render + Atlas
+
+This is the cheapest route and needs no card. **Status: every file below was prepared and the server was
+run in exactly this mode locally (one port, Node 22, production settings, a real sync), but the Render and
+Vercel steps themselves have not been performed yet.**
+
+| Part | Where | Cost | Catch |
+|---|---|---|---|
+| Website | Vercel (Hobby plan) | free | personal, non-commercial use |
+| Server (API + live sync) | Render (free web service, Singapore) | free | **sleeps after ~15 minutes without traffic**; the first visitor then waits roughly a minute, and open live sessions drop |
+| Database | MongoDB Atlas M0 (Mumbai) | free | 512 MB |
+
+Redis is not needed: one server instance has no other gateway to talk to. Uploads and the AI summary stay
+off until you add their settings.
+
+**Keeping the server awake.** `.github/workflows/uptime.yml` checks the site every 5 minutes. Once you set its
+two variables it also stops the free server from sleeping. GitHub does not promise exact timing for scheduled
+runs (they can be delayed by many minutes at busy times), so expect an occasional cold start anyway.
+
+### Steps
+
+1. **Put the code on GitHub** (both hosts deploy from it). Create an empty repository, then from the project
+   folder: `git remote add origin https://github.com/<you>/synapse.git` and `git push -u origin main`.
+   Nothing secret is in the repository: `server/.env` is git-ignored.
+2. **Atlas:** Network Access must allow `0.0.0.0/0` (Render's addresses change). Your connection string is in
+   `server/.env`; you will paste it into Render, not into GitHub.
+3. **Render:** New > Blueprint > choose the repository. When asked, set `MONGO_URL` to your Atlas string and
+   `WEB_ORIGIN` to a placeholder for now (`https://example.com`). Wait for the first deploy to go green and
+   copy its address (like `https://synapse-server-xxxx.onrender.com`). Check
+   `https://<that address>/health` shows `{"ok":true,...}`.
+4. **Vercel:** New Project > import the repository > set **Root Directory** to `web` > add two environment
+   variables **before the first deploy**: `NEXT_PUBLIC_API_URL` = the Render address and
+   `NEXT_PUBLIC_GATEWAY_URL` = the same address with `wss://` instead of `https://`. Deploy, and copy the
+   Vercel address.
+5. **Back in Render:** change `WEB_ORIGIN` to the Vercel address (no trailing slash) and let it redeploy.
+   Until you do, browsers are blocked by the server's cross-origin rule.
+6. **Open the Vercel address**, press **Try it now**, then test the invite link in a private window.
+7. **Keep-alive:** in the GitHub repository, Settings > Secrets and variables > Actions > Variables, add
+   `SYNAPSE_API_URL` and `SYNAPSE_GATEWAY_URL`, both set to the Render address (the gateway one with `wss://`).
+
+If something fails: Render's **Logs** tab shows the server's JSON log lines; a blank page with network errors in
+the browser console usually means step 5 was missed or a `NEXT_PUBLIC_` variable was set after the build (they
+are baked in at build time; change them and redeploy).
+
 ## The shape
 
 ```
@@ -58,7 +102,8 @@ platforms that cannot hold a WebSocket open (Vercel functions) are not suitable 
 | `PUBLIC_API_URL` | The API's public address, used in file links |
 | `REDIS_URL` | Only needed with 2+ gateways (they relay edits through it) |
 | `SERVICE` | `both` (default), or `api` / `gateway` to run them as separate processes |
-| `API_PORT`, `GATEWAY_PORT` | Defaults 4001 and 4000 |
+| `PORT` | If set (Render, Railway and Heroku set it), the API and the live-sync gateway share this one port; `API_PORT` and `GATEWAY_PORT` are then ignored |
+| `API_PORT`, `GATEWAY_PORT` | Defaults 4001 and 4000 when `PORT` is not set |
 | `S3_*` | See section 2. Without them, uploads are off |
 | `ANTHROPIC_API_KEY`, `SUMMARY_MODEL` | Turns on the AI summary (ADR 0016). Sends page text to Anthropic |
 | `GUESTS_ENABLED`, `MAX_GUESTS_PER_HOUR` | Guest accounts (ADR 0012) |

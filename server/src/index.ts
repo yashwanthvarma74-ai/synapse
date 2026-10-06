@@ -33,9 +33,30 @@ if (atlasSearch) await ensureSearchIndex(c).catch((err) => logger.error({ err: S
 const bus = process.env.REDIS_URL ? new RedisBus(process.env.REDIS_URL, randomUUID().slice(0, 8)) : new NoBus()
 if (!process.env.REDIS_URL) logger.warn('REDIS_URL not set: running a single gateway, access changes apply on the 30s re-check')
 
+const s3 = s3Settings()
+if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch((err) => logger.error({ err: String(err) }, 'could not create the bucket'))
+if (!process.env.ANTHROPIC_API_KEY) logger.info('ANTHROPIC_API_KEY not set: the AI summary action is turned off')
+if (!s3) logger.warn('S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set: uploads are turned off')
+
+// Single-port mode: when the host gives us ONE port (the PORT variable, as Render, Railway and Heroku do),
+// the API and the WebSocket gateway share it. Needs SERVICE=both (the default).
+const singlePort = !!process.env.PORT && service === 'both'
+
+const api = service === 'gateway' ? null : createApi({
+  c, store, bus, secret,
+  corsOrigin: process.env.WEB_ORIGIN,
+  atlasSearch,
+  storage: s3 ? s3Storage(s3) : null,
+  summarize: process.env.ANTHROPIC_API_KEY ? anthropicSummarizer({ apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.SUMMARY_MODEL }) : null,
+  publicUrl: process.env.PUBLIC_API_URL,
+  guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
+  maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
+})
+
 if (service === 'gateway' || service === 'both') {
   const gateway = createGateway({
-    port: Number(process.env.GATEWAY_PORT ?? 4000),
+    port: singlePort ? Number(process.env.PORT) : Number(process.env.GATEWAY_PORT ?? 4000),
+    fallback: singlePort && api ? (req, res) => api(req, res) : undefined,
     store,
     bus,
     authorize: makeAuthorize(c, secret),
@@ -49,22 +70,7 @@ if (service === 'gateway' || service === 'both') {
   logger.info(`gateway listening on :${await gateway.listen()}`)
 }
 
-const s3 = s3Settings()
-if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch((err) => logger.error({ err: String(err) }, 'could not create the bucket'))
-if (!process.env.ANTHROPIC_API_KEY) logger.info('ANTHROPIC_API_KEY not set: the AI summary action is turned off')
-if (!s3) logger.warn('S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set: uploads are turned off')
-
-if (service === 'api' || service === 'both') {
-  const api = createApi({
-    c, store, bus, secret,
-    corsOrigin: process.env.WEB_ORIGIN,
-    atlasSearch,
-    storage: s3 ? s3Storage(s3) : null,
-    summarize: process.env.ANTHROPIC_API_KEY ? anthropicSummarizer({ apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.SUMMARY_MODEL }) : null,
-    publicUrl: process.env.PUBLIC_API_URL,
-    guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
-    maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
-  })
+if (api && !singlePort) {
   const port = Number(process.env.API_PORT ?? 4001)
   api.listen(port, () => logger.info(`api listening on :${port}`))
 }
