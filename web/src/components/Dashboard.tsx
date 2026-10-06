@@ -1,7 +1,8 @@
 'use client'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { api, type WorkspaceItem } from '@/lib/api'
+import { api } from '@/lib/api'
+import { keys, useAction, useWorkspaces } from '@/lib/queries'
 import { useSession } from '@/lib/useSession'
 import Search from '@/components/Search'
 import Landing from '@/components/Landing'
@@ -14,25 +15,15 @@ const ROLE_HELP: Record<string, string> = {
 // Signed out: the landing page. Signed in: your workspaces.
 export default function Dashboard() {
   const { user, ready } = useSession({ optional: true })
-  const [workspaces, setWorkspaces] = useState<WorkspaceItem[] | null>(null)
+  const { data: workspaces, error: loadError } = useWorkspaces(!!user)
   const [name, setName] = useState('')
-  const [error, setError] = useState('')
-
-  const load = useCallback(() => api<WorkspaceItem[]>('/workspaces').then(setWorkspaces).catch((e) => setError(e.message)), [])
-  useEffect(() => {
-    if (user) void load()
-  }, [user, load])
+  const action = useAction([keys.workspaces])
+  const error = action.error || loadError?.message || ''
 
   async function create(e: FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
-    try {
-      await api('/workspaces', { body: { name } })
-      setName('')
-      await load()
-    } catch (err) {
-      setError((err as Error).message)
-    }
+    if (await action.run(() => api('/workspaces', { body: { name } }))) setName('')
   }
 
   if (!ready) return <div className="page"><p className="muted">Loading…</p></div>
