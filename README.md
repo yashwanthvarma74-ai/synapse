@@ -251,10 +251,14 @@ Honest list, so nothing here is oversold. The brief for this project is extracte
 - **Whole documents live in gateway memory** while a room is open, so very large documents cost RAM on every gateway holding them.
 - **Auth is basic.** No email verification or password reset; the login token lives in `localStorage`, and the WebSocket token travels in the URL ([ADR 0007](docs/adr/0007-authentication.md)). Rate limiters are in memory, per instance.
 - **Lint covers the web app only.** `cd web && npm run lint` is clean. The server has types and tests but no ESLint configuration.
-- There is **no license file** and **no remote**: the repository is local. Choose a license before publishing.
+- Licensed under the [MIT License](LICENSE).
 
 ## Interview questions this prepares for
 
 Design Google Docs; CRDT or OT; add offline support to an existing web app;
 scale WebSockets past one server; what breaks first at 10x users. Short answers
 with the reasoning are in the ADRs, and the numbers are in the benchmarks.
+
+## Deploying
+
+[`docs/DEPLOY.md`](docs/DEPLOY.md) has a free route (Vercel + Render + Atlas, no card) and the full settings table.
