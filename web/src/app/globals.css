@@ -267,3 +267,6 @@ kbd { font: inherit; font-size: 0.85em; padding: 1px 7px; border: 1px solid var(
 .ProseMirror img { max-width: 100%; height: auto; border-radius: 6px; display: block; margin: 8px 0; }
 .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; }
 .upload-status { min-height: 1.4em; margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); }
+
+/* AI summary text: plain text, wrapped, never HTML */
+.summary-text { white-space: pre-wrap; word-break: break-word; font: inherit; background: var(--accent-soft); border-radius: var(--radius); padding: 12px 14px; margin: 0; }

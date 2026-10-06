@@ -6,6 +6,7 @@ import { MongoStore } from './mongoStore.js'
 import { collections, ensureIndexes, ensureSearchIndex, oid } from './db.js'
 import { logger } from './logger.js'
 import { ensureBucket, s3Settings, s3Storage } from './storage.js'
+import { anthropicSummarizer } from './summarize.js'
 import { RedisBus } from './redisBus.js'
 import { NoBus } from './bus.js'
 import { createGateway } from './gateway.js'
@@ -50,6 +51,7 @@ if (service === 'gateway' || service === 'both') {
 
 const s3 = s3Settings()
 if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch((err) => logger.error({ err: String(err) }, 'could not create the bucket'))
+if (!process.env.ANTHROPIC_API_KEY) logger.info('ANTHROPIC_API_KEY not set: the AI summary action is turned off')
 if (!s3) logger.warn('S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set: uploads are turned off')
 
 if (service === 'api' || service === 'both') {
@@ -58,6 +60,7 @@ if (service === 'api' || service === 'both') {
     corsOrigin: process.env.WEB_ORIGIN,
     atlasSearch,
     storage: s3 ? s3Storage(s3) : null,
+    summarize: process.env.ANTHROPIC_API_KEY ? anthropicSummarizer({ apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.SUMMARY_MODEL }) : null,
     publicUrl: process.env.PUBLIC_API_URL,
     guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
     maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
