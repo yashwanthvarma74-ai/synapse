@@ -8,6 +8,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import type { Collab } from '@/lib/useCollab'
 import { recordMetric } from '@/lib/telemetry'
+import { SlashCommand } from '@/lib/slashCommand'
 
 // The editor does not hold its own text: Collaboration binds it to the Yjs doc.
 // Typing becomes a Yjs update, and the same update goes to IndexedDB and the gateway.
@@ -26,6 +27,7 @@ export default function Editor({
         // Yjs brings its own undo, which only undoes YOUR edits, not everyone's
         StarterKit.configure({ undoRedo: false }),
         Placeholder.configure({ placeholder: readOnly ? 'This document is empty.' : 'Start writing here…' }),
+        ...(readOnly ? [] : [SlashCommand]),
         Collaboration.configure({ document: collab.doc }),
         CollaborationCaret.configure({
           provider: { awareness: collab.awareness },
