@@ -12,6 +12,7 @@ import { AggregationType, MeterProvider, type MetricReader } from '@opentelemetr
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 import { monitorEventLoopDelay } from 'node:perf_hooks'
+import { logger } from './logger.js'
 
 // Bucket boundaries chosen for what is measured: sub-millisecond server work up to
 // multi-second client waits.
@@ -113,8 +114,8 @@ export function initTelemetry(opts: { serviceName: string; port?: number; reader
   const reader =
     opts.reader ??
     new PrometheusExporter({ port: opts.port ?? 9464, endpoint: '/metrics', host: '127.0.0.1' }, (err) => {
-      if (err) console.error('metrics endpoint failed to start:', err.message)
-      else console.log(`metrics on http://127.0.0.1:${opts.port ?? 9464}/metrics`)
+      if (err) logger.error({ err: err.message }, 'metrics endpoint failed to start')
+      else logger.info(`metrics on http://127.0.0.1:${opts.port ?? 9464}/metrics`)
     })
   const provider = new MeterProvider({
     resource: resourceFromAttributes({ 'service.name': opts.serviceName }),

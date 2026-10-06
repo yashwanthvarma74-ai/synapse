@@ -9,6 +9,7 @@ import * as decoding from 'lib0/decoding'
 import type { Bus } from './bus.js'
 import type { DocStore } from './store.js'
 import { m } from './telemetry.js'
+import { logger } from './logger.js'
 
 export const MSG_SYNC = 0
 export const MSG_AWARENESS = 1
@@ -218,7 +219,7 @@ export class Room {
         awarenessProtocol.applyAwarenessUpdate(this.awareness, decoding.readVarUint8Array(decoder), ORIGIN_BUS)
       }
     } catch (err) {
-      console.error('ignored a malformed relay message', this.opts.docId, (err as Error).message)
+      logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'ignored a malformed relay message')
     }
   }
 
@@ -256,7 +257,7 @@ export class Room {
           m.compactions.add(1, { result: 'ok' })
         } catch (err) {
           m.compactions.add(1, { result: 'failed' })
-          console.error('compaction failed (will retry at the next threshold)', this.opts.docId, (err as Error).message)
+          logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'compaction failed (will retry at the next threshold)')
         }
       }
     })
@@ -264,7 +265,7 @@ export class Room {
 
   private markDirty(err: unknown) {
     if (!this.dirty) {
-      console.error('database unavailable, will retry saving', this.opts.docId, (err as Error).message)
+      logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'database unavailable, will retry saving')
       m.dirtyRooms.add(1)
     }
     this.dirty = true
@@ -285,7 +286,7 @@ export class Room {
       m.dirtyRooms.add(-1)
       this.retryDelay = 1000
       this.updatesSinceSnapshot++
-      console.error('database back, saved the full state of', this.opts.docId)
+      logger.warn({ docId: this.opts.docId }, 'database back, saved the full state')
     } catch (err) {
       this.markDirty(err)
     }
@@ -301,7 +302,7 @@ export class Room {
       if (snapshot) Y.applyUpdate(this.doc, snapshot, ORIGIN_STORE)
       for (const u of updates) Y.applyUpdate(this.doc, u, ORIGIN_STORE)
     } catch (err) {
-      console.error('resync failed', this.opts.docId, (err as Error).message) // try again next time
+      logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'resync failed') // try again next time
     }
   }
 
@@ -329,7 +330,7 @@ export class Room {
     await this.flush()
     if (this.dirty) await this.saveFullState() // last try before letting go of the data
     if (this.dirty) {
-      console.error('EDITS NOT SAVED: room closed while the database was unavailable', this.opts.docId)
+      logger.error({ docId: this.opts.docId }, 'EDITS NOT SAVED: room closed while the database was unavailable')
       this.dirty = false
       m.dirtyRooms.add(-1) // keep the gauge honest: this room no longer holds unsaved edits (it was dropped)
     }

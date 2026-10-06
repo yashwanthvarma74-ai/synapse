@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "REDIS_URL=redis://127.0.0.1:6379 tsx watch src/index.ts",
-    "start": "REDIS_URL=redis://127.0.0.1:6379 tsx src/index.ts",
+    "dev": "REDIS_URL=redis://127.0.0.1:6379 tsx watch --env-file-if-exists=.env src/index.ts",
+    "start": "REDIS_URL=redis://127.0.0.1:6379 tsx --env-file-if-exists=.env src/index.ts",
     "test": "vitest run",
     "bench:propagation": "tsx bench/propagation.ts",
     "bench:partition": "tsx bench/partition.ts",
@@ -29,6 +29,7 @@
     "jose": "^6.2.12",
     "lib0": "^0.2.119",
     "mongodb": "^7.7.0",
+    "pino": "^10.4.0",
     "ws": "^8.22.0",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.33",

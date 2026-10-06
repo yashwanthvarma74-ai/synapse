@@ -7,7 +7,8 @@ import { z } from 'zod'
 import { ObjectId } from 'mongodb'
 import { randomBytes, randomInt } from 'node:crypto'
 import type { Collections } from './db.js'
-import { oid } from './db.js'
+import { oid, SEARCH_INDEX } from './db.js'
+import { logger } from './logger.js'
 import type { MongoStore } from './mongoStore.js'
 import type { Bus } from './bus.js'
 import type { Role } from './room.js'
@@ -22,6 +23,7 @@ export interface ApiOptions {
   bus: Bus
   secret: string
   corsOrigin?: string
+  atlasSearch?: boolean // use Atlas Search for /search (needs MongoDB Atlas); otherwise the $text index
   guestsEnabled?: boolean // one-click guest accounts (default on)
   maxGuestsPerHour?: number // simple ceiling against abuse
 }
@@ -66,7 +68,7 @@ const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[r
 const newInviteCode = () => randomBytes(16).toString('base64url')
 const INVITE_DAYS = 7
 
-export function createApi({ c, store, bus, secret, corsOrigin, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
+export function createApi({ c, store, bus, secret, corsOrigin, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
   // comma-separated list of allowed web origins
   app.use(cors({ origin: (corsOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000').split(',') }))
@@ -78,7 +80,10 @@ export function createApi({ c, store, bus, secret, corsOrigin, guestsEnabled = t
     const t0 = performance.now()
     res.on('finish', () => {
       const route = req.route?.path ? String(req.route.path) : res.statusCode === 404 ? 'unmatched' : 'other'
-      m.httpDuration.record(performance.now() - t0, { method: req.method, route, status_class: `${Math.floor(res.statusCode / 100)}xx` })
+      const ms = performance.now() - t0
+      m.httpDuration.record(ms, { method: req.method, route, status_class: `${Math.floor(res.statusCode / 100)}xx` })
+      // access log: the route pattern, never the real URL (invite codes live in paths)
+      if (route !== '/health' && route !== '/telemetry') logger.info({ method: req.method, route, status: res.statusCode, ms: Math.round(ms) }, 'request')
     })
     next()
   })
@@ -395,13 +400,30 @@ export function createApi({ c, store, bus, secret, corsOrigin, guestsEnabled = t
   }))
 
   // ---- search -----------------------------------------------------------------------------------
-  // Searches only workspaces the caller belongs to. (Atlas Search would replace this
-  // $text query in production; same shape, better relevance.)
+  // Searches only workspaces the caller belongs to. On Atlas this uses Atlas Search (typo
+  // tolerant, ranked); anywhere else, or while the Atlas index is still building, it falls back
+  // to the plain MongoDB $text index.
   app.get('/search', needAuth, h(async (req, res) => {
     const { q } = parse(z.object({ q: z.string().trim().min(1).max(100) }), req.query)
     const ms = await c.memberships.find({ userId: idParam(req.userId) }).toArray()
-    const found = await c.documents
-      .find({ workspaceId: { $in: ms.map((m) => m.workspaceId) }, $text: { $search: q } },
+    const workspaceIds = ms.map((m) => m.workspaceId)
+    let found: Array<{ _id: ObjectId; title: string; workspaceId: ObjectId; text: string }> | null = null
+    if (atlasSearch) {
+      try {
+        found = await c.documents.aggregate<{ _id: ObjectId; title: string; workspaceId: ObjectId; text: string }>([
+          { $search: { index: SEARCH_INDEX, compound: {
+            must: [{ text: { query: q, path: ['title', 'text'], fuzzy: { maxEdits: 1, prefixLength: 2 } } }],
+            filter: [{ in: { path: 'workspaceId', value: workspaceIds } }],
+          } } },
+          { $limit: 20 },
+          { $project: { title: 1, workspaceId: 1, text: 1 } },
+        ]).toArray()
+      } catch (err) {
+        logger.warn({ err: String(err) }, 'atlas search failed, using $text')
+      }
+    }
+    found ??= await c.documents
+      .find({ workspaceId: { $in: workspaceIds }, $text: { $search: q } },
         { projection: { score: { $meta: 'textScore' }, title: 1, workspaceId: 1, text: 1 } })
       .sort({ score: { $meta: 'textScore' } }).limit(20).toArray()
     res.json(found.map((d) => ({ id: d._id.toHexString(), title: d.title, workspaceId: d.workspaceId.toHexString(),
@@ -428,7 +450,7 @@ export function createApi({ c, store, bus, secret, corsOrigin, guestsEnabled = t
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof HttpError) return void res.status(err.status).json({ error: err.message })
     if ((err as { type?: string }).type === 'entity.parse.failed') return void res.status(400).json({ error: 'Invalid JSON' })
-    console.error(err)
+    logger.error({ err }, 'unhandled error in a request')
     res.status(500).json({ error: 'Something went wrong' }) // never leak internals
   })
 

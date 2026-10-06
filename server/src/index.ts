@@ -3,7 +3,8 @@
 // all sharing MongoDB and Redis.
 import { randomUUID } from 'node:crypto'
 import { MongoStore } from './mongoStore.js'
-import { collections, ensureIndexes, oid } from './db.js'
+import { collections, ensureIndexes, ensureSearchIndex, oid } from './db.js'
+import { logger } from './logger.js'
 import { RedisBus } from './redisBus.js'
 import { NoBus } from './bus.js'
 import { createGateway } from './gateway.js'
@@ -24,8 +25,11 @@ const store = new MongoStore(process.env.MONGO_URL ?? 'mongodb://127.0.0.1:27017
 await store.init()
 const c = collections(store.db)
 await ensureIndexes(c)
+// Atlas Search is on automatically for mongodb+srv:// (Atlas) URLs; ATLAS_SEARCH=false/true overrides
+const atlasSearch = process.env.ATLAS_SEARCH ? process.env.ATLAS_SEARCH === 'true' : (process.env.MONGO_URL ?? '').startsWith('mongodb+srv://')
+if (atlasSearch) await ensureSearchIndex(c).catch((err) => logger.error({ err: String(err) }, 'could not create the Atlas Search index; search will use the $text index'))
 const bus = process.env.REDIS_URL ? new RedisBus(process.env.REDIS_URL, randomUUID().slice(0, 8)) : new NoBus()
-if (!process.env.REDIS_URL) console.warn('REDIS_URL not set: running a single gateway, access changes apply on the 30s re-check')
+if (!process.env.REDIS_URL) logger.warn('REDIS_URL not set: running a single gateway, access changes apply on the 30s re-check')
 
 if (service === 'gateway' || service === 'both') {
   const gateway = createGateway({
@@ -40,16 +44,17 @@ if (service === 'gateway' || service === 'both') {
       if (id) void c.documents.updateOne({ _id: id }, { $set: { text: extractText(doc), updatedAt: new Date() } }).catch(() => {})
     },
   })
-  console.log(`gateway listening on :${await gateway.listen()}`)
+  logger.info(`gateway listening on :${await gateway.listen()}`)
 }
 
 if (service === 'api' || service === 'both') {
   const api = createApi({
     c, store, bus, secret,
     corsOrigin: process.env.WEB_ORIGIN,
+    atlasSearch,
     guestsEnabled: process.env.GUESTS_ENABLED !== 'false', // GUESTS_ENABLED=false turns off "Try it now"
     maxGuestsPerHour: Number(process.env.MAX_GUESTS_PER_HOUR ?? 300),
   })
   const port = Number(process.env.API_PORT ?? 4001)
-  api.listen(port, () => console.log(`api listening on :${port}`))
+  api.listen(port, () => logger.info(`api listening on :${port}`))
 }
