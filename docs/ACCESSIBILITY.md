@@ -8,8 +8,8 @@ verified**.
 
 | Verified | How |
 |---|---|
-| Automated rule checks, every page, light and dark | axe-core 4.14 run in the real browser |
-| Colour contrast of every theme colour | computed from the real stylesheet (`src/test/a11y.test.ts`) |
+| Automated rule checks (WCAG 2.0 to 2.2, A and AA), every page | axe-core in **Chromium and WebKit** through Playwright (`e2e/tests/accessibility.spec.ts`, 16 checks) |
+| Colour contrast of every theme colour | computed from the real stylesheet (`src/test/a11y.test.ts`); the app is **light-only** now (the dark theme was removed on request), so only one theme is tested |
 | Keyboard operation, real key presses | Tab order, skip link, tabs, canvas flows, driven in the app's browser |
 | Reflow at 320 px wide, no horizontal scrolling | all five pages |
 | Component behaviour and ARIA wiring | jsdom tests with axe |
@@ -45,6 +45,36 @@ dashboard, workspace, document (comments and history tabs) and canvas pages, in
 **both** light and dark themes, including with search results shown and the canvas
 text-edit box open.
 
+## Update, 6 October 2026: changes since the first audit
+
+The app changed a lot (landing page, guests, invite links, slash menu, uploads, AI summary, a
+simpler vocabulary). Everything below was re-checked.
+
+- **Dark theme removed.** Items 1 and 5 above were dark-theme problems and are now history; the
+  light theme passes the same contrast tests. (Dark mode could be brought back; the tokens would need
+  their contrast re-proved.)
+- **Checks now run in real browsers on every change.** `e2e/tests/accessibility.spec.ts` scans the
+  landing page, sign-in, dashboard, workspace, document (including with the **slash menu open** and
+  with the **Share dialog open**), History tab, whiteboard and invite page with axe, in Chromium and
+  WebKit, and runs a real keyboard test (skip link, then the editor). All 16 pass.
+- **New findings from this work, all fixed:**
+
+| # | Problem | Fix |
+|---|---|---|
+| 18 | Toolbar buttons had names that did not contain their visible words (WCAG 2.5.3 label in name) | Accessible names now equal the visible words |
+| 19 | The whiteboard page had no level-1 heading | A visually hidden `h1` with the board's title; the visible title is an input, which is not a heading |
+| 20 | **Slash menu: `aria-expanded` on the editor.** ARIA does not allow it on a text box (axe: `aria-allowed-attr`, critical) | Removed. The editor points at the highlighted option with `aria-activedescendant`, and a polite status message says the menu opened |
+| 21 | **Slash menu: scrolled but not keyboard-reachable, and arrowing down did not scroll the highlighted row into view** (axe: `scrollable-region-focusable`; a real keyboard bug) | Compact one-line rows so all blocks fit; the highlighted row now scrolls into view |
+| 22 | Dead invite links and missing documents had no page title or heading | Titles and headings added |
+
+- **A browser difference, not a bug:** Safari (WebKit) does not tab to links unless a setting is
+  turned on; Option+Tab is its shortcut. The keyboard test uses it for WebKit.
+- **Renamed:** the "Simulate offline" button (item 9) is now **"Offline mode"**, with the same
+  constant-name-plus-`aria-pressed` behaviour.
+- **New interface parts checked with axe in jsdom:** the AI summary tab (labelled, polite live region,
+  result shown as plain text); upload status messages are in a live region (`role="status"`, or
+  `role="alert"` for an error).
+
 ## Keyboard map
 
 | Where | Keys |
@@ -70,7 +100,7 @@ region ("Added ellipse", "Connected", "Resized to 190 by 120").
 - `Tabs.test.tsx`: tab order, ARIA wiring, arrows, wrap-around, Home/End.
 - `Presence.test.tsx`: names for screen readers, decorative initials, polite
   announcements, nothing announced on arrival, focus never taken.
-- `NetworkSimulator.test.tsx`: a toggle whose name does not change.
+- `OfflineDemo.test.tsx`: a toggle whose name does not change.
 - `LoginForm.test.tsx`: labelled fields, the error is announced and tied to the form.
 - Each component test also runs axe (without the colour rule, which needs a real
   layout engine and is covered by the contrast tests instead).
@@ -79,9 +109,11 @@ region ("Added ellipse", "Connected", "Resized to 190 by 120").
 
 ## Re-running the browser audit
 
-axe is a dev dependency but is not shipped. To audit a page: copy
-`node_modules/axe-core/axe.min.js` into `web/public/`, load it on the page with a
-script tag, call `axe.run(document)`, then delete the copied file.
+```bash
+cd e2e && npx playwright test tests/accessibility.spec.ts --project=chromium --project=webkit
+```
+
+It starts its own copy of the app (see `e2e/playwright.config.ts`). axe is a dev dependency and is not shipped.
 
 ## NOT verified, and known limits
 
@@ -93,8 +125,8 @@ script tag, call `axe.run(document)`, then delete the copied file.
 - **The canvas drawing itself is pixels.** The shapes are not exposed individually
   to assistive technology; the **object list** is the accessible equivalent, and it
   shows only the first 200 objects. Connectors are not in the list (deleting a
-  shape deletes its connectors) and there is no keyboard way to change a shape's
-  colour, because the UI has no colour control at all.
+  shape deletes its connectors). The whiteboard now has a **colour palette made of buttons**, so
+  colour can be changed with the keyboard in principle, but I did not test that flow with real key presses.
 - **Cursor labels and remote carets** inside the editor are visual only.
 - **Forced-colours (Windows high contrast) styles are untested.** They were added
   from the standard approach and could not be emulated here.
@@ -102,7 +134,7 @@ script tag, call `axe.run(document)`, then delete the copied file.
   minimum.
 - **Reduced motion** is respected in CSS, but the app has almost no animation.
 - **The comments panel refreshes every 5 seconds** without announcing new comments.
-- **Browser coverage:** one Chromium (version 152). Safari and Firefox were not tried.
+- **Browser coverage:** axe ran in Chromium and **WebKit** (the engine of Safari, not Safari itself). **Firefox was not run**: the Playwright build of Firefox would not start on this Mac (macOS 27.0), even when launched by hand; it is configured for CI on Linux, which has not run yet.
 - **Text-only zoom** (a browser setting that enlarges text but not layout) was not
   tested. Normal browser zoom is covered by the 320 px reflow check, which equals
   400% zoom of a 1280 px window.

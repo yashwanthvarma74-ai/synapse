@@ -86,12 +86,28 @@ provisioning with UI edits switched off, so what is in git is what runs.
 - **Availability proxy ("connection success"):** `synced / (synced + failed)` over 5
   minutes. The target is 99.9%. Attempts the browser cancels itself (leaving the page,
   React's development double-mount) are deliberately **not** counted as failures.
-- **Alert rules** (`observability/alerts.yml`, 10 rules, checked with `promtool`): server
+- **Alert rules** (`observability/alerts.yml`, 10 basic alerts, checked with `promtool`): server
   down, round trip p95 above 250 ms, key-to-paint p95 above 50 ms, connection success
   below 99%, relay down, rooms with unsaved edits for 2 minutes, database write failures,
   event-loop delay above 100 ms, API 5xx above 1%, and a spike of malformed messages.
   **Nothing is wired to notify anyone**: there is no Alertmanager. They are the definition
   of "something is wrong", visible at <http://localhost:9090/alerts>.
+- **The 99.9% SLO as error-budget burn rate** (added 6 October 2026, same file, 2 more alerts and 4
+  recording rules, 16 rules in all). 99.9% leaves a budget of 0.1% failed connections, about 43 minutes
+  a month. `AvailabilityBudgetFastBurn` pages when the budget is being spent 14.4 times too fast over
+  1 hour *and* over the last 5 minutes (2% of a month's budget in an hour); `AvailabilityBudgetSlowBurn`
+  warns at 6 times over 6 hours and 30 minutes. Both need a minimum amount of traffic, so a quiet
+  period cannot trip them. This is the multiwindow method from the Google SRE Workbook.
+  `promtool test rules observability/tests/slo_test.yml` feeds synthetic traffic and checks four
+  cases: healthy traffic never alerts, a real outage pages, a short blip that has already recovered
+  does not page, and almost no traffic never alerts. I broke the threshold on purpose and the outage
+  test failed, so it can fail. CI runs it.
+- **The outside view: an uptime probe** (`server/ops/uptime.ts`, 6 tests). It checks the API
+  `/health`, the gateway `/health`, and, with a canary account and document, performs a **real Yjs sync**
+  over the WebSocket. That third check matters: in a test, a gateway that answered `/health` but
+  refused the canary's token was reported as failing only by the sync check. Run against the live local
+  system it completed a sync in 108 ms. `.github/workflows/uptime.yml` runs it every 5 minutes and does
+  nothing until you set `SYNAPSE_API_URL` and `SYNAPSE_GATEWAY_URL`.
 
 ## How it was verified
 
@@ -145,14 +161,15 @@ dev servers were running during these runs.
 - **The availability proxy is blind exactly when it matters most.** It is reported by
   browsers *through the API*. If the whole server is down, no browser can report that it
   failed, so the tile goes quiet instead of red. The `SynapseDown` alert (Prometheus
-  cannot scrape the server) covers that, but a real **external probe** (for example the
-  Prometheus blackbox exporter hitting `/health` and attempting a WebSocket handshake) is
-  still needed for a true availability number, and it was not built.
+  cannot scrape the server) covers that, and the **uptime probe** above is the outside view.
+  **But nothing is deployed, so the probe has only ever run against a laptop and there is no
+  real availability number yet.**
 - Only people whose browsers report are counted (not people with telemetry off, ad
   blockers, or who fail before the app loads).
-- **No traces and no logs.** The brief names OpenTelemetry; only its metrics are used
-  (a request trace across browser, API and gateway was not built). Logs are plain
-  `console` output.
+- **No traces.** The brief names OpenTelemetry; only its metrics are used (a request trace
+  across browser, API and gateway was not built). **Logs are structured now** (Pino, one JSON
+  object per line, with the route pattern but never the real URL, and `authorization`, `password`
+  and `token` redacted), but they are not shipped anywhere: no Loki or log search.
 - **The browser does not run the OpenTelemetry SDK.** A small authenticated beacon sends
   timings to the server, which turns them into OpenTelemetry metrics. This keeps the
   browser bundle small and the accepted data strictly controlled.
