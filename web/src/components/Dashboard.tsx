@@ -1,6 +1,7 @@
 'use client'
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { keys, useAction, useWorkspaces } from '@/lib/queries'
 import { useSession } from '@/lib/useSession'
@@ -14,6 +15,7 @@ const ROLE_HELP: Record<string, string> = {
 
 // Signed out: the landing page. Signed in: your workspaces.
 export default function Dashboard() {
+  const router = useRouter()
   const { user, ready } = useSession({ optional: true })
   const { data: workspaces, error: loadError } = useWorkspaces(!!user)
   const [name, setName] = useState('')
@@ -23,7 +25,12 @@ export default function Dashboard() {
   async function create(e: FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
-    if (await action.run(() => api('/workspaces', { body: { name } }))) setName('')
+    let created = ''
+    const ok = await action.run(async () => { created = (await api<{ id: string }>('/workspaces', { body: { name } })).id })
+    if (ok) {
+      setName('')
+      router.push(`/w/${created}`) // straight into the new workspace
+    }
   }
 
   if (!ready) return <div className="page"><p className="muted">Loading…</p></div>

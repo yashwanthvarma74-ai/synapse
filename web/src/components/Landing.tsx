@@ -16,7 +16,7 @@ export default function Landing() {
     setError('')
     try {
       const s = await startGuest()
-      router.push(`/doc/${s.welcomeId}`)
+      router.push(`/w/${s.workspaceId}`) // your workspace, with the Welcome document and a sample board to choose from
     } catch (e) {
       setError((e as Error).message || 'Could not start. Is the server running?')
       setBusy(false)

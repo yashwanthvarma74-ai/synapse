@@ -35,7 +35,7 @@ describe('Landing page', () => {
     startGuest.mockResolvedValue({ workspaceId: 'w1', welcomeId: 'welcome1', boardId: 'b1' })
     render(<Landing />)
     fireEvent.click(screen.getAllByRole('button', { name: /try it now/i })[0])
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/doc/welcome1'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/w/w1'))
   })
 
   it('shows a helpful message, and lets the person try again, if it fails', async () => {

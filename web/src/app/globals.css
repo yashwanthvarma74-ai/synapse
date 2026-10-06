@@ -289,3 +289,8 @@ kbd { font: inherit; font-size: 0.85em; padding: 1px 7px; border: 1px solid var(
 .chat-meta { font-size: 0.8rem; color: var(--muted); }
 .chat-meta strong { color: var(--fg); }
 .chat-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* delete workspace */
+.btn.danger-outline { background: var(--bg); color: var(--danger); border: 1px solid var(--danger); }
+.btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn.danger:disabled { opacity: 0.5; cursor: not-allowed; }

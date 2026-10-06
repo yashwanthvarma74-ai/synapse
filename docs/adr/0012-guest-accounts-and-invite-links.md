@@ -15,6 +15,8 @@ generated name ("Curious Otter"), a starter workspace, a Welcome document and a 
 returns a token. Everything the app does for a normal account works for a guest. `POST /auth/upgrade`
 attaches an email and a password to the same account, so nothing is lost ("Save your work").
 
+**Where a guest lands.** After "Try it now" the visitor arrives at their workspace page, with the Welcome document and the Sample board to choose from (ADR 0018).
+
 **Invite links.** The owner creates a link for a role (editor, commenter or viewer, never owner).
 The link is `/join/<code>`: 128 random bits, base64url, valid for 7 days, revocable, reusable. Anyone
 who opens it can join with one click (as a guest if they have no account). Joining never *downgrades*

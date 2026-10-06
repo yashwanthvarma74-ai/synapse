@@ -2,12 +2,14 @@
 // Bytes NEVER pass through this server: the API hands the browser a short-lived, pre-signed
 // URL and the browser uploads straight to the bucket. The URL is signed for one exact key,
 // content type and size, so it cannot be reused to store anything else.
-import { GetObjectCommand, PutObjectCommand, S3Client, CreateBucketCommand, HeadBucketCommand } from '@aws-sdk/client-s3'
+import { DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client, CreateBucketCommand, HeadBucketCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 export interface Storage {
   presignPut(key: string, contentType: string, size: number): Promise<string>
   presignGet(key: string, opts?: { download?: string }): Promise<string>
+  // Delete every object whose key starts with `prefix` (a deleted document's uploads). Returns how many.
+  deletePrefix(prefix: string): Promise<number>
 }
 
 // What may be uploaded, and the file extension we store it under (never trust the filename)
@@ -52,8 +54,23 @@ export function makeS3Client(s: S3Settings, endpoint = s.endpoint) {
 }
 
 // Signing never touches the network, so this client can use the browsers' address
-export function s3Storage(s: S3Settings, client = makeS3Client(s, s.publicEndpoint ?? s.endpoint)): Storage {
+export function s3Storage(s: S3Settings, client = makeS3Client(s, s.publicEndpoint ?? s.endpoint), admin = makeS3Client(s)): Storage {
   return {
+    // deleting talks to the bucket from THIS server, so it uses the server's own address, not the browsers'
+    deletePrefix: async (prefix) => {
+      let deleted = 0
+      let token: string | undefined
+      do {
+        const page = await admin.send(new ListObjectsV2Command({ Bucket: s.bucket, Prefix: prefix, ContinuationToken: token }))
+        const keys = (page.Contents ?? []).flatMap((o) => (o.Key ? [{ Key: o.Key }] : []))
+        if (keys.length) {
+          await admin.send(new DeleteObjectsCommand({ Bucket: s.bucket, Delete: { Objects: keys, Quiet: true } }))
+          deleted += keys.length
+        }
+        token = page.IsTruncated ? page.NextContinuationToken : undefined
+      } while (token)
+      return deleted
+    },
     presignPut: (key, contentType, size) =>
       getSignedUrl(client, new PutObjectCommand({ Bucket: s.bucket, Key: key, ContentType: contentType, ContentLength: size }), {
         expiresIn: PUT_SECONDS,

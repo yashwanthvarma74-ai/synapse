@@ -8,6 +8,8 @@ import { useUi } from '@/lib/uiStore'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
 import ShareDialog from './ShareDialog'
+import DeleteWorkspaceDialog from './DeleteWorkspaceDialog'
+import { useQueryClient } from '@tanstack/react-query'
 import { EmptyDocsArt } from './ui/Illustrations'
 
 const ROLES: Role[] = ['owner', 'editor', 'commenter', 'viewer']
@@ -45,6 +47,9 @@ export default function WorkspaceView({ workspaceId }: { workspaceId: string }) 
   const [title, setTitle] = useState('')
   const sharing = useUi((s) => s.shareOpen)
   const setSharing = useUi((s) => s.setShareOpen)
+  const deleting = useUi((s) => s.deleteWorkspaceOpen)
+  const setDeleting = useUi((s) => s.setDeleteWorkspaceOpen)
+  const qc = useQueryClient()
   const [invite, setInvite] = useState({ email: '', role: 'editor' as Role })
   const action = useAction([keys.docs(workspaceId), keys.members(workspaceId), keys.workspaces])
   const error = action.error || e1?.message || e2?.message || e3?.message || ''
@@ -77,12 +82,37 @@ export default function WorkspaceView({ workspaceId }: { workspaceId: string }) 
           <h1>{ws?.name ?? 'Workspace'}</h1>
           <p>{ws ? ({ owner: 'You own this workspace.', editor: 'You can edit here.', commenter: 'You can read and comment here.', viewer: 'You can read here.' } as const)[ws.role] : ''}</p>
         </div>
-        {isOwner && <button className="btn" onClick={() => setSharing(true)}>Invite people</button>}
+        {isOwner && (
+          <div className="row" style={{ margin: 0 }}>
+            <button className="btn" onClick={() => setSharing(true)}>Invite people</button>
+            <button className="btn danger-outline" onClick={() => setDeleting(true)}>Delete workspace</button>
+          </div>
+        )}
       </div>
       {error && <p role="alert" className="error">{error}</p>}
       <ShareDialog workspaceId={workspaceId} open={sharing} onClose={() => setSharing(false)} />
+      {ws && isOwner && (
+        <DeleteWorkspaceDialog
+          workspaceId={workspaceId}
+          name={ws.name}
+          items={docs?.length ?? 0}
+          others={Math.max(0, members.length - 1)}
+          open={deleting}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => {
+            setDeleting(false)
+            // forget everything cached about it, refresh the list, and go back to the start
+            for (const key of [keys.docs(workspaceId), keys.members(workspaceId), keys.invites(workspaceId)]) qc.removeQueries({ queryKey: key })
+            void qc.invalidateQueries({ queryKey: keys.workspaces })
+            router.push('/')
+          }}
+        />
+      )}
 
       <h2>Documents and boards</h2>
+      {docs?.some((d) => d.title === 'Welcome to Synapse') && (
+        <p className="muted">New here? Open <strong>Welcome to Synapse</strong> for a one-minute tour, or the <strong>Sample board</strong> to try the whiteboard. You can also start a new document or whiteboard of your own.</p>
+      )}
       {canEdit && (
         <div className="create-row" role="group" aria-label="Create something new">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give it a name (optional)" maxLength={120} aria-label="Name for the new document or board" />

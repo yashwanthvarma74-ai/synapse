@@ -56,6 +56,8 @@ Read in this order. Each file has comments explaining the why.
 - `observability/tests/slo_test.yml` with the burn-rate rules in `alerts.yml`.
 - `server/src/chat.ts`, the chat handling in `room.ts`, `web/src/lib/chatStore.ts` and `components/Chat.tsx`: per-document chat
   (`docs/adr/0017`). Why is it not part of the Yjs document?
+- The `DELETE /workspaces/:id` route in `server/src/api.ts`, `components/DeleteWorkspaceDialog.tsx` and `docs/adr/0018`: how a
+  destructive action is ordered so it can be retried, and why the person types the name.
 - `docs/DEPLOY.md`: how this goes on the internet.
 
 ## 4. Accessibility
@@ -105,5 +107,7 @@ people can be signed in at once.
 - Why does k6 at 100 editors report a slow p95 when the server is almost idle?
 - Why does the server take a chat message's author name from the account, and save before it broadcasts?
 - Why were some browser tests minutes slow until they closed their windows?
+- Why does deleting a workspace remove content first and the workspace record last?
+- Why did removing someone's access take 30 seconds when there was no Redis, and what fixed it?
 - Why did I need `exact: true` and a scripted caret in the end-to-end tests?
 - Why are cancelled connections not counted as failures?

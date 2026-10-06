@@ -23,5 +23,6 @@ answer "why not X?".
 | [0015](0015-client-state-query-and-zustand.md) | TanStack Query for server data, Zustand for UI-only state |
 | [0016](0016-ai-summary.md) | The AI summary action and its guard rails |
 | [0017](0017-chat.md) | Per-document chat: a separate log, server-checked on every message |
+| [0018](0018-workspace-deletion-and-first-landing.md) | Deleting a workspace, and where "Try it now" lands |
 
 Related: [benchmarks](../BENCHMARKS.md), [fault injection](../FAULT-INJECTION.md), [accessibility](../ACCESSIBILITY.md), [observability](../OBSERVABILITY.md), [project README](../../README.md).

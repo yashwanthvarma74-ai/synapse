@@ -16,6 +16,7 @@ const calls: string[] = []
 const fake: Storage = {
   presignPut: async (key, type, size) => (calls.push(`put ${key} ${type} ${size}`), `https://bucket.test/${key}?signed=put`),
   presignGet: async (key, opts) => (calls.push(`get ${key}${opts?.download ? ' download' : ''}`), `https://bucket.test/${key}?signed=get`),
+  deletePrefix: async (prefix) => (calls.push(`delete ${prefix}`), 0),
 }
 
 beforeAll(async () => {

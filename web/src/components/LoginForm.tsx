@@ -38,7 +38,7 @@ function Form() {
     setError('')
     try {
       const s = await startGuest()
-      router.replace(next === '/' ? `/doc/${s.welcomeId}` : next)
+      router.replace(next === '/' ? `/w/${s.workspaceId}` : next)
     } catch (err) {
       setError((err as Error).message)
       setBusy(false)

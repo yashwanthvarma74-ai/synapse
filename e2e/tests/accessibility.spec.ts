@@ -73,6 +73,17 @@ test('document page, Chat tab, with messages', async ({ browser, request }) => {
   await scan(p)
 })
 
+test('workspace page, and the delete-workspace dialog', async ({ browser, request }) => {
+  const g = await newGuest(request)
+  const p = await windowFor(browser, g.token)
+  await p.goto(`/w/${g.workspaceId}`)
+  await expect(p.getByText('New here?')).toBeVisible()
+  await scan(p)
+  await p.getByRole('button', { name: 'Delete workspace' }).click()
+  await expect(p.getByRole('dialog')).toBeVisible()
+  await scan(p)
+})
+
 test('whiteboard', async ({ browser, request }) => {
   const g = await newGuest(request)
   const p = await windowFor(browser, g.token)

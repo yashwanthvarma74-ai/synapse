@@ -6,6 +6,8 @@ import type { Tool } from './canvasRenderer'
 interface UiState {
   shareOpen: boolean
   setShareOpen: (open: boolean) => void
+  deleteWorkspaceOpen: boolean
+  setDeleteWorkspaceOpen: (open: boolean) => void
   canvasTool: Tool
   setCanvasTool: (tool: Tool) => void
   canvasHelpOpen: boolean
@@ -16,6 +18,8 @@ interface UiState {
 export const useUi = create<UiState>((set) => ({
   shareOpen: false,
   setShareOpen: (shareOpen) => set({ shareOpen }),
+  deleteWorkspaceOpen: false,
+  setDeleteWorkspaceOpen: (deleteWorkspaceOpen) => set({ deleteWorkspaceOpen }),
   canvasTool: 'select',
   setCanvasTool: (canvasTool) => set({ canvasTool }),
   canvasHelpOpen: false,

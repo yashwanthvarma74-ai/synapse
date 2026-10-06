@@ -76,6 +76,7 @@ simpler vocabulary). Everything below was re-checked.
   arrives (tested: typing in the page continues uninterrupted); a refused message returns to the box with a
   plain explanation. **Not verified with a real screen reader**, so how busy the announcements feel in a lively
   chat is unknown.
+- **Workspace page and the delete dialog** were scanned with axe in Chromium and WebKit, including with the dialog open. The dialog is a native `<dialog>` (focus is trapped, Escape closes it), is named and described (what will be lost), starts focus on the safe button (Cancel), and the destructive button is disabled until the name is typed. The red button's white-on-red contrast is part of the colour tests. **Not verified with a real screen reader.**
 - **A browser difference, not a bug:** Safari (WebKit) does not tab to links unless a setting is
   turned on; Option+Tab is its shortcut. The keyboard test uses it for WebKit.
 - **Renamed:** the "Simulate offline" button (item 9) is now **"Offline mode"**, with the same

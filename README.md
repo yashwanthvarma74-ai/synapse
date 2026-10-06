@@ -16,8 +16,8 @@ You need Node 22+, MongoDB and Redis installed (`brew install redis` and
 ./dev.sh
 ```
 
-Open <http://localhost:3000> and press **Try it now**. No sign-up: you get a guest account, a
-Welcome document that teaches the app, and a sample whiteboard. Press **Share**, copy the invite
+Open <http://localhost:3000> and press **Try it now**. No sign-up: you land in your own workspace, which already holds
+a Welcome document that teaches the app and a sample whiteboard, and you choose which to open. Press **Share**, copy the invite
 link and open it in a second window to see two people editing live. Switch on **Try offline mode**,
 type in both windows, switch it off, and watch everything merge.
 
@@ -91,6 +91,7 @@ See [ADR 0002](docs/adr/0002-two-consistency-domains.md).
 - **Comments** anchored to text with Yjs relative positions, so they keep their place while others type.
 - **Chat** for each document: live messages between the people on the page, saved and checked by the server on every message (viewers read, others write), with an unread count and screen-reader announcements ([ADR 0017](docs/adr/0017-chat.md)).
 - **Version history**: named versions, preview, restore (current content is saved first).
+- **Workspaces**: create as many as you like; the owner can delete one (everything in it goes, after typing its name to confirm; [ADR 0018](docs/adr/0018-workspace-deletion-and-first-landing.md)).
 - **Sharing and roles**: owner, editor, commenter, viewer, enforced by the server. **Invite links** and **guest accounts** make it usable in seconds. Removing someone closes their open connection within about two seconds and clears their offline copy.
 - **Search** across your workspaces with **Atlas Search** (typo tolerant, scoped to your workspaces), falling back to a MongoDB text index off Atlas.
 - **Uploads**: images and files go straight from the browser to S3 / R2 / MinIO through pre-signed URLs ([ADR 0014](docs/adr/0014-uploads-with-presigned-urls.md)).
@@ -118,7 +119,7 @@ See [ADR 0002](docs/adr/0002-two-consistency-domains.md).
 | Observability | OpenTelemetry (metrics) + Prometheus + Grafana, Pino logs | ([ADR 0011](docs/adr/0011-observability.md)) |
 | Testing | Vitest + fast-check, Playwright, k6, `promtool` | Property-based convergence, multi-browser end-to-end, WebSocket load, alert rules |
 
-Architecture decision records are in [`docs/adr/`](docs/adr/) (seventeen of them, including failure handling, observability, uploads, the AI action and chat).
+Architecture decision records are in [`docs/adr/`](docs/adr/) (eighteen of them, including failure handling, observability, uploads, the AI action, chat and workspace deletion).
 
 ## Run it
 
@@ -167,11 +168,11 @@ if it exists (it is git-ignored, and `server/.env.example` is the template). The
 ## Tests and benchmarks
 
 ```bash
-cd server && npm test        # 121 tests: sync, roles, revocation, storage, compaction, self-healing, metrics, guests, uploads, AI summary, chat, uptime probe
-cd web    && npm test        # 135 tests: canvas model, colour contrast, keyboard and ARIA, sync client, slash menu, uploads, summary, chat
+cd server && npm test        # 131 tests: sync, roles, revocation, storage, compaction, self-healing, metrics, guests, uploads, AI summary, chat, workspace deletion, uptime probe
+cd web    && npm test        # 145 tests: canvas model, colour contrast, keyboard and ARIA, sync client, slash menu, uploads, summary, chat
 cd web    && npm run lint    # ESLint with Next.js and React 19 rules
 cd web    && npm run typecheck  # generates Next.js types, then runs tsc
-cd e2e    && npm run test:local   # 30 end-to-end tests in real Chromium and WebKit (starts its own app and database)
+cd e2e    && npm run test:local   # 36 end-to-end tests in real Chromium and WebKit (starts its own app and database)
 cd e2e    && npm test             # adds Firefox (not runnable on the development Mac; for CI on Linux)
 cd observability && promtool test rules tests/slo_test.yml   # the availability alerts, with synthetic traffic
 cd load/k6 && npm install && npm run build && k6 run -e EDITORS=50 editors.js   # k6 load test
@@ -245,6 +246,7 @@ Honest list, so nothing here is oversold. The brief for this project is extracte
 - **Accessibility is tested, but not with a screen reader.** axe reports 0 violations on every page in Chromium and WebKit, and keyboard flows were driven with real key presses, but **VoiceOver, NVDA and JAWS were not run**, forced-colours mode was not tried, and the canvas drawing itself is pixels (the object list is its accessible equivalent, limited to the first 200 objects). Details and fixes: [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md).
 
 **Known limits:**
+- **Deleting a workspace is permanent** (no trash or undo), owners only, and uploaded files are removed best effort ([ADR 0018](docs/adr/0018-workspace-deletion-and-first-landing.md)).
 - **Chat** has no editing, deleting or moderation, is not end-to-end encrypted, does not work offline, and a long offline gap (over 50 messages) is not fully filled in on reconnect ([ADR 0017](docs/adr/0017-chat.md)).
 - **Guests and invite links are risky if left open.** Anyone with a link joins with its role; guest creation is limited only by in-memory rate limits; nothing deletes old guests unless you schedule the cleanup ([ADR 0012](docs/adr/0012-guest-accounts-and-invite-links.md)).
 - **Uploaded file links need no login** (an image tag cannot send one) and rely on an unguessable name ([ADR 0014](docs/adr/0014-uploads-with-presigned-urls.md)). No virus scan, no per-user quota.

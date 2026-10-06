@@ -221,6 +221,35 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, s
     res.status(201).json({ id: w._id.toHexString(), name, role: 'owner' })
   }))
 
+  // Delete a workspace and EVERYTHING in it: documents and boards (their saved content and versions),
+  // comments, chat, invite links, memberships and uploaded files. Owner only, and it cannot be undone.
+  // Ordered so that a failure halfway can simply be retried: content first, then access, then the workspace.
+  app.delete('/workspaces/:id', needAuth, h(async (req, res) => {
+    const wid = idParam(req.params.id as string)
+    await needWorkspaceRole(req.userId, wid, 'owner')
+    const docs = await c.documents.find({ workspaceId: wid }, { projection: { _id: 1 } }).toArray()
+    const members = await c.memberships.find({ workspaceId: wid }).toArray()
+    const docIds = docs.map((d) => d._id.toHexString())
+    const wipe = async () => {
+      for (const id of docIds) {
+        await store.deleteDocument(id)
+        await chat?.deleteDocument(id)
+        await storage?.deletePrefix(`${id}/`).catch((err) => logger.warn({ err: String(err), docId: id }, 'could not delete uploaded files'))
+      }
+    }
+    await c.comments.deleteMany({ docId: { $in: docs.map((d) => d._id) } })
+    await wipe()
+    await c.documents.deleteMany({ workspaceId: wid })
+    await c.invites.deleteMany({ workspaceId: wid })
+    await c.memberships.deleteMany({ workspaceId: wid })
+    await c.workspaces.deleteOne({ _id: wid })
+    // open connections to these documents are closed as soon as the gateways re-check access
+    for (const mem of members) bus.publishAccess({ userId: mem.userId.toHexString(), workspaceId: wid.toHexString() })
+    // A gateway may still save one last edit while its connections close. Sweep again shortly, best effort.
+    setTimeout(() => void wipe().catch(() => {}), 5000).unref()
+    res.status(204).end()
+  }))
+
   app.get('/workspaces/:id/members', needAuth, h(async (req, res) => {
     const wid = idParam(req.params.id as string)
     await needWorkspaceRole(req.userId, wid, 'viewer')

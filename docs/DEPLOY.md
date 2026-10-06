@@ -17,7 +17,7 @@ Vercel steps themselves have not been performed yet.**
 | Server (API + live sync) | Render (free web service, Singapore) | free | **sleeps after ~15 minutes without traffic**; the first visitor then waits roughly a minute, and open live sessions drop |
 | Database | MongoDB Atlas M0 (Mumbai) | free | 512 MB |
 
-Redis is not needed: one server instance has no other gateway to talk to. Uploads and the AI summary stay
+Redis is not needed: one server instance has no other gateway to talk to, and the API and live sync in that one process hear each other directly (so removing someone's access is immediate). Uploads and the AI summary stay
 off until you add their settings.
 
 **Keeping the server awake.** `.github/workflows/uptime.yml` checks the site every 5 minutes. Once you set its

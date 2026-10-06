@@ -25,6 +25,8 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
         ['muted text on cards', t.muted, t.surface],
         ['links on cards', t.accent, t.surface],
         ['error text on cards', t.danger, t.surface],
+        ['white text on the red delete button', '#ffffff', t.danger],
+        ['red delete-button text on the page', t.danger, t.bg],
         ['body text on the soft highlight (banners, badges, status)', t.fg, t['accent-soft']],
         ['muted text on the soft highlight', t.muted, t['accent-soft']],
       ]

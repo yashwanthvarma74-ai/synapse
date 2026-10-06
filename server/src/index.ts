@@ -9,7 +9,7 @@ import { ensureBucket, s3Settings, s3Storage } from './storage.js'
 import { anthropicSummarizer } from './summarize.js'
 import { MongoChatStore } from './chat.js'
 import { RedisBus } from './redisBus.js'
-import { NoBus } from './bus.js'
+import { LocalHub } from './bus.js'
 import { createGateway } from './gateway.js'
 import { createApi } from './api.js'
 import { makeAuthorize, roleOnDocument } from './access.js'
@@ -33,8 +33,10 @@ await chat.init()
 // Atlas Search is on automatically for mongodb+srv:// (Atlas) URLs; ATLAS_SEARCH=false/true overrides
 const atlasSearch = process.env.ATLAS_SEARCH ? process.env.ATLAS_SEARCH === 'true' : (process.env.MONGO_URL ?? '').startsWith('mongodb+srv://')
 if (atlasSearch) await ensureSearchIndex(c).catch((err) => logger.error({ err: String(err) }, 'could not create the Atlas Search index; search will use the $text index'))
-const bus = process.env.REDIS_URL ? new RedisBus(process.env.REDIS_URL, randomUUID().slice(0, 8)) : new NoBus()
-if (!process.env.REDIS_URL) logger.warn('REDIS_URL not set: running a single gateway, access changes apply on the 30s re-check')
+// Without Redis the API and the gateway in THIS process still hear each other (through an in-process hub), so
+// removing someone's access closes their open connections at once. With several processes, Redis is needed.
+const bus = process.env.REDIS_URL ? new RedisBus(process.env.REDIS_URL, randomUUID().slice(0, 8)) : new LocalHub().connect('local')
+if (!process.env.REDIS_URL) logger.warn('REDIS_URL not set: single process only. Access changes reach connections in this process at once; other gateways would not hear them')
 
 const s3 = s3Settings()
 if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch((err) => logger.error({ err: String(err) }, 'could not create the bucket'))

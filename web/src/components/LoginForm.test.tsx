@@ -81,6 +81,6 @@ describe('LoginForm', () => {
     startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     render(<LoginForm />)
     fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/doc1'))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/w/w'))
   })
 })
