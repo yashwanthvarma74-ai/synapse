@@ -1,33 +1,39 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useEditor, EditorContent, type Editor as TiptapEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import Image from '@tiptap/extension-image'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import type { Collab } from '@/lib/useCollab'
 import { recordMetric } from '@/lib/telemetry'
 import { SlashCommand } from '@/lib/slashCommand'
+import { Uploads } from '@/lib/uploadExtension'
 
 // The editor does not hold its own text: Collaboration binds it to the Yjs doc.
 // Typing becomes a Yjs update, and the same update goes to IndexedDB and the gateway.
 export default function Editor({
+  docId,
   collab,
   readOnly,
   onEditor,
 }: {
+  docId: string
   collab: Collab
   readOnly: boolean
   onEditor?: (editor: TiptapEditor | null) => void
 }) {
+  const [upload, setUpload] = useState<{ message: string; error: boolean }>({ message: '', error: false })
   const editor = useEditor(
     {
       extensions: [
         // Yjs brings its own undo, which only undoes YOUR edits, not everyone's
         StarterKit.configure({ undoRedo: false }),
         Placeholder.configure({ placeholder: readOnly ? 'This document is empty.' : 'Start writing here…' }),
-        ...(readOnly ? [] : [SlashCommand]),
+        Image.configure({ HTMLAttributes: { loading: 'lazy' } }),
+        ...(readOnly ? [] : [SlashCommand, Uploads.configure({ docId, onStatus: (message, error = false) => setUpload({ message, error }) })]),
         Collaboration.configure({ document: collab.doc }),
         CollaborationCaret.configure({
           provider: { awareness: collab.awareness },
@@ -40,7 +46,7 @@ export default function Editor({
         attributes: { 'aria-label': 'Document editor', role: 'textbox', 'aria-multiline': 'true' },
       },
     },
-    [collab, readOnly],
+    [collab, readOnly, docId],
   )
 
   useEffect(() => {
@@ -68,6 +74,8 @@ export default function Editor({
   return (
     <div className="editor-wrap">
       <EditorContent editor={editor} />
+      {/* announced politely; an error is also shown so it is not missed */}
+      <p role={upload.error ? 'alert' : 'status'} className={upload.error ? 'error' : 'upload-status'}>{upload.message}</p>
     </div>
   )
 }
