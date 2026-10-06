@@ -1,0 +1,33 @@
+# Render Blueprint: deploys the Synapse server (API + live sync on ONE port) on the free plan.
+# In the Render dashboard: New > Blueprint > pick this repository. Render asks you for the two
+# values marked "sync: false" (they are secrets or depend on your web address) and never stores
+# them in git. See docs/DEPLOY.md, section "Free deployment".
+services:
+  - type: web
+    name: synapse-server
+    runtime: node
+    plan: free
+    region: singapore # closest Render region to India
+    rootDir: server
+    # NODE_ENV=production makes a plain `npm ci` skip dev dependencies, and tsx (which runs the
+    # TypeScript) is one of them, so ask for them explicitly.
+    buildCommand: npm ci --include=dev
+    startCommand: npx tsx src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET # a long random value, generated once by Render
+        generateValue: true
+      - key: MONGO_URL # your Atlas connection string (mongodb+srv://...)
+        sync: false
+      - key: MONGO_DB # a separate database for the public site, so test data never mixes in
+        value: synapse_prod
+      - key: WEB_ORIGIN # your Vercel address, for example https://synapse-yourname.vercel.app
+        sync: false
+      - key: METRICS_PORT # no metrics server on the free plan
+        value: "0"
+      - key: LOG_LEVEL
+        value: info
