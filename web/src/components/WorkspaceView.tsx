@@ -1,8 +1,10 @@
 'use client'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { api, type DocItem, type Member, type Role, type WorkspaceItem } from '@/lib/api'
+import { api, type Role } from '@/lib/api'
+import { keys, useAction, useMembers, useWorkspaceDocs, useWorkspaces } from '@/lib/queries'
+import { useUi } from '@/lib/uiStore'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
 import ShareDialog from './ShareDialog'
@@ -35,43 +37,21 @@ const ago = (iso: string) => {
 export default function WorkspaceView({ workspaceId }: { workspaceId: string }) {
   const router = useRouter()
   const { user } = useSession()
-  const [ws, setWs] = useState<WorkspaceItem | null>(null)
-  const [docs, setDocs] = useState<DocItem[] | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
+  // Three independent requests; TanStack Query runs them together and caches each
+  const { data: all, error: e1 } = useWorkspaces(!!user)
+  const { data: docs, error: e2 } = useWorkspaceDocs(workspaceId, !!user)
+  const { data: members = [], error: e3 } = useMembers(workspaceId, !!user)
+  const ws = all?.find((w) => w.id === workspaceId) ?? null
   const [title, setTitle] = useState('')
-  const [sharing, setSharing] = useState(false)
+  const sharing = useUi((s) => s.shareOpen)
+  const setSharing = useUi((s) => s.setShareOpen)
   const [invite, setInvite] = useState({ email: '', role: 'editor' as Role })
-  const [error, setError] = useState('')
-
-  // The three requests are independent, so they run together
-  const load = useCallback(
-    () =>
-      Promise.all([
-        api<WorkspaceItem[]>('/workspaces'),
-        api<DocItem[]>(`/workspaces/${workspaceId}/documents`),
-        api<Member[]>(`/workspaces/${workspaceId}/members`),
-      ])
-        .then(([all, documents, people]) => {
-          setWs(all.find((w) => w.id === workspaceId) ?? null)
-          setDocs(documents)
-          setMembers(people)
-        })
-        .catch((e: Error) => setError(e.message)),
-    [workspaceId],
-  )
-  useEffect(() => {
-    if (user) void load()
-  }, [user, load])
+  const action = useAction([keys.docs(workspaceId), keys.members(workspaceId), keys.workspaces])
+  const error = action.error || e1?.message || e2?.message || e3?.message || ''
 
   const run = (fn: () => Promise<unknown>) => async (e?: FormEvent) => {
     e?.preventDefault()
-    setError('')
-    try {
-      await fn()
-      await load()
-    } catch (err) {
-      setError((err as Error).message)
-    }
+    await action.run(fn)
   }
 
   const create = (type: 'doc' | 'canvas') => run(async () => {

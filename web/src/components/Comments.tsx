@@ -1,9 +1,10 @@
 'use client'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import * as Y from 'yjs'
 import type { Editor } from '@tiptap/react'
 import { ySyncPluginKey, absolutePositionToRelativePosition, relativePositionToAbsolutePosition } from '@tiptap/y-tiptap'
 import { api, type CommentItem, type Role } from '@/lib/api'
+import { keys, useAction, useComments } from '@/lib/queries'
 import { atLeast } from '@/lib/roles'
 import type { Collab } from '@/lib/useCollab'
 import { EmptyCommentsArt } from './ui/Illustrations'
@@ -18,22 +19,18 @@ function syncState(editor: Editor) {
 export default function Comments({ docId, collab, editor, role, userId }: {
   docId: string; collab: Collab; editor: Editor | null; role: Role; userId: string
 }) {
-  const [comments, setComments] = useState<CommentItem[]>([])
+  const { data: comments = [], error: loadError } = useComments(docId) // polled, so others' comments appear
   const [text, setText] = useState('')
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+  const action = useAction([keys.comments(docId)])
+  const error = localError || action.error || loadError?.message || ''
   const canComment = atLeast(role, 'commenter')
-
-  const load = useCallback(() => api<CommentItem[]>(`/documents/${docId}/comments`).then(setComments).catch((e) => setError(e.message)), [docId])
-  useEffect(() => {
-    void load()
-    const t = setInterval(load, 5000) // simple polling keeps the list fresh across users
-    return () => clearInterval(t)
-  }, [load])
 
   async function add(e: FormEvent) {
     e.preventDefault()
     if (!text.trim()) return
-    setError('')
+    setLocalError('')
+    action.reset()
     let anchor: string | null = null
     let quote = ''
     const { from, to } = editor?.state.selection ?? { from: 0, to: 0 }
@@ -44,13 +41,7 @@ export default function Comments({ docId, collab, editor, role, userId }: {
       anchor = JSON.stringify({ from: Y.relativePositionToJSON(a), to: Y.relativePositionToJSON(b) })
       quote = editor.state.doc.textBetween(from, to, ' ').slice(0, 300)
     }
-    try {
-      await api(`/documents/${docId}/comments`, { body: { body: text, anchor, quote } })
-      setText('')
-      await load()
-    } catch (err) {
-      setError((err as Error).message)
-    }
+    if (await action.run(() => api(`/documents/${docId}/comments`, { body: { body: text, anchor, quote } }))) setText('')
   }
 
   // Where is this comment's text NOW? Convert the relative positions back.
@@ -61,18 +52,11 @@ export default function Comments({ docId, collab, editor, role, userId }: {
     const { from, to } = JSON.parse(c.anchor)
     const f = relativePositionToAbsolutePosition(collab.doc, ys.type, Y.createRelativePositionFromJSON(from), ys.binding.mapping as never)
     const t = relativePositionToAbsolutePosition(collab.doc, ys.type, Y.createRelativePositionFromJSON(to), ys.binding.mapping as never)
-    if (f === null || t === null) return setError('The text this comment was attached to was deleted.')
+    if (f === null || t === null) return setLocalError('The text this comment was attached to was deleted.')
     editor.chain().focus().setTextSelection({ from: f, to: t }).scrollIntoView().run()
   }
 
-  const act = (fn: () => Promise<unknown>) => async () => {
-    try {
-      await fn()
-      await load()
-    } catch (e) {
-      setError((e as Error).message)
-    }
-  }
+  const act = (fn: () => Promise<unknown>) => () => void action.run(fn)
 
   const roots = comments.filter((c) => !c.parentId)
   return (

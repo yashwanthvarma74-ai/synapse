@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CanvasRenderer, type Tool } from '@/lib/canvasRenderer'
+import { CanvasRenderer } from '@/lib/canvasRenderer'
+import { useUi } from '@/lib/uiStore'
 import { updateObject, type CanvasObject } from '@/lib/canvasModel'
 import type { Collab } from '@/lib/useCollab'
 
@@ -57,12 +58,14 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
 
   const [objects, setObjects] = useState<CanvasObject[]>([])
   const [selection, setSelection] = useState<string[]>([])
-  const [tool, setTool] = useState<Tool>('select')
+  const tool = useUi((s) => s.canvasTool)
+  const setTool = useUi((s) => s.setCanvasTool)
   const [announcement, setAnnouncement] = useState('')
   const [editing, setEditing] = useState<{ id: string; left: number; top: number; width: number; height: number; text: string } | null>(null)
   const [fps, setFps] = useState(0)
   const [zoom, setZoom] = useState(1)
-  const [helpOpen, setHelpOpen] = useState(false)
+  const helpOpen = useUi((s) => s.canvasHelpOpen)
+  const setHelpOpen = useUi((s) => s.setCanvasHelpOpen)
   const help = useRef<HTMLDialogElement>(null)
   const [error, setError] = useState('')
 
@@ -89,8 +92,9 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
       if (timer) clearInterval(timer)
       renderer.current = null
       r.destroy()
+      useUi.getState().resetCanvasUi() // a new board starts on the Select tool with help closed
     }
-  }, [collab, readOnly, stress])
+  }, [collab, readOnly, stress, setTool])
 
   const r = () => renderer.current
 

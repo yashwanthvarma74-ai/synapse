@@ -1,8 +1,7 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '@/lib/api'
-
-interface Invite { code: string; role: 'editor' | 'commenter' | 'viewer'; expiresAt: string; uses: number }
+import { keys, useAction, useInvites, type Invite } from '@/lib/queries'
 const ROLES = [
   { value: 'editor', label: 'Can edit', help: 'Change documents and boards' },
   { value: 'commenter', label: 'Can comment', help: 'Read, and leave comments' },
@@ -15,11 +14,12 @@ const linkFor = (code: string) => `${window.location.origin}/join/${code}`
 export default function ShareDialog({ workspaceId, open, onClose }: { workspaceId: string; open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [role, setRole] = useState<Invite['role']>('editor')
-  const [invites, setInvites] = useState<Invite[]>([])
+  const { data: invites = [], error: loadError } = useInvites(workspaceId, open)
   const [newest, setNewest] = useState<string | null>(null)
   const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const action = useAction([keys.invites(workspaceId)])
+  const error = action.error || loadError?.message || ''
+  const busy = action.pending
 
   // open and close the native <dialog>: it traps focus and closes on Escape for us
   useEffect(() => {
@@ -29,24 +29,12 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
     if (!open && d.open) d.close()
   }, [open])
 
-  const load = useCallback(() => api<Invite[]>(`/workspaces/${workspaceId}/invites`).then(setInvites).catch((e) => setError(e.message)), [workspaceId])
-  useEffect(() => {
-    if (open) void load()
-  }, [open, load])
-
   async function create() {
-    setBusy(true)
-    setError('')
     setMessage('')
-    try {
+    await action.run(async () => {
       const made = await api<{ code: string }>(`/workspaces/${workspaceId}/invites`, { body: { role } })
       setNewest(made.code)
-      await load()
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
+    })
   }
 
   async function copy(code: string) {
@@ -59,10 +47,10 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
   }
 
   async function revoke(code: string) {
-    await api(`/workspaces/${workspaceId}/invites/${code}`, { method: 'DELETE' })
-    if (newest === code) setNewest(null)
-    setMessage('That link no longer works.')
-    await load()
+    if (await action.run(() => api(`/workspaces/${workspaceId}/invites/${code}`, { method: 'DELETE' }))) {
+      if (newest === code) setNewest(null)
+      setMessage('That link no longer works.')
+    }
   }
 
   const shown = newest ?? invites[0]?.code ?? null

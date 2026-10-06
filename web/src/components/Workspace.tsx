@@ -4,6 +4,9 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { api, ApiError, tokenStore, type DocMeta } from '@/lib/api'
+import { keys, useDocMeta } from '@/lib/queries'
+import { useUi } from '@/lib/uiStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSession } from '@/lib/useSession'
 import { useCollab, useStatus, type Collab } from '@/lib/useCollab'
 import { atLeast } from '@/lib/roles'
@@ -44,13 +47,10 @@ const ROLE_WORDS = { owner: 'You own this', editor: 'You can edit', commenter: '
 
 export default function Workspace({ docId }: { docId: string }) {
   const { user } = useSession()
-  const [meta, setMeta] = useState<DocMeta | null>(null)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (!user) return
-    api<DocMeta>(`/documents/${docId}`).then(setMeta).catch((e: ApiError) => setError(e.status === 404 ? "This document doesn't exist, or you don't have access to it." : e.message))
-  }, [user, docId])
+  const qc = useQueryClient()
+  const { data: meta, error: loadError } = useDocMeta(docId, !!user)
+  const error = loadError ? ((loadError as ApiError).status === 404 ? "This document doesn't exist, or you don't have access to it." : loadError.message) : ''
+  const setMeta = (m: DocMeta) => qc.setQueryData(keys.doc(docId), m)
 
   if (error) {
     return (
@@ -72,7 +72,8 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
   const collab = useCollab(docId, { name: userName, token: tokenStore.get() ?? '' })
   const [editor, setEditor] = useState<TiptapEditor | null>(null)
   const [title, setTitle] = useState(meta.title)
-  const [sharing, setSharing] = useState(false)
+  const sharing = useUi((s) => s.shareOpen)
+  const setSharing = useUi((s) => s.setShareOpen)
   const status = useStatus(collab?.provider ?? null)
   const revoked = status === 'revoked'
   const canEdit = !revoked && atLeast(meta.role, 'editor')

@@ -1,7 +1,8 @@
 'use client'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import * as Y from 'yjs'
 import { api, apiBytes, type Role, type VersionItem } from '@/lib/api'
+import { keys, useAction, useVersions } from '@/lib/queries'
 import { atLeast } from '@/lib/roles'
 import { extractText } from '@/lib/text'
 import { canvasText, objectsMap } from '@/lib/canvasModel'
@@ -9,39 +10,35 @@ import type { Collab } from '@/lib/useCollab'
 import { EmptyDocsArt } from './ui/Illustrations'
 
 export default function History({ docId, collab, role, type }: { docId: string; collab: Collab; role: Role; type: 'doc' | 'canvas' }) {
-  const [versions, setVersions] = useState<VersionItem[]>([])
+  const { data: versions = [], error: loadError } = useVersions(docId)
   const [label, setLabel] = useState('')
   const [preview, setPreview] = useState<{ version: number; label: string; text: string } | null>(null)
-  const [error, setError] = useState('')
+  const [localError, setLocalError] = useState('')
+  const action = useAction([keys.versions(docId)])
+  const error = localError || action.error || loadError?.message || ''
   const canEdit = atLeast(role, 'editor')
-
-  const load = useCallback(() => api<VersionItem[]>(`/documents/${docId}/versions`).then(setVersions).catch((e) => setError(e.message)), [docId])
-  useEffect(() => void load(), [load])
 
   // The server stores the document's saved state; "Save" snapshots it as a named version.
   // The editor's own edits reach the server through the gateway first, so wait a beat.
   async function save(e: FormEvent) {
     e.preventDefault()
     if (!label.trim()) return
-    setError('')
-    try {
+    setLocalError('')
+    const saved = await action.run(async () => {
       await new Promise((r) => setTimeout(r, 300))
       await api(`/documents/${docId}/versions`, { body: { label } })
-      setLabel('')
-      await load()
-    } catch (err) {
-      setError((err as Error).message)
-    }
+    })
+    if (saved) setLabel('')
   }
 
   async function open(v: VersionItem) {
-    setError('')
+    setLocalError('')
     try {
       const old = new Y.Doc()
       Y.applyUpdate(old, await apiBytes(`/documents/${docId}/versions/${v.version}`))
       setPreview({ version: v.version, label: v.label, text: type === 'canvas' ? canvasText(old) || '(canvas with shapes, no text)' : extractText(old) })
     } catch (err) {
-      setError((err as Error).message)
+      setLocalError((err as Error).message)
     }
   }
 
@@ -49,8 +46,8 @@ export default function History({ docId, collab, role, type }: { docId: string; 
   // erased: everyone sees the change merge in, and it can itself be undone.
   async function restore(v: VersionItem) {
     if (!confirm(`Replace the current content with "${v.label}"? Your current content is saved as a version first.`)) return
-    setError('')
-    try {
+    setLocalError('')
+    const restored = await action.run(async () => {
       await api(`/documents/${docId}/versions`, { body: { label: `Before restoring "${v.label}"`.slice(0, 80) } })
       const old = new Y.Doc()
       Y.applyUpdate(old, await apiBytes(`/documents/${docId}/versions/${v.version}`))
@@ -69,11 +66,8 @@ export default function History({ docId, collab, role, type }: { docId: string; 
           dst.insert(0, src.toArray().map((n) => (n as Y.XmlElement).clone()))
         })
       }
-      setPreview(null)
-      await load()
-    } catch (err) {
-      setError((err as Error).message)
-    }
+    })
+    if (restored) setPreview(null)
   }
 
   return (
