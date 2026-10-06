@@ -35,6 +35,8 @@ export function makeQueryClient(): QueryClient {
 export interface Invite { code: string; role: 'editor' | 'commenter' | 'viewer'; expiresAt: string; uses: number }
 export interface Hit { id: string; title: string; snippet: string }
 
+// What this server can do (uploads, AI summaries). Fetched once; the app only offers what works.
+export const useConfig = () => useQuery({ queryKey: ['config'], queryFn: () => api<{ uploads: boolean; summaries: boolean }>('/config'), staleTime: 5 * 60_000 })
 export const useWorkspaces = (enabled = true) => useQuery({ queryKey: keys.workspaces, queryFn: () => api<WorkspaceItem[]>('/workspaces'), enabled })
 export const useWorkspaceDocs = (w: string, enabled = true) => useQuery({ queryKey: keys.docs(w), queryFn: () => api<DocItem[]>(`/workspaces/${w}/documents`), enabled })
 export const useMembers = (w: string, enabled = true) => useQuery({ queryKey: keys.members(w), queryFn: () => api<Member[]>(`/workspaces/${w}/members`), enabled })

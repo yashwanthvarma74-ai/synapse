@@ -17,6 +17,9 @@ import { atLeast, roleOnDocument, roleOnWorkspace } from './access.js'
 import { m, recordClientMetric } from './telemetry.js'
 import { createStarterWorkspace } from './onboarding.js'
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, type Storage } from './storage.js'
+import { describe, type Summarizer } from './summarize.js'
+import { mergeStored } from './store.js'
+import * as Y from 'yjs'
 
 export interface ApiOptions {
   c: Collections
@@ -25,6 +28,7 @@ export interface ApiOptions {
   secret: string
   corsOrigin?: string
   storage?: Storage | null // object storage for uploads (S3 / R2 / MinIO); null = uploads off
+  summarize?: Summarizer | null // the AI summary action; null = off
   publicUrl?: string // the public address of this API, used in file links
   atlasSearch?: boolean // use Atlas Search for /search (needs MongoDB Atlas); otherwise the $text index
   guestsEnabled?: boolean // one-click guest accounts (default on)
@@ -71,7 +75,7 @@ const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[r
 const newInviteCode = () => randomBytes(16).toString('base64url')
 const INVITE_DAYS = 7
 
-export function createApi({ c, store, bus, secret, corsOrigin, storage = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
+export function createApi({ c, store, bus, secret, corsOrigin, storage = null, summarize = null, publicUrl, atlasSearch = false, guestsEnabled = true, maxGuestsPerHour = 300 }: ApiOptions) {
   const app = express()
   // comma-separated list of allowed web origins
   app.use(cors({ origin: (corsOrigin ?? 'http://localhost:3000,http://127.0.0.1:3000').split(',') }))
@@ -431,6 +435,38 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, p
       .sort({ score: { $meta: 'textScore' } }).limit(20).toArray()
     res.json(found.map((d) => ({ id: d._id.toHexString(), title: d.title, workspaceId: d.workspaceId.toHexString(),
       snippet: snippet(d.text, q) })))
+  }))
+
+  // What this server can do, so the app only offers buttons that will work
+  app.get('/config', (_req, res) => void res.json({ uploads: !!storage, summaries: !!summarize }))
+
+  // ---- AI summary ---------------------------------------------------------------------------------------
+  // Anyone who can READ the document may ask for a summary. Each person gets a few an hour, because
+  // every call costs money. The content is sent to the model as data, never as instructions.
+  const summaryHits = new Map<string, number[]>()
+  const SUMMARIES_PER_HOUR = Number(process.env.SUMMARIES_PER_HOUR ?? 10)
+  app.post('/documents/:id/summarize', needAuth, h(async (req, res) => {
+    if (!summarize) throw new HttpError(501, 'AI summaries are not turned on for this server')
+    const did = idParam(req.params.id as string)
+    await needDocRole(req.userId, did, 'viewer')
+    const now = Date.now()
+    const recent = (summaryHits.get(req.userId) ?? []).filter((t) => now - t < 3_600_000)
+    if (recent.length >= SUMMARIES_PER_HOUR) throw new HttpError(429, `You can ask for ${SUMMARIES_PER_HOUR} summaries an hour. Try again later.`)
+    const meta = await c.documents.findOne({ _id: did })
+    if (!meta) throw new HttpError(404, 'Not found')
+    const ydoc = new Y.Doc()
+    Y.applyUpdate(ydoc, mergeStored(await store.load(did.toHexString())))
+    const content = describe(ydoc, meta.type)
+    if (!content.trim() || (meta.type === 'canvas' && !/^- /m.test(content))) throw new HttpError(400, 'There is nothing to summarize yet. Add some content first.')
+    try {
+      const summary = await summarize({ kind: meta.type, title: meta.title, content })
+      // only a summary that was delivered uses up the allowance: an AI outage is not the person's fault
+      summaryHits.set(req.userId, [...recent, now])
+      res.json({ summary })
+    } catch (err) {
+      logger.error({ err: String(err), docId: did.toHexString() }, 'summary failed')
+      throw new HttpError(502, 'The AI service could not write a summary right now. Try again in a minute.')
+    }
   }))
 
   // ---- uploads (pre-signed, straight to object storage) ----------------------------------------------

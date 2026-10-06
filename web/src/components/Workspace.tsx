@@ -4,7 +4,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { api, ApiError, tokenStore, type DocMeta } from '@/lib/api'
-import { keys, useDocMeta } from '@/lib/queries'
+import { keys, useConfig, useDocMeta } from '@/lib/queries'
 import { useUi } from '@/lib/uiStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSession } from '@/lib/useSession'
@@ -17,6 +17,7 @@ import Presence from './Presence'
 import OfflineDemo from './OfflineDemo'
 import Comments from './Comments'
 import History from './History'
+import Summary from './Summary'
 import Tabs from './Tabs'
 import ShareDialog from './ShareDialog'
 import { NotFoundArt } from './ui/Illustrations'
@@ -74,6 +75,7 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
   const [title, setTitle] = useState(meta.title)
   const sharing = useUi((s) => s.shareOpen)
   const setSharing = useUi((s) => s.setShareOpen)
+  const config = useConfig().data
   const status = useStatus(collab?.provider ?? null)
   const revoked = status === 'revoked'
   const canEdit = !revoked && atLeast(meta.role, 'editor')
@@ -142,6 +144,7 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
               tabs={[
                 { id: 'comments', label: 'Comments', content: <Comments docId={docId} collab={collab} editor={editor} role={meta.role} userId={userId} /> },
                 { id: 'history', label: 'History', content: <History docId={docId} collab={collab} role={meta.role} type={meta.type} /> },
+                ...(config?.summaries ? [{ id: 'summary', label: 'Summary', content: <Summary docId={docId} type={meta.type} /> }] : []),
               ]}
             />
           </aside>
