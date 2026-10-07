@@ -17,6 +17,8 @@ import Presence from './Presence'
 import OfflineDemo from './OfflineDemo'
 import Comments from './Comments'
 import History from './History'
+import DownloadMenu from './DownloadMenu'
+import { listObjects } from '@/lib/canvasModel'
 import Summary from './Summary'
 import Chat from './Chat'
 import { useChat } from '@/lib/useChat'
@@ -114,6 +116,14 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
         <div className="doc-actions">
           {collab && <StatusPill collab={collab} />}
           {collab && <Presence collab={collab} />}
+          {collab && (
+            <DownloadMenu
+              title={meta.title}
+              kind={meta.type}
+              getContent={() => editor?.getJSON() ?? null}
+              getObjects={() => listObjects(collab.doc)}
+            />
+          )}
           {meta.role === 'owner' && !revoked && <button className="btn" onClick={() => setSharing(true)}>Share</button>}
         </div>
       </div>
@@ -139,7 +149,7 @@ function DocView({ docId, meta, setMeta, userId, userName }: { docId: string; me
               onChange={(id) => chat.store?.setOpen(id === 'chat')}
               tabs={[
                 { id: 'comments', label: 'Comments', content: <Comments docId={docId} collab={collab} editor={editor} role={meta.role} userId={userId} /> },
-                { id: 'history', label: 'History', content: <History docId={docId} collab={collab} role={meta.role} type={meta.type} /> },
+                { id: 'history', label: 'History', content: <History docId={docId} collab={collab} role={meta.role} type={meta.type} connected={status === 'connected'} /> },
                 ...(config?.chat ? [{ id: 'chat', label: 'Chat', badge: chat.view.unread, content: <Chat store={chat.store} view={chat.view} me={userId} canWrite={!revoked && meta.role !== 'viewer'} connected={status === 'connected'} /> }] : []),
                 ...(config?.summaries ? [{ id: 'summary', label: 'Summary', content: <Summary docId={docId} type={meta.type} /> }] : []),
               ]}

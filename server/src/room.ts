@@ -7,7 +7,7 @@ import * as awarenessProtocol from 'y-protocols/awareness'
 import * as encoding from 'lib0/encoding'
 import * as decoding from 'lib0/decoding'
 import type { Bus } from './bus.js'
-import type { DocStore } from './store.js'
+import type { DocStore, VersionStore } from './store.js'
 import { m } from './telemetry.js'
 import { logger } from './logger.js'
 import { MSG_CHAT, MSG_CHAT_ERROR, TokenBucket, cleanChatText, type ChatErrorCode, type ChatMessage, type ChatStore } from './chat.js'
@@ -16,6 +16,10 @@ export const MSG_SYNC = 0
 export const MSG_AWARENESS = 1
 export const MSG_PING = 2 // client -> gateway: [2, bytes]
 export const MSG_PONG = 3 // gateway -> client: the same bytes, echoed
+export const MSG_SAVE_VERSION = 6 // client -> gateway: [6, label, clientId]
+export const MSG_VERSION_SAVED = 7 // gateway -> client: [7, clientId, versionNumber]
+export const MSG_VERSION_ERROR = 8 // gateway -> client: [8, clientId, code]
+export type VersionErrorCode = 'forbidden' | 'invalid' | 'rate' | 'unavailable'
 
 export type Role = 'owner' | 'editor' | 'commenter' | 'viewer'
 export const canWrite = (role: Role) => role === 'owner' || role === 'editor'
@@ -40,6 +44,7 @@ export interface RoomOptions {
   // Called a moment after edits stop (debounced). Used to refresh the search index.
   onSettled?: (docId: string, doc: Y.Doc) => void
   chat?: ChatStore
+  versions?: VersionStore
 }
 
 export class Room {
@@ -53,6 +58,7 @@ export class Room {
   private settleTimer: ReturnType<typeof setTimeout> | null = null
   private chatChain: Promise<void> = Promise.resolve() // chat is saved in arrival order
   private chatLimits = new Map<string, TokenBucket>() // per person, not per tab
+  private saveLimits = new Map<string, TokenBucket>()
 
   constructor(private opts: RoomOptions) {
     // The server has no cursor of its own
@@ -144,6 +150,13 @@ export class Room {
       return
     }
 
+    if (type === MSG_SAVE_VERSION) {
+      const label = decoding.readVarString(decoder)
+      const cid = decoding.readVarString(decoder).slice(0, 64)
+      void this.handleSaveVersion(ws, conn, label, cid)
+      return
+    }
+
     if (type === MSG_CHAT) {
       const text = decoding.readVarString(decoder)
       const cid = decoding.readVarString(decoder).slice(0, 64)
@@ -176,6 +189,38 @@ export class Room {
         decoding.readVarUint8Array(decoder),
         ws,
       )
+    }
+  }
+
+  // ---- named versions -----------------------------------------------------------------------
+  // Saved from the document held in memory, taken the instant the message is read. Messages on one connection
+  // arrive in order, so every edit the person made before pressing Save is already in it.
+  private versionReply(ws: WebSocket, type: number, cid: string, value: string | number) {
+    const enc = encoding.createEncoder()
+    encoding.writeVarUint(enc, type)
+    encoding.writeVarString(enc, cid)
+    if (typeof value === 'number') encoding.writeVarUint(enc, value)
+    else encoding.writeVarString(enc, value)
+    this.send(ws, encoding.toUint8Array(enc))
+  }
+
+  private async handleSaveVersion(ws: WebSocket, conn: Conn, rawLabel: string, cid: string) {
+    m.messages.add(1, { kind: 'save_version' })
+    const fail = (code: VersionErrorCode) => this.versionReply(ws, MSG_VERSION_ERROR, cid, code)
+    if (!canWrite(conn.role)) return fail('forbidden')
+    const label = rawLabel.replace(/\s+/g, ' ').trim()
+    if (!label || label.length > 80) return fail('invalid')
+    let bucket = this.saveLimits.get(conn.userId)
+    if (!bucket) this.saveLimits.set(conn.userId, (bucket = new TokenBucket(5, 0.1)))
+    if (!bucket.take()) return fail('rate')
+    if (!this.opts.versions) return fail('unavailable')
+    const state = Y.encodeStateAsUpdate(this.doc) // captured now, before anything else can change
+    try {
+      const version = await this.opts.versions.saveNamedVersion(this.opts.docId, label, conn.userId, state)
+      this.versionReply(ws, MSG_VERSION_SAVED, cid, version)
+    } catch (err) {
+      logger.error({ docId: this.opts.docId, err: (err as Error).message }, 'version not saved')
+      fail('unavailable')
     }
   }
 

@@ -63,4 +63,4 @@ export interface CommentItem {
   id: string; authorId: string; authorName: string; body: string; quote: string
   anchor: string | null; parentId: string | null; resolved: boolean; createdAt: string
 }
-export interface VersionItem { version: number; label: string; createdAt: string; createdBy?: string }
+export interface VersionItem { version: number; label: string; createdAt: string; createdBy?: string; savedBy: string }

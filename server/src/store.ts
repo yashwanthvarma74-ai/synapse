@@ -20,6 +20,11 @@ export interface DocStore {
   compact(docId: string): Promise<void>
 }
 
+// Named versions are saved from the room's live document, so they hold the very latest edits
+export interface VersionStore {
+  saveNamedVersion(docId: string, label: string, userId: string, liveState?: Uint8Array): Promise<number>
+}
+
 // Merge a snapshot and updates into one update, without needing a live Y.Doc
 export function mergeStored({ snapshot, updates }: LoadedDoc): Uint8Array {
   return Y.mergeUpdates(snapshot ? [snapshot, ...updates] : updates)

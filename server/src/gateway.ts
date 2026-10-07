@@ -36,6 +36,8 @@ export interface GatewayOptions {
   onSettled?: (docId: string, doc: import('yjs').Doc) => void
   // Where chat messages are saved. Without it, chat is unavailable (the sender is told so).
   chat?: import('./chat.js').ChatStore
+  // Where named versions are saved (the same database as the edits)
+  versions?: import('./store.js').VersionStore
   // Single-port mode: plain HTTP requests (anything that is not the WebSocket upgrade or /health)
   // go to this handler, normally the API. Hosts that expose one port per service need this.
   fallback?: (req: http.IncomingMessage, res: http.ServerResponse) => void
@@ -73,6 +75,7 @@ export function createGateway(opts: GatewayOptions) {
           compactEvery: opts.compactEvery ?? 100,
           onSettled: opts.onSettled,
           chat: opts.chat,
+          versions: opts.versions,
           onEmpty: (r) => {
             // Close the room shortly after the last person leaves. The grace
             // period covers quick refreshes and a join racing with the cleanup.

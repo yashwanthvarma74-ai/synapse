@@ -64,6 +64,7 @@ if (service === 'gateway' || service === 'both') {
     port: singlePort ? Number(process.env.PORT) : Number(process.env.GATEWAY_PORT ?? 4000),
     fallback: singlePort && api ? (req, res) => api(req, res) : undefined,
     chat,
+    versions: store,
     store,
     bus,
     authorize: makeAuthorize(c, secret),

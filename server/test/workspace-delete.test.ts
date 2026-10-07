@@ -58,7 +58,7 @@ describe('DELETE /workspaces/:id', () => {
     const u = await guest()
     // give the workspace something of every kind
     await request(api).post(`/documents/${u.welcomeId}/comments`).set(auth(u.token)).send({ body: 'a comment' })
-    await request(api).post(`/documents/${u.welcomeId}/versions`).set(auth(u.token)).send({ label: 'v1' })
+    await store.saveNamedVersion(u.welcomeId, 'v1', u.id)
     await chat.append(u.welcomeId, { userId: u.id, name: 'Me', text: 'a chat message' })
     await request(api).post(`/workspaces/${u.workspaceId}/invites`).set(auth(u.token)).send({ role: 'editor' })
     const wid = (await import('mongodb')).ObjectId.createFromHexString(u.workspaceId)

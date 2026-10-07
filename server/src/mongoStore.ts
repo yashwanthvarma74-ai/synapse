@@ -118,9 +118,11 @@ export class MongoStore implements DocStore {
 
   // ---- named versions (used by version history) --------------------------------
 
-  // Save the document's CURRENT stored state as a named, permanent snapshot.
-  async saveNamedVersion(docId: string, label: string, userId: string) {
-    const merged = mergeStored(await this.load(docId))
+  // Save a named, permanent snapshot. `liveState` is what a gateway holds in memory right now; merging it with
+  // the stored data (safe, merges are idempotent) means the version includes edits that are not saved yet.
+  async saveNamedVersion(docId: string, label: string, userId: string, liveState?: Uint8Array) {
+    const stored = await this.load(docId)
+    const merged = mergeStored(liveState ? { ...stored, updates: [...stored.updates, liveState] } : stored)
     const last = await this.snapshots.findOne({ docId }, { sort: { version: -1 } })
     const version = (last?.version ?? 0) + 1
     await this.snapshots.insertOne({

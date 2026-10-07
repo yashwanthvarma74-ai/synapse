@@ -13,12 +13,22 @@ const MSG_PING = 2
 const MSG_PONG = 3
 const MSG_CHAT = 4 // [4, text, clientId] to send; [4, json] from the server
 const MSG_CHAT_ERROR = 5 // [5, clientId, code] the server refused a message
+const MSG_SAVE_VERSION = 6 // [6, label, clientId] save a named version of the document as the server holds it
+const MSG_VERSION_SAVED = 7 // [7, clientId, versionNumber]
+const MSG_VERSION_ERROR = 8 // [8, clientId, code]
 const PING_EVERY_MS = 5000
 
 export type Status = 'connecting' | 'connected' | 'offline' | 'revoked'
 
 export interface ChatMessage { id: string; userId: string; name: string; text: string; at: string; cid?: string }
 export type ChatErrorCode = 'forbidden' | 'invalid' | 'rate' | 'unavailable'
+
+const VERSION_REFUSALS: Record<string, string> = {
+  forbidden: 'Only people who can edit can save versions.',
+  invalid: 'Give the version a name of up to 80 characters.',
+  rate: "You're saving versions too quickly. Wait a moment and try again.",
+  unavailable: "The version couldn't be saved right now. Try again in a moment.",
+}
 export type ChatEvent = { type: 'message'; message: ChatMessage } | { type: 'error'; cid: string; code: ChatErrorCode }
 
 export interface ProviderOptions {
@@ -53,6 +63,8 @@ export class SynapseProvider {
   private pingTimer: ReturnType<typeof setInterval> | null = null
   private listeners = new Set<() => void>()
   private chatListeners = new Set<(e: ChatEvent) => void>()
+  private lastRequestId = 0
+  private versionRequests = new Map<string, { resolve: (version: number) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }>()
   private pendingAwareness = new Set<number>()
   private awarenessTimer: ReturnType<typeof setTimeout> | null = null
   private opts: ProviderOptions
@@ -90,6 +102,41 @@ export class SynapseProvider {
     return true
   }
 
+  // Ask the server to save a named version of the document. It takes the snapshot from the copy it holds in
+  // memory, and this message travels behind every edit already sent on this connection, so the version
+  // contains everything typed up to this moment. Resolves with the version number.
+  saveVersion(label: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.synced || this.partitioned) {
+        return reject(new Error("You're offline. Saving a version needs a connection."))
+      }
+      const cid = String(++this.lastRequestId) // the server echoes it back on this connection only
+      const timer = setTimeout(() => {
+        this.versionRequests.delete(cid)
+        reject(new Error('The server did not answer. Check your connection and try again.'))
+      }, 10_000)
+      this.versionRequests.set(cid, { resolve, reject, timer })
+      const enc = encoding.createEncoder()
+      encoding.writeVarUint(enc, MSG_SAVE_VERSION)
+      encoding.writeVarString(enc, label)
+      encoding.writeVarString(enc, cid)
+      this.send(encoding.toUint8Array(enc))
+    })
+  }
+
+  private settleVersion(cid: string, outcome: { version: number } | { error: string }) {
+    const pending = this.versionRequests.get(cid)
+    if (!pending) return
+    clearTimeout(pending.timer)
+    this.versionRequests.delete(cid)
+    if ('version' in outcome) pending.resolve(outcome.version)
+    else pending.reject(new Error(outcome.error))
+  }
+
+  private failPendingVersions(reason: string) {
+    for (const cid of [...this.versionRequests.keys()]) this.settleVersion(cid, { error: reason })
+  }
+
   setPartitioned(on: boolean) {
     this.partitioned = on
     if (on) {
@@ -120,6 +167,7 @@ export class SynapseProvider {
     if (this.pingTimer) clearInterval(this.pingTimer)
     awarenessProtocol.removeAwarenessStates(this.awareness, [this.doc.clientID], 'destroy')
     this.ws?.close()
+    this.failPendingVersions('The page was closed before the version was saved.')
     this.listeners.clear()
     this.chatListeners.clear()
   }
@@ -159,6 +207,7 @@ export class SynapseProvider {
       if (this.synced) this.lostAt = performance.now() // a good connection was lost
       else if (!this.destroyed && !this.partitioned) this.opts.onMetric?.('connection', 1, { outcome: 'failed' }) // never got synced
       this.synced = false
+      this.failPendingVersions('The connection was lost before the version was saved. Try again.')
       // Everyone else's cursors are stale while we're disconnected
       const others = [...this.awareness.getStates().keys()].filter((id) => id !== this.doc.clientID)
       awarenessProtocol.removeAwarenessStates(this.awareness, others, 'disconnect')
@@ -225,6 +274,12 @@ export class SynapseProvider {
         const message = JSON.parse(decoding.readVarString(decoder)) as ChatMessage
         this.chatListeners.forEach((fn) => fn({ type: 'message', message }))
       } catch { /* a malformed message from the server is ignored */ }
+    } else if (type === MSG_VERSION_SAVED) {
+      const cid = decoding.readVarString(decoder)
+      this.settleVersion(cid, { version: decoding.readVarUint(decoder) })
+    } else if (type === MSG_VERSION_ERROR) {
+      const cid = decoding.readVarString(decoder)
+      this.settleVersion(cid, { error: VERSION_REFUSALS[decoding.readVarString(decoder)] ?? VERSION_REFUSALS.unavailable })
     } else if (type === MSG_CHAT_ERROR) {
       const cid = decoding.readVarString(decoder)
       const code = decoding.readVarString(decoder) as ChatErrorCode

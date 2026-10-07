@@ -294,3 +294,21 @@ kbd { font: inherit; font-size: 0.85em; padding: 1px 7px; border: 1px solid var(
 .btn.danger-outline { background: var(--bg); color: var(--danger); border: 1px solid var(--danger); }
 .btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn.danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* download menu */
+.download { position: relative; }
+.download > .btn { display: inline-flex; align-items: center; gap: 6px; }
+.download-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 25; min-width: 230px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); display: grid; gap: 2px; }
+.download-list button { display: flex; justify-content: space-between; align-items: center; gap: 16px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--fg); text-align: left; cursor: pointer; }
+.download-list button:hover:not(:disabled), .download-list button:focus-visible { background: var(--accent-soft); }
+.download-list .hint { margin: 6px 10px 4px; }
+.download-note { position: absolute; right: 0; top: calc(100% + 6px); width: max-content; max-width: 280px; margin: 0; }
+
+/* version history */
+.versions li { display: grid; gap: 2px; }
+.versions .link { justify-self: start; }
+.notice-line { min-height: 1.4em; margin: 6px 0; color: var(--ok); font-size: 0.9rem; }
+.version-dialog { width: min(880px, 94vw); }
+.version-dialog header h2 { margin: 0; }
+.version-body { max-height: 56vh; overflow: auto; margin: 12px 0; padding: 18px 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.version-board { display: block; max-width: 100%; height: auto; margin: 0 auto; }

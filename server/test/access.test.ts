@@ -154,13 +154,11 @@ describe('gateway access control', () => {
 })
 
 describe('version history', () => {
-  it('saves, lists and returns a named version', async () => {
-    expect((await request(api).post(`/documents/${docId}/versions`).set(as('kalyan')).send({ label: 'x' })).status).toBe(403)
-    const r = await request(api).post(`/documents/${docId}/versions`).set(as('yash')).send({ label: 'Draft 1' })
-    expect(r.status).toBe(201)
+  it('lists and returns a named version to anyone who can read the document, and names who saved it', async () => {
+    const version = await store.saveNamedVersion(docId, 'Draft 1', users.yash.id)
     const list = await request(api).get(`/documents/${docId}/versions`).set(as('kalyan'))
-    expect(list.body.map((v: { label: string }) => v.label)).toEqual(['Draft 1'])
-    const state = await request(api).get(`/documents/${docId}/versions/${r.body.version}`).set(as('kalyan')).buffer(true).parse((res, cb) => {
+    expect(list.body.map((v: { label: string; savedBy: string }) => [v.label, v.savedBy])).toEqual([['Draft 1', 'yash']])
+    const state = await request(api).get(`/documents/${docId}/versions/${version}`).set(as('kalyan')).buffer(true).parse((res, cb) => {
       const chunks: Buffer[] = []
       res.on('data', (d: Buffer) => chunks.push(d))
       res.on('end', () => cb(null, Buffer.concat(chunks)))

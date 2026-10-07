@@ -43,6 +43,14 @@ export async function openDoc(page: Page, docId: string) {
 export const editor = (page: Page) => page.getByRole('textbox', { name: 'Document editor' })
 export const text = (page: Page) => editor(page).innerText()
 
+// The page's words only: another person's cursor label (their name) is part of the editor's text while they are in it
+export const content = (page: Page) =>
+  editor(page).evaluate((el) => {
+    const copy = el.cloneNode(true) as HTMLElement
+    copy.querySelectorAll('.collaboration-carets__caret').forEach((caret) => caret.remove())
+    return copy.innerText.trim()
+  })
+
 // Put the cursor at the very end of the document and type there. The caret is set through the
 // selection API, so it does not depend on each browser's keyboard shortcut for "go to the end".
 export async function typeAtEnd(page: Page, s: string) {

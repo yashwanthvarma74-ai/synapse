@@ -94,6 +94,18 @@ describe('MongoStore', () => {
     expect(await store.currentText('d4')).toBe('draft one + more')
   })
 
+  it('a version made from a live state includes edits the database has not seen yet', async () => {
+    const doc = new Y.Doc()
+    await store.appendUpdate('d5', edit(doc, 'saved '))
+    const unsaved = edit(doc, 'and not yet saved') // typed in the last instant, still only in memory
+    const v = await store.saveNamedVersion('d5', 'Right now', 'yash', Y.encodeStateAsUpdate(doc))
+    expect(unsaved.length).toBeGreaterThan(0)
+    const restored = new Y.Doc()
+    Y.applyUpdate(restored, (await store.getVersionState('d5', v))!)
+    expect(restored.getText('body').toString()).toBe('saved and not yet saved')
+    expect(await store.currentText('d5')).toBe('saved ') // the stored document itself is untouched
+  })
+
   it('a gateway restart loses nothing (end to end through MongoDB)', async () => {
     const make = () => createGateway({ port: 0, store, bus: new NoBus(), idleMs: 20, compactEvery: 4,
       authorize: () => ({ userId: 'u', role: 'editor' }) })

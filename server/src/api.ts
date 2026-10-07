@@ -421,14 +421,11 @@ export function createApi({ c, store, bus, secret, corsOrigin, storage = null, s
   app.get('/documents/:id/versions', needAuth, h(async (req, res) => {
     const did = idParam(req.params.id as string)
     await needDocRole(req.userId, did, 'viewer')
-    res.json(await store.listVersions(did.toHexString()))
-  }))
-
-  app.post('/documents/:id/versions', needAuth, h(async (req, res) => {
-    const did = idParam(req.params.id as string)
-    await needDocRole(req.userId, did, 'editor')
-    const { label } = parse(z.object({ label: z.string().trim().min(1).max(80) }), req.body)
-    res.status(201).json({ version: await store.saveNamedVersion(did.toHexString(), label, req.userId) })
+    const versions = await store.listVersions(did.toHexString())
+    const authorIds = versions.flatMap((v) => (v.createdBy && oid(v.createdBy) ? [oid(v.createdBy)!] : []))
+    const authors = await c.users.find({ _id: { $in: authorIds } }, { projection: { name: 1 } }).toArray()
+    const nameOf = new Map(authors.map((u) => [u._id.toHexString(), u.name]))
+    res.json(versions.map((v) => ({ ...v, savedBy: (v.createdBy && nameOf.get(v.createdBy)) || 'Someone' })))
   }))
 
   // The raw Yjs state of a named version, so the browser can preview or restore it

@@ -7,6 +7,7 @@ import { keys, useAction, useMembers, useWorkspaceDocs, useWorkspaces } from '@/
 import { useUi } from '@/lib/uiStore'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
+import { timeAgo } from '@/lib/time'
 import ShareDialog from './ShareDialog'
 import DeleteWorkspaceDialog from './DeleteWorkspaceDialog'
 import CantOpen from './CantOpen'
@@ -27,14 +28,6 @@ function DocIcon({ type }: { type: 'doc' | 'canvas' }) {
       <path d="M6 3h8l5 5v13H6z" /><path d="M14 3v5h5M9 13h7M9 17h5" />
     </svg>
   )
-}
-
-const ago = (iso: string) => {
-  const s = (Date.now() - new Date(iso).getTime()) / 1000
-  if (s < 90) return 'just now'
-  if (s < 3600) return `${Math.round(s / 60)} minutes ago`
-  if (s < 86400) return `${Math.round(s / 3600)} hours ago`
-  return `${Math.round(s / 86400)} days ago`
 }
 
 export default function WorkspaceView({ workspaceId }: { workspaceId: string }) {
@@ -135,7 +128,7 @@ export default function WorkspaceView({ workspaceId }: { workspaceId: string }) 
               <Link href={`/doc/${d.id}`} className="card doc-card">
                 <span className="icon"><DocIcon type={d.type} /></span>
                 <strong>{d.title}</strong>
-                <span className="meta">{d.type === 'canvas' ? 'Whiteboard' : 'Document'} · edited {ago(d.updatedAt)}</span>
+                <span className="meta">{d.type === 'canvas' ? 'Whiteboard' : 'Document'} · edited {timeAgo(d.updatedAt)}</span>
               </Link>
             </li>
           ))}

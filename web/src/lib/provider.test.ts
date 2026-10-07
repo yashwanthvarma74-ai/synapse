@@ -153,4 +153,76 @@ describe('SynapseProvider metrics', () => {
     vi.advanceTimersByTime(30_000)
     expect(ws.messagesOfType(2)).toHaveLength(0)
   })
+
+  describe('saving a named version', () => {
+    const reply = (ws: FakeWS, type: number, cid: string, value: number | string) => {
+      const enc = encoding.createEncoder()
+      encoding.writeVarUint(enc, type)
+      encoding.writeVarString(enc, cid)
+      if (typeof value === 'number') encoding.writeVarUint(enc, value)
+      else encoding.writeVarString(enc, value)
+      ws.receive(encoding.toUint8Array(enc))
+    }
+    const sentRequest = (ws: FakeWS) => {
+      const dec = decoding.createDecoder(ws.messagesOfType(6).at(-1)!)
+      decoding.readVarUint(dec)
+      return { label: decoding.readVarString(dec), cid: decoding.readVarString(dec) }
+    }
+    const connect = () => {
+      const ws = start()
+      ws.open()
+      ws.receive(serverStep2())
+      return ws
+    }
+
+    it('sends the name and resolves with the version number the server answers with', async () => {
+      const ws = connect()
+      const saved = provider.saveVersion('Before the big change')
+      const { label, cid } = sentRequest(ws)
+      expect(label).toBe('Before the big change')
+      reply(ws, 7, cid, 4)
+      await expect(saved).resolves.toBe(4)
+    })
+
+    it('matches each answer to its own request', async () => {
+      const ws = connect()
+      const first = provider.saveVersion('one')
+      const a = sentRequest(ws)
+      const second = provider.saveVersion('two')
+      const b = sentRequest(ws)
+      reply(ws, 7, b.cid, 2)
+      reply(ws, 7, a.cid, 1)
+      await expect(first).resolves.toBe(1)
+      await expect(second).resolves.toBe(2)
+    })
+
+    it('turns a refusal into a plain sentence', async () => {
+      const ws = connect()
+      const saved = provider.saveVersion('x')
+      reply(ws, 8, sentRequest(ws).cid, 'forbidden')
+      await expect(saved).rejects.toThrow('Only people who can edit can save versions.')
+    })
+
+    it('refuses straight away when offline, and sends nothing', async () => {
+      const ws = start() // never connected
+      await expect(provider.saveVersion('x')).rejects.toThrow(/offline/i)
+      expect(ws.messagesOfType(6)).toHaveLength(0)
+    })
+
+    it('gives up if the server never answers', async () => {
+      connect()
+      const saved = provider.saveVersion('x')
+      const outcome = expect(saved).rejects.toThrow(/did not answer/)
+      await vi.advanceTimersByTimeAsync(10_001)
+      await outcome
+    })
+
+    it('fails the request if the connection drops before the answer', async () => {
+      const ws = connect()
+      const saved = provider.saveVersion('x')
+      const outcome = expect(saved).rejects.toThrow(/connection was lost/)
+      ws.close()
+      await outcome
+    })
+  })
 })
