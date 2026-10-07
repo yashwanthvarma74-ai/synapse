@@ -1,0 +1,61 @@
+/* ---- landing ---- */
+.landing { position: relative; isolation: isolate; max-width: var(--content); margin: 0 auto; padding: 0 20px 48px; }
+.landing::before {
+  content: ''; position: absolute; z-index: -1; inset: -90px -15% auto; height: 760px; pointer-events: none;
+  background:
+    radial-gradient(55% 55% at 72% 18%, rgba(99, 102, 241, 0.2), transparent 70%),
+    radial-gradient(38% 48% at 12% 8%, rgba(168, 85, 247, 0.13), transparent 70%),
+    radial-gradient(40% 40% at 50% 60%, rgba(56, 189, 248, 0.08), transparent 70%);
+}
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px; align-items: center; padding: 72px 0 40px; }
+@media (max-width: 880px) { .hero { grid-template-columns: 1fr; padding-top: 36px; } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent-strong); background: rgba(255, 255, 255, 0.8); border: 1px solid #dfe2fb; padding: 5px 13px; border-radius: 999px; margin-bottom: 20px; box-shadow: var(--shadow-xs); }
+.eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(47, 158, 68, 0.2); }
+.hero h1 { font-size: clamp(2.3rem, 1.5rem + 3.4vw, 3.9rem); line-height: 1.05; letter-spacing: -0.04em; margin-bottom: 20px; }
+.grad { background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (forced-colors: active) { .grad { background: none; color: CanvasText; } }
+.hero .lead { font-size: 1.2rem; color: var(--muted); max-width: 33em; margin-bottom: 28px; line-height: 1.6; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.cta-note { font-size: 0.9rem; color: var(--muted); margin-top: 14px; max-width: 34em; }
+.proof { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; padding: 0; margin: 26px 0 0; font-size: 0.9rem; font-weight: 500; }
+.proof li { display: inline-flex; align-items: center; gap: 7px; }
+.proof svg { color: var(--ok); flex: none; }
+.hero-visual { position: relative; }
+.hero-art { width: 100%; height: auto; filter: drop-shadow(0 30px 50px rgba(50, 50, 140, 0.22)); animation: float 7s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-8px); } }
+
+.section-title { text-align: center; font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem); letter-spacing: -0.03em; margin: 64px 0 8px; }
+.section-sub { text-align: center; color: var(--muted); max-width: 38em; margin: 0 auto 32px; font-size: 1.05rem; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; list-style: none; padding: 0; margin: 0; counter-reset: step; }
+@media (max-width: 880px) { .steps { grid-template-columns: 1fr; } }
+.step { counter-increment: step; transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
+.step:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.step .step-art { background: linear-gradient(160deg, var(--accent-soft), #f6efff); border-radius: var(--radius); padding: 14px; margin-bottom: 18px; }
+.step .step-art svg { width: 100%; height: auto; display: block; }
+.step h3 { margin: 0 0 8px; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; }
+.step h3::before { content: counter(step); display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--gradient); color: var(--on-accent); font-size: 0.85rem; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4); }
+.step p { color: var(--muted); margin: 0; }
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; }
+.features li { display: grid; gap: 4px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-xs); transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.features li:hover { border-color: #c9cef6; box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.feature-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 10px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
+.features strong { font-size: 1.05rem; letter-spacing: -0.01em; }
+.features span { color: var(--muted); font-size: 0.95rem; }
+.cta-card { position: relative; overflow: hidden; margin-top: 72px; padding: 56px 24px; border-radius: 26px; text-align: center; color: #fff; background: var(--gradient); box-shadow: 0 30px 60px rgba(67, 56, 202, 0.35); }
+.cta-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 80% at 80% 0%, rgba(255, 255, 255, 0.22), transparent 60%), radial-gradient(40% 60% at 0% 100%, rgba(168, 85, 247, 0.5), transparent 70%); pointer-events: none; }
+.cta-card > * { position: relative; }
+.cta-card h2 { margin: 0 0 8px; font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.4rem); letter-spacing: -0.03em; }
+.cta-card p { margin: 0 0 24px; font-size: 1.05rem; color: rgba(255, 255, 255, 0.92); }
+
+/* ---- workspaces and documents lists ---- */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 14px 0 0; }
+.doc-card { display: flex; flex-direction: column; gap: 12px; height: 100%; color: var(--fg); text-decoration: none; transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease); }
+.doc-card:hover { color: var(--fg); transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #c9cef6; }
+.doc-card .icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.doc-card strong { font-size: 1.06rem; letter-spacing: -0.01em; }
+.doc-card .meta { color: var(--muted); font-size: 0.85rem; margin-top: auto; }
+
+/* ---- invite and sign-in ---- */
+.join-card { max-width: 480px; margin: 56px auto; text-align: center; padding: 32px; }
+.join-card .join-art { width: 180px; margin: 0 auto 10px; display: block; }
+.join-card .stack { text-align: left; }

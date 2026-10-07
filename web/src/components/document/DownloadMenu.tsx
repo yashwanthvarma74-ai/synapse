@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CanvasObject } from '@/lib/board/canvasModel'
 import type { JsonNode } from '@/lib/export/blocks'
+import { DownloadIcon } from '../ui/Icons'
 import { exportBoard, exportDocument, NothingToExport, pdfProblems, saveFile, type BoardFormat, type DocFormat } from '@/lib/export/index'
 
 interface Choice {
@@ -87,6 +88,7 @@ export default function DownloadMenu({ title, kind, getContent, getObjects }: Pr
   return (
     <div className="download" ref={root} onKeyDown={onKeyDown}>
       <button ref={button} type="button" className="btn secondary" aria-expanded={open} aria-controls="download-list" onClick={() => setOpen((o) => !o)}>
+        <DownloadIcon size={16} />
         Download
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>

@@ -1,8 +1,9 @@
 'use client'
 import type { Editor } from '@tiptap/react'
 import { useEditorState } from '@tiptap/react'
+import { BoldIcon, BulletsIcon, CodeIcon, HeadingIcon, ImageIcon, ItalicIcon, NumbersIcon, PaperclipIcon, QuoteIcon, RedoIcon, StrikeIcon, SubheadingIcon, UndoIcon } from '../ui/Icons'
 
-// Formatting buttons. Plain words and letters, with the keyboard shortcut in the tooltip.
+// Formatting buttons: an icon each, named for screen readers, with the keyboard shortcut in the tooltip.
 export default function EditorToolbar({ editor, disabled }: { editor: Editor | null; disabled: boolean }) {
   const s = useEditorState({
     editor,
@@ -22,23 +23,23 @@ export default function EditorToolbar({ editor, disabled }: { editor: Editor | n
   )
   return (
     <div className="format-bar" role="toolbar" aria-label="Formatting">
-      {btn('Undo', 'Ctrl+Z', null, () => editor?.commands.undo?.(), 'Undo')}
-      {btn('Redo', 'Ctrl+Shift+Z', null, () => editor?.commands.redo?.(), 'Redo')}
+      {btn('Undo', 'Ctrl+Z', null, () => editor?.commands.undo?.(), <UndoIcon />)}
+      {btn('Redo', 'Ctrl+Shift+Z', null, () => editor?.commands.redo?.(), <RedoIcon />)}
       <span className="sep" />
-      {btn('Bold', 'Ctrl+B', s?.bold ?? false, run((c) => c.toggleBold()), <strong>Bold</strong>)}
-      {btn('Italic', 'Ctrl+I', s?.italic ?? false, run((c) => c.toggleItalic()), <em>Italic</em>)}
-      {btn('Strike', 'Ctrl+Shift+S', s?.strike ?? false, run((c) => c.toggleStrike()), <s>Strike</s>)}
+      {btn('Bold', 'Ctrl+B', s?.bold ?? false, run((c) => c.toggleBold()), <BoldIcon />)}
+      {btn('Italic', 'Ctrl+I', s?.italic ?? false, run((c) => c.toggleItalic()), <ItalicIcon />)}
+      {btn('Strike', 'Ctrl+Shift+S', s?.strike ?? false, run((c) => c.toggleStrike()), <StrikeIcon />)}
       <span className="sep" />
-      {btn('Heading', 'Ctrl+Alt+1', s?.h1 ?? false, run((c) => c.toggleHeading({ level: 1 })), 'Heading')}
-      {btn('Subheading', 'Ctrl+Alt+2', s?.h2 ?? false, run((c) => c.toggleHeading({ level: 2 })), 'Subheading')}
+      {btn('Heading', 'Ctrl+Alt+1', s?.h1 ?? false, run((c) => c.toggleHeading({ level: 1 })), <HeadingIcon />)}
+      {btn('Subheading', 'Ctrl+Alt+2', s?.h2 ?? false, run((c) => c.toggleHeading({ level: 2 })), <SubheadingIcon />)}
       <span className="sep" />
-      {btn('Bullets', 'Ctrl+Shift+8', s?.bullets ?? false, run((c) => c.toggleBulletList()), 'Bullets')}
-      {btn('Numbers', 'Ctrl+Shift+7', s?.numbers ?? false, run((c) => c.toggleOrderedList()), 'Numbers')}
-      {btn('Quote', 'Ctrl+Shift+B', s?.quote ?? false, run((c) => c.toggleBlockquote()), 'Quote')}
-      {btn('Code block', 'Ctrl+Alt+C', s?.code ?? false, run((c) => c.toggleCodeBlock()), 'Code')}
+      {btn('Bullets', 'Ctrl+Shift+8', s?.bullets ?? false, run((c) => c.toggleBulletList()), <BulletsIcon />)}
+      {btn('Numbers', 'Ctrl+Shift+7', s?.numbers ?? false, run((c) => c.toggleOrderedList()), <NumbersIcon />)}
+      {btn('Quote', 'Ctrl+Shift+B', s?.quote ?? false, run((c) => c.toggleBlockquote()), <QuoteIcon />)}
+      {btn('Code block', 'Ctrl+Alt+C', s?.code ?? false, run((c) => c.toggleCodeBlock()), <CodeIcon />)}
       <span className="sep" />
-      {btn('Image', '', null, () => editor?.commands.chooseFile('image'), 'Image')}
-      {btn('File', '', null, () => editor?.commands.chooseFile('file'), 'File')}
+      {btn('Image', '', null, () => editor?.commands.chooseFile('image'), <ImageIcon />)}
+      {btn('File', '', null, () => editor?.commands.chooseFile('file'), <PaperclipIcon />)}
     </div>
   )
 }

@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { startGuest } from '@/lib/guest'
-import { EmptyDocsArt, HeroArt, MergeArt, OfflineArt, WriteTogetherArt } from '../ui/Illustrations'
+import { BoardIcon, CheckIcon, CommentIcon, DocumentIcon, HistoryIcon, LinkIcon, SearchIcon } from '../ui/Icons'
+import { HeroArt, MergeArt, OfflineArt, WriteTogetherArt } from '../ui/Illustrations'
 
 // What a first-time visitor sees: what this is, why it is different, and one big button.
 export default function Landing() {
@@ -28,7 +29,7 @@ export default function Landing() {
       <section className="hero" aria-labelledby="hero-title">
         <div>
           <span className="eyebrow">Open source · works offline</span>
-          <h1 id="hero-title">Write together, even when the internet doesn&apos;t.</h1>
+          <h1 id="hero-title">Write together, <span className="grad">even when the internet doesn&apos;t.</span></h1>
           <p className="lead">
             Synapse is a shared notebook and whiteboard. Everyone edits at the same time and you see each other&apos;s
             cursors. If your connection drops, nothing is lost: it all merges when you&apos;re back.
@@ -39,8 +40,15 @@ export default function Landing() {
           </div>
           <p className="cta-note">One click. You&apos;ll get a sample document and board to play with. You can create an account later and keep everything.</p>
           {error && <p role="alert" className="error">{error}</p>}
+          <ul className="proof" aria-label="Why people use it">
+            <li><CheckIcon size={16} />Free and open source</li>
+            <li><CheckIcon size={16} />No account needed</li>
+            <li><CheckIcon size={16} />Works without internet</li>
+          </ul>
         </div>
-        <HeroArt className="hero-art" />
+        <div className="hero-visual">
+          <HeroArt className="hero-art" />
+        </div>
       </section>
 
       <section aria-labelledby="how-title">
@@ -69,26 +77,20 @@ export default function Landing() {
         <h2 id="more-title" className="section-title">Everything you need to work as a team</h2>
         <p className="section-sub">Not a demo: a complete little workspace.</p>
         <ul className="features">
-          <li><strong>Documents</strong><span>Headings, lists, quotes and code, with a toolbar and keyboard shortcuts.</span></li>
-          <li><strong>Whiteboard</strong><span>Sticky notes, shapes and connectors on a canvas you can pan and zoom.</span></li>
-          <li><strong>Comments</strong><span>Attach a comment to a sentence. It stays with that sentence as the text changes.</span></li>
-          <li><strong>Version history</strong><span>Save a named version, preview it, and bring it back whenever you like.</span></li>
-          <li><strong>Share with a link</strong><span>Invite people as editors, commenters or viewers. Remove access at any time.</span></li>
-          <li><strong>Search</strong><span>Find any document in your workspaces, including text on the whiteboard.</span></li>
+          <li><span className="feature-icon"><DocumentIcon size={22} /></span><strong>Documents</strong><span>Headings, lists, quotes and code, with a toolbar and keyboard shortcuts.</span></li>
+          <li><span className="feature-icon"><BoardIcon size={22} /></span><strong>Whiteboard</strong><span>Sticky notes, shapes and connectors on a canvas you can pan and zoom.</span></li>
+          <li><span className="feature-icon"><CommentIcon size={22} /></span><strong>Comments</strong><span>Attach a comment to a sentence. It stays with that sentence as the text changes.</span></li>
+          <li><span className="feature-icon"><HistoryIcon size={22} /></span><strong>Version history</strong><span>Save a named version, preview it, and bring it back whenever you like.</span></li>
+          <li><span className="feature-icon"><LinkIcon size={22} /></span><strong>Share with a link</strong><span>Invite people as editors, commenters or viewers. Remove access at any time.</span></li>
+          <li><span className="feature-icon"><SearchIcon size={22} /></span><strong>Search</strong><span>Find any document in your workspaces, including text on the whiteboard.</span></li>
         </ul>
       </section>
 
-      <section className="card" style={{ marginTop: 40, textAlign: 'center' }} aria-labelledby="ready-title">
-        <div style={{ width: 120, margin: '0 auto' }}><EmptyDocsArt /></div>
-        <h2 id="ready-title" style={{ marginTop: 0 }}>Ready to try it?</h2>
-        <p className="muted">It takes one click, and there is nothing to install.</p>
-        <button className="btn large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
+      <section className="cta-card" aria-labelledby="ready-title">
+        <h2 id="ready-title">Ready to try it?</h2>
+        <p>It takes one click, and there is nothing to install. Guest work is kept for a month, and you can save it any time.</p>
+        <button className="btn light large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
       </section>
-
-      <footer className="site-footer">
-        <span>Synapse is open source. Built with Yjs, Next.js, MongoDB and Redis.</span>
-        <span>Guest accounts are temporary: create an account whenever you want to keep your work.</span>
-      </footer>
     </div>
   )
 }

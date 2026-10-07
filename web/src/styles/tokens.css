@@ -1,0 +1,46 @@
+/* Design tokens. Synapse is light-only on purpose; every text colour here is checked by src/test/a11y.test.ts. */
+:root {
+  color-scheme: light;
+
+  /* surfaces and text */
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --panel: #eff1f8;
+  --fg: #12141c;
+  --muted: #586074;
+  --line: #e3e6ef;
+  --line-strong: #cdd2e1;
+
+  /* brand */
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-soft: #eef0ff;
+  --on-accent: #ffffff; /* text on anything accent-coloured */
+  --gradient: linear-gradient(135deg, #5b54ee 0%, #4f46e5 50%, #4338ca 100%);
+  --gradient-text: linear-gradient(100deg, #4f46e5 0%, #7c3aed 100%);
+
+  /* status */
+  --danger: #c92a2a;
+  --success: #1b7a34; /* green for text */
+  --ok: #2f9e44; /* green for dots and marks */
+  --warn: #e67700;
+
+  /* depth: soft, tinted shadows in layers */
+  --shadow-xs: 0 1px 2px rgba(18, 20, 28, 0.06);
+  --shadow-sm: 0 1px 2px rgba(18, 20, 28, 0.05), 0 4px 14px rgba(40, 40, 120, 0.06);
+  --shadow-md: 0 2px 4px rgba(18, 20, 28, 0.05), 0 12px 32px rgba(40, 40, 120, 0.1);
+  --shadow-lg: 0 8px 16px rgba(18, 20, 28, 0.08), 0 28px 70px rgba(30, 30, 100, 0.22);
+  --ring: 0 0 0 4px rgba(79, 70, 229, 0.18);
+
+  /* shape and motion */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fast: 140ms;
+  --slow: 260ms;
+
+  /* layout */
+  --header-height: 60px;
+  --content: 1180px;
+}
