@@ -1,5 +1,5 @@
 'use client'
-// Everything that comes FROM THE SERVER goes through TanStack Query: it caches, refetches,
+// Everything that comes from the server goes through TanStack Query: it caches, refetches,
 // dedupes identical requests and gives loading and error states for free. State that only
 // exists in the browser (is a dialog open, which tool is selected) lives in uiStore.ts.
 import { QueryClient, useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query'

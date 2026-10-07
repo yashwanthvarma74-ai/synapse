@@ -1,6 +1,5 @@
-// All illustrations are inline SVG so they follow the light/dark theme through CSS
-// variables, add no image downloads, and stay sharp at any size. They are DECORATIVE:
-// each one sits next to text that says the same thing, so they are hidden from screen readers.
+// Inline SVG, so they add no image downloads and stay sharp at any size. They are decorative: each sits
+// next to text that says the same thing, so screen readers skip them.
 import type { CSSProperties } from 'react'
 
 const A = '#c2255c' // two collaborator colours, both with 4.5:1 contrast against white text

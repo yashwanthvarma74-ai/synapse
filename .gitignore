@@ -14,3 +14,7 @@ TEST_ACCOUNTS.md
 e2e/test-results/
 e2e/playwright-report/
 !.env.example
+
+# personal notes and reference material, kept locally
+STUDY.md
+docs/PDF-SPEC-synapse.txt

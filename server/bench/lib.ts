@@ -1,4 +1,4 @@
-// Shared helpers for the benchmarks. The gateway runs as a SEPARATE PROCESS (like
+// Shared helpers for the benchmarks. The gateway runs as a separate process (like
 // production), so the clients' work doesn't compete with the server's event loop.
 import { spawn, execFileSync, type ChildProcess } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
@@ -19,7 +19,7 @@ export interface Gateway {
   port: number
   pid: number
   stop: () => Promise<void>
-  kill: () => Promise<void> // SIGKILL, like a crash
+  kill: () => Promise<void> // sigkill, like a crash
   exited: () => boolean
 }
 

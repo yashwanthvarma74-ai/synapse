@@ -1,6 +1,6 @@
 // Convergence after a partition: two people edit the same document with no network,
 // then reconnect. How long until both screens show the same text?
-// We simulate the VOLUME of edits a real offline period produces (4 edits/s each:
+// We simulate the volume of edits a real offline period produces (4 edits/s each:
 // typing, deleting, moving around) instead of waiting minutes: the merge cost
 // depends on how many edits there are, not on how long the clock ran.
 import * as Y from 'yjs'
@@ -40,7 +40,7 @@ async function scenario(minutes: number, bothOffline: boolean) {
   docA.getText('body').insert(0, 'shared starting text. '.repeat(50)) // ~1 KB baseline
   await sleep(400)
 
-  // ---- partition ----
+  // Partition
   a.close()
   if (bothOffline) b.close()
   await sleep(100)
@@ -49,7 +49,7 @@ async function scenario(minutes: number, bothOffline: boolean) {
   if (!bothOffline) await sleep(1500)
 
   const sizeA = Y.encodeStateAsUpdate(docA).length
-  // ---- reconnect ----
+  // Reconnect
   const t0 = now()
   a = await connectWith(gw.port, setup.docId, setup.tokens[0], docA)
   if (bothOffline) b = await connectWith(gw.port, setup.docId, setup.tokens[1], docB)

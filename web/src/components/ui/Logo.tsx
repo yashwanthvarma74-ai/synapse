@@ -1,5 +1,5 @@
-// The Synapse mark: two nodes joined by a curve (two copies of a document that always
-// reconnect). Decorative: the word "Synapse" next to it is the accessible name.
+// The Synapse mark: two nodes joined by a curve (two copies of a document that always reconnect).
+// Decorative; the word "Synapse" beside it is the accessible name.
 export default function Logo({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">

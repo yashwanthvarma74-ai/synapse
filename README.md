@@ -208,29 +208,29 @@ but k6 itself was using about 12 cores while the gateway used 17% of one; the de
 ## Repository layout
 
 ```
-server/src    gateway (room.ts, gateway.ts), storage (store.ts, mongoStore.ts), message bus (bus.ts, redisBus.ts),
-              API (api.ts), auth (auth.ts, access.ts), uploads (storage.ts), AI summary (summarize.ts), logging (logger.ts)
-server/test   integration and property tests
-server/fault  fault-injection tests (private Redis and MongoDB, killed on purpose)
-server/bench  benchmark scripts; results in bench/results/
-server/ops    the outside-in uptime probe
-web/src       app pages, editor (slash menu, uploads), canvas (canvasModel.ts, canvasRenderer.ts),
-              sync client (lib/provider.ts), server data (lib/queries.ts), UI state (lib/uiStore.ts)
-e2e           Playwright end-to-end tests: collaboration, offline merge, roles, editor, accessibility (axe)
-load/k6       k6 load test over real WebSockets with the Yjs protocol
-deploy        Caddy config for the Docker Compose gateways; docker-compose.yml and the Dockerfiles are at the top and in server/, web/
-docs          blog post, deployment guide, benchmarks, fault-injection, accessibility and observability reports, ADRs, the extracted brief
-observability Prometheus config, alert rules and their tests, Grafana provisioning and the generated dashboard
-lab           Yjs experiments you can run: two documents merging in a terminal, and the demos behind the blog post
-STUDY.md      suggested reading order for the code
+server/src     gateway (gateway.ts, room.ts), storage (store.ts, mongoStore.ts), message bus (bus.ts, redisBus.ts),
+               REST API (api.ts, with one file per feature in routes/), auth, uploads, AI summary, chat, logging
+server/test    integration and property tests
+server/fault   fault-injection tests (private Redis and MongoDB, killed on purpose)
+server/bench   benchmark scripts; results in bench/results/
+server/ops     the outside-in uptime probe
+web/src/app          pages (Next.js routes)
+web/src/components   by feature: layout, home, auth, workspace, document, board, ui
+web/src/lib          collab (sync client), board (canvas model and renderer), chat, editor (slash menu, uploads),
+                     export (PDF, Word, text, images), server data (queries.ts), UI state (uiStore.ts)
+e2e            Playwright end-to-end tests: collaboration, offline merge, roles, editor, versions, downloads, accessibility
+load/k6        k6 load test over real WebSockets with the Yjs protocol
+deploy         Caddy config for the Docker Compose gateways (docker-compose.yml and the Dockerfiles are at the top and in server/, web/)
+docs           blog post, deployment guide, benchmarks, fault-injection, accessibility and observability reports, ADRs
+observability  Prometheus config, alert rules and their tests, Grafana provisioning and the generated dashboard
+lab            Yjs experiments you can run: two documents merging in a terminal, and the demos behind the blog post
 ```
 
 ## What is not built, or not proven
 
-Honest list, so nothing here is oversold. The brief for this project is extracted in
-[`docs/PDF-SPEC-synapse.txt`](docs/PDF-SPEC-synapse.txt).
+Honest list, so nothing here is oversold.
 
-**From the brief, not built:**
+**Planned, not built:**
 - **The 60 to 90 second demo video.** Someone has to record it.
 - **OpenTelemetry traces** (only metrics exist) and the browser OpenTelemetry SDK (browsers use a small beacon instead). An Alertmanager (alert rules exist but notify no one).
 - **A Chrome DevTools performance trace** for the canvas frame rate. Frame rate was measured with `requestAnimationFrame`.

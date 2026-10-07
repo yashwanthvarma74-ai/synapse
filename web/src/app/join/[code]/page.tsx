@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import JoinInvite from '@/components/JoinInvite'
+import JoinInvite from '@/components/auth/JoinInvite'
 
 export const metadata: Metadata = { title: 'You are invited' }
 

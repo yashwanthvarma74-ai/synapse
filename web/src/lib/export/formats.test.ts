@@ -5,7 +5,7 @@ import { boardToSvg, wrapText } from './board'
 import { fileName } from './index'
 import { buildPdfDefinition, toPdf, uncoveredCharacters } from './pdf'
 import { toWord } from './word'
-import type { CanvasObject } from '../canvasModel'
+import type { CanvasObject } from '../board/canvasModel'
 
 const t = (text: string, ...marks: string[]): JsonNode => ({ type: 'text', text, marks: marks.map((type) => ({ type })) })
 const p = (...content: JsonNode[]): JsonNode => ({ type: 'paragraph', content })

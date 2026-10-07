@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { COLORS } from '@/lib/identity'
+import { COLORS } from '@/lib/collab/identity'
 import { contrast, readThemes } from './contrast'
 
 const css = readFileSync(path.resolve(__dirname, '../app/globals.css'), 'utf8')

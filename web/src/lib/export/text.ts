@@ -2,7 +2,7 @@ import { runsToText, type Block, type Run } from './blocks'
 
 const indent = (text: string, pad: string) => text.split('\n').map((line) => (line ? pad + line : line)).join('\n')
 
-// ---- plain text ------------------------------------------------------------------------------------
+// Plain text
 function plainBlock(b: Block): string {
   switch (b.type) {
     case 'heading':
@@ -29,7 +29,7 @@ function plainBlock(b: Block): string {
 
 export const toPlainText = (blocks: Block[]) => blocks.map(plainBlock).join('\n\n') + '\n'
 
-// ---- Markdown --------------------------------------------------------------------------------------
+// Markdown
 function markRun(r: Run): string {
   let t = r.text
   if (r.code) t = '`' + t + '`'

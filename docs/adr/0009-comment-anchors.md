@@ -11,7 +11,7 @@ other people type before, inside or after them. A character offset such as
 ## Decision
 
 Store the comment's range as two Yjs **relative positions**
-(`web/src/components/Comments.tsx`). A relative position is "just after this
+(`web/src/components/document/Comments.tsx`). A relative position is "just after this
 specific character", identified by its Yjs id, not by its index. To show the
 comment, convert it back to the current index.
 

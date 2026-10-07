@@ -1,7 +1,7 @@
 // UI-only state (Zustand): things that exist only in this browser tab and never touch the
 // server. Anything fetched from the server belongs in queries.ts instead.
 import { create } from 'zustand'
-import type { Tool } from './canvasRenderer'
+import type { Tool } from './board/canvasRenderer'
 
 interface UiState {
   shareOpen: boolean

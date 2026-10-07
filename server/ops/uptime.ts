@@ -1,8 +1,8 @@
-// Outside-in uptime probe. Run it from somewhere that is NOT the server (a cron job, GitHub Actions,
+// Outside-in uptime probe. Run it from somewhere that is not the server (a cron job, GitHub Actions,
 // any uptime service that can run a command). It checks three things a real user depends on:
 //   1. the API answers /health
 //   2. the gateway answers /health
-//   3. (if a canary token and document are given) a REAL sync: open the WebSocket, run the Yjs
+//   3. (if a canary token and document are given) a real sync: open the WebSocket, run the Yjs
 //      handshake and get the document's state back. A server can pass the first two and still be
 //      unable to sync, so this is the check that matches "can people actually collaborate".
 // Prints one JSON line and exits 1 if anything failed. Never prints the token.

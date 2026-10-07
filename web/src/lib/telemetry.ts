@@ -1,7 +1,7 @@
 // Reports how the app feels to the person using it (round trip to the server, time to
 // sync, reconnects, key-to-paint) so it can be graphed next to the server's own metrics.
 //
-// What is sent: a metric NAME and a number, nothing else. No document text, no ids,
+// What is sent: a metric name and a number, nothing else. No document text, no ids,
 // no names. The server accepts only a fixed list of names (see server/src/telemetry.ts).
 // Set NEXT_PUBLIC_TELEMETRY=off to turn it off completely.
 import { API, tokenStore } from './api'

@@ -1,5 +1,5 @@
-// Thin client for the REST API. The signed token lives in localStorage and is sent
-// as a Bearer header. (httpOnly cookies are safer against XSS; see docs/adr for the tradeoff.)
+// Thin client for the REST API. The signed token lives in localStorage and is sent as a Bearer header
+// (an httpOnly cookie would be safer against XSS; see ADR 0007 for the trade-off).
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001'
 
 // Tell other parts of the page (the header) that the person signed in or out

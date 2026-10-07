@@ -1,4 +1,4 @@
-import type { CanvasObject } from '../canvasModel'
+import type { CanvasObject } from '../board/canvasModel'
 
 // A whiteboard drawn as SVG, styled like the live canvas. One drawing serves the version preview and both
 // image downloads (SVG as is, PNG by rasterising it).

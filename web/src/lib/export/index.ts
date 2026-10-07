@@ -1,4 +1,4 @@
-import type { CanvasObject } from '../canvasModel'
+import type { CanvasObject } from '../board/canvasModel'
 import { boardToSvg, svgToPng } from './board'
 import { isEmpty, parseDoc, type JsonNode } from './blocks'
 import { loadImage } from './images'

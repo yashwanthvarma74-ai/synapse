@@ -39,7 +39,7 @@ test('signature demo: both go offline, edit the same spot, reconnect, and nothin
     await expect(page.getByRole('status').filter({ hasText: /Offline/ })).toBeVisible()
   }
 
-  // both edit the SAME spot (the end of the page) while disconnected
+  // both edit the same spot (the end of the page) while disconnected
   await typeAtEnd(a, ' [ALPHA edit]')
   await typeAtEnd(b, ' [BRAVO edit]')
   await expect(editor(a)).not.toContainText('BRAVO')

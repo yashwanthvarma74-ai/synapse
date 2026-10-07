@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import UpgradeForm from '@/components/UpgradeForm'
+import UpgradeForm from '@/components/auth/UpgradeForm'
 
 export const metadata: Metadata = { title: 'Save your work' }
 

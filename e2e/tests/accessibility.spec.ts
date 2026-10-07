@@ -1,6 +1,6 @@
 // Automated accessibility checks (axe-core, WCAG 2.0/2.1/2.2 A and AA rules) in real browsers.
 // Automated rules find roughly a third of accessibility problems. A pass here is necessary, not
-// sufficient: it is not a substitute for a screen reader (see docs/ACCESSIBILITY.md).
+// sufficient: it is not a substitute for a screen reader (see docs/accessibility.md).
 import AxeBuilder from '@axe-core/playwright'
 import { type Page } from '@playwright/test'
 import { expect, test, editor, newGuest, openDoc, typeAtEnd, windowFor } from './helpers'

@@ -11,7 +11,7 @@ with the Yjs protocol written directly.
 ## Decision
 
 Plain WebSockets (`ws`) with `y-protocols`, written by hand in
-`server/src/room.ts`, `server/src/gateway.ts` and `web/src/lib/provider.ts`.
+`server/src/room.ts`, `server/src/gateway.ts` and `web/src/lib/collab/provider.ts`.
 
 - The Yjs sync protocol is already binary and already handles catch-up after a
   reconnect (the state-vector handshake). Socket.IO's extra layers (rooms,

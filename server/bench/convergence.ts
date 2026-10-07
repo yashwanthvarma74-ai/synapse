@@ -33,10 +33,10 @@ fc.assert(
       if (s && i % 3 === 0 && s[0] !== s[1]) sync(s[0], s[1])
     })
     for (const [a, b] of [[0, 1], [2, 1], [1, 0], [0, 2], [1, 2], [2, 0]]) sync(a, b)
-    // 1) CONTENT must already be identical (text + formatting marks)
+    // 1) content must already be identical (text + formatting marks)
     const content = docs.map((d) => JSON.stringify(d.getText('body').toDelta()))
     if (new Set(content).size !== 1) throw new Error('CONTENT diverged')
-    // 2) BYTES must be identical once syncing goes quiet. Rich-text formatting makes
+    // 2) bytes must be identical once syncing goes quiet. Rich-text formatting makes
     //    each replica tidy redundant format markers locally; those tombstones travel
     //    in the next round, so we keep exchanging until nothing changes.
     let rounds = 0

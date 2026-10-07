@@ -12,7 +12,7 @@ with hundreds of objects.
 
 All objects live in one Yjs map, `objects`: `id` to a small `Y.Map` of fields
 (`kind`, `x`, `y`, `w`, `h`, `text`, `color`, `from`, `to`, `z`).
-`web/src/lib/canvasModel.ts` has no rendering code, so it is tested alone.
+`web/src/lib/board/canvasModel.ts` has no rendering code, so it is tested alone.
 
 - **Each object is its own map**, so two people changing different fields of one
   shape (one moves it, one recolours it) both win. Two people moving the same
@@ -32,7 +32,7 @@ replicas that must converge.
 
 ## Decision: rendering
 
-`web/src/lib/canvasRenderer.ts` draws with PixiJS 8 (WebGL). It keeps **no copy
+`web/src/lib/board/canvasRenderer.ts` draws with PixiJS 8 (WebGL). It keeps **no copy
 of the data**: the Yjs document is the truth, and every change (local or remote)
 flows document, sync, screen. Only objects whose data changed are redrawn, and a
 pure move changes a position, not the drawing. Remote cursors keep a constant

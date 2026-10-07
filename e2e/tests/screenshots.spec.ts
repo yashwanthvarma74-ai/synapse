@@ -1,6 +1,6 @@
-// Not a test: regenerates the README screenshots (docs/images) and the link-preview image from the
+// Not a test: regenerates the readme screenshots (docs/images) and the link-preview image from the
 // production build, with two named people editing together. Run on purpose:
-//   SHOTS=1 npx playwright test --project=chromium tests/screenshots.spec.ts
+//   shots=1 npx playwright test --project=chromium tests/screenshots.spec.ts
 import { expect, test } from '@playwright/test'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

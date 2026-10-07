@@ -1,4 +1,4 @@
-// Load test: many simulated editors in ONE room. Reports delivery delay percentiles,
+// Load test: many simulated editors in one room. Reports delivery delay percentiles,
 // message loss, and the gateway's CPU and memory. (The PDF suggests k6; this uses a
 // Node harness so it can speak the Yjs protocol and read update timestamps.)
 // Clients run in several worker processes so the load generator is not the bottleneck.
@@ -9,7 +9,7 @@ import { setupDoc, startGateway, sampleProc, summarize, sleep, save } from './li
 const WORKERS = 4
 
 if (process.env.ROLE === 'worker') {
-  // ---------------- worker: runs a slice of the clients ----------------
+  // Worker: runs a slice of the clients
   const cfg = JSON.parse(process.env.CFG!) as { port: number; docId: string; tokens: string[]; offset: number; rate: number; seconds: number; stride: number }
   const clients: BenchClient[] = []
   for (let i = 0; i < cfg.tokens.length; i++) {
@@ -38,11 +38,11 @@ if (process.env.ROLE === 'worker') {
     for (let k = 0; k < c.latencies.length; k += cfg.stride) lat.push(c.latencies[k])
   }
   clients.forEach((c) => c.close())
-  // exit only AFTER the result has been handed to the parent, or it can be lost
+  // exit only after the result has been handed to the parent, or it can be lost
   process.send!({ type: 'done', sent: sent.reduce((a, b) => a + b, 0), received, lat }, () => process.exit(0))
 }
 
-// ---------------- parent ----------------
+// Parent
 async function run(editors: number, rate: number, seconds: number) {
   const db = `synapse_bench_load_${Date.now()}`
   const setup = await setupDoc(db, editors)

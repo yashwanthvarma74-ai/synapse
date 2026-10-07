@@ -32,7 +32,7 @@ class Service {
     this.child = spawn(this.cmd, this.args, { stdio: 'ignore' })
     await waitPort(this.port, true)
   }
-  // SIGKILL: no graceful shutdown, like a crash or a lost machine
+  // sigkill: no graceful shutdown, like a crash or a lost machine
   async kill() {
     this.child?.kill('SIGKILL')
     await waitPort(this.port, false)
