@@ -22,7 +22,7 @@ import Chat from './Chat'
 import { useChat } from '@/lib/useChat'
 import Tabs from './Tabs'
 import ShareDialog from './ShareDialog'
-import { NotFoundArt } from './ui/Illustrations'
+import CantOpen from './CantOpen'
 
 // PixiJS touches `window`, so the canvas only loads in the browser
 const CanvasBoard = dynamic(() => import('./CanvasBoard'), { ssr: false, loading: () => <p className="muted">Loading canvas…</p> })
@@ -56,15 +56,7 @@ export default function Workspace({ docId }: { docId: string }) {
   const setMeta = (m: DocMeta) => qc.setQueryData(keys.doc(docId), m)
 
   if (error) {
-    return (
-      <div className="notice">
-        <NotFoundArt />
-        <h1>We can&apos;t open this</h1>
-        <p className="muted">{error}</p>
-        <p className="muted">If someone shared it with you, ask them for a new invite link.</p>
-        <Link className="btn" href="/">Back to your workspaces</Link>
-      </div>
-    )
+    return <CantOpen message={error} />
   }
   if (!user || !meta) return <div className="page"><p className="muted">Opening your document…</p></div>
   return <DocView docId={docId} meta={meta} setMeta={setMeta} userId={user.id} userName={user.name} />

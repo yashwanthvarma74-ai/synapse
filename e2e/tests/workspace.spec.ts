@@ -2,23 +2,36 @@ import { expect, test, inviteCode, newGuest, openDoc, windowFor } from './helper
 
 const API = 'http://127.0.0.1:4101'
 
-test('"Try it now" lands in your workspace, where the Welcome document and the Sample board wait to be chosen', async ({ page }) => {
+test('"Try it now" opens the Welcome document, and the workspace (with the Sample board) is one click away', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Try it now, no sign-up' }).first().click()
-  await expect(page).toHaveURL(/\/w\//) // the workspace page, not straight into a document
+  await expect(page).toHaveURL(/\/doc\//)
+  await expect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
+  await page.getByRole('link', { name: /Back to the workspace/ }).click()
   await expect(page.getByRole('heading', { name: 'My workspace' })).toBeVisible()
   const cards = page.getByRole('list', { name: 'Documents and boards' })
   await expect(cards.getByRole('link', { name: /Welcome to Synapse/ })).toBeVisible()
-  await expect(cards.getByRole('link', { name: /Sample board/ })).toBeVisible()
-  await expect(page.getByText('New here?')).toBeVisible()
-  // the person decides: the whiteboard...
   await cards.getByRole('link', { name: /Sample board/ }).click()
-  await expect(page).toHaveURL(/\/doc\//)
   await expect(page.locator('canvas')).toBeVisible()
-  // ...or the document
-  await page.goBack()
-  await page.getByRole('list', { name: 'Documents and boards' }).getByRole('link', { name: /Welcome to Synapse/ }).click()
-  await expect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
+})
+
+test('a new guest sent to the sign-in page from someone else\'s workspace is not sent back there', async ({ browser, request }) => {
+  const old = await newGuest(request, 'Old guest')
+  const ctx = await browser.newContext()
+  const p = await ctx.newPage()
+  await p.goto(`/w/${old.workspaceId}`) // signed out, so the app sends the visitor to sign in
+  await expect(p).toHaveURL(/\/login\?next=/)
+  await p.getByRole('button', { name: 'Just let me try it, no account' }).click()
+  await expect(p).toHaveURL(/\/doc\//) // their own Welcome document, not the old guest's workspace
+  await expect(p.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
+})
+
+test('a workspace you cannot open says so plainly instead of showing an empty page', async ({ browser, request }) => {
+  const owner = await newGuest(request, 'Owner')
+  const stranger = await newGuest(request, 'Stranger')
+  const p = await windowFor(browser, stranger.token)
+  await p.goto(`/w/${owner.workspaceId}`)
+  await expect(p.getByRole('heading', { name: "We can't open this" })).toBeVisible()
 })
 
 test('delete a workspace (after typing its name), then add a new one', async ({ browser, request }) => {

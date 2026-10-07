@@ -81,6 +81,44 @@ describe('LoginForm', () => {
     startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     render(<LoginForm />)
     fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/w/w'))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/doc1'))
+  })
+
+  it('ignores the remembered page for a new guest: someone else\'s workspace or document is not theirs to open', async () => {
+    startGuest.mockResolvedValue({ workspaceId: 'mine', welcomeId: 'mydoc', boardId: 'b' })
+    nextParam = '/w/an-old-guests-workspace'
+    render(<LoginForm />)
+    fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/mydoc'))
+    expect(replace).not.toHaveBeenCalledWith('/w/an-old-guests-workspace')
+  })
+
+  it('does send a new guest back to an invite link, so they can accept it', async () => {
+    startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
+    nextParam = '/join/abc123'
+    render(<LoginForm />)
+    fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/join/abc123'))
+  })
+
+  it('creates only one guest however fast the button is clicked', async () => {
+    startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
+    render(<LoginForm />)
+    const button = screen.getByRole('button', { name: /just let me try it/i })
+    fireEvent.click(button)
+    fireEvent.click(button)
+    fireEvent.click(button)
+    await waitFor(() => expect(replace).toHaveBeenCalledTimes(1))
+    expect(startGuest).toHaveBeenCalledTimes(1)
+  })
+
+  it('lets the person try again after a failure', async () => {
+    startGuest.mockRejectedValueOnce(new Error('Could not reach the server')).mockResolvedValueOnce({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
+    render(<LoginForm />)
+    const button = screen.getByRole('button', { name: /just let me try it/i })
+    fireEvent.click(button)
+    expect((await screen.findByRole('alert')).textContent).toBe('Could not reach the server')
+    fireEvent.click(button)
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/doc1'))
   })
 })

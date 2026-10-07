@@ -2,13 +2,14 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { api, type Role } from '@/lib/api'
+import { api, type ApiError, type Role } from '@/lib/api'
 import { keys, useAction, useMembers, useWorkspaceDocs, useWorkspaces } from '@/lib/queries'
 import { useUi } from '@/lib/uiStore'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
 import ShareDialog from './ShareDialog'
 import DeleteWorkspaceDialog from './DeleteWorkspaceDialog'
+import CantOpen from './CantOpen'
 import { useQueryClient } from '@tanstack/react-query'
 import { EmptyDocsArt } from './ui/Illustrations'
 
@@ -73,6 +74,7 @@ export default function WorkspaceView({ workspaceId }: { workspaceId: string }) 
   const canEdit = ws?.role === 'owner' || ws?.role === 'editor'
 
   if (!user) return <div className="page"><p className="muted">Loading…</p></div>
+  if ([e2, e3].some((e) => (e as ApiError | null)?.status === 404)) return <CantOpen message="This workspace doesn't exist, or you don't have access to it." />
 
   return (
     <div className="page">

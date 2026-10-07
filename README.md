@@ -16,8 +16,8 @@ You need Node 22+, MongoDB and Redis installed (`brew install redis` and
 ./dev.sh
 ```
 
-Open <http://localhost:3000> and press **Try it now**. No sign-up: you land in your own workspace, which already holds
-a Welcome document that teaches the app and a sample whiteboard, and you choose which to open. Press **Share**, copy the invite
+Open <http://localhost:3000> and press **Try it now**. No sign-up: you get a guest account, a Welcome document that
+teaches the app, and a sample whiteboard in "My workspace". Press **Share**, copy the invite
 link and open it in a second window to see two people editing live. Switch on **Try offline mode**,
 type in both windows, switch it off, and watch everything merge.
 

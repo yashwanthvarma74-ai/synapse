@@ -16,7 +16,7 @@ export default function AppHeader() {
     setBusy(true)
     try {
       const s = await startGuest()
-      router.push(`/w/${s.workspaceId}`)
+      router.push(`/doc/${s.welcomeId}`)
     } finally {
       setBusy(false)
     }

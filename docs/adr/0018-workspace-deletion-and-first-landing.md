@@ -1,4 +1,4 @@
-# ADR 0018: Deleting a workspace, and where "Try it now" lands
+# ADR 0018: Deleting a workspace, and where guests land
 
 **Status:** accepted
 
@@ -6,15 +6,21 @@
 
 Two product questions came up once people could actually use the site:
 
-1. After "Try it now", where should a new visitor land? Straight in the Welcome document makes the choice
-   for them, though some would rather see the whiteboard first.
+1. After "Try it now", where should a new visitor land? I first sent them to their workspace page to choose, but
+   that was reverted: the Welcome document is the better first screen, and the workspace is one click away.
 2. People need to be able to get rid of a workspace they no longer want, and start a new one.
 
 ## Decision
 
-**Landing.** "Try it now" (and the header and sign-in variants) lands on the visitor's **workspace page**.
-"My workspace" is already there, holding the Welcome document and the Sample board, and the page tells a new
-person to pick one. Following an invite link still opens the document the inviter was working on.
+**Landing.** "Try it now" (and the header and sign-in variants) opens the new guest's **Welcome document**; "Back to the
+workspace" leads to "My workspace", which holds that document and the Sample board. Following an invite link
+opens the document the inviter was working on.
+
+**A bug this exposed.** On the sign-in page, "Just let me try it" followed the page's remembered `next` address. A
+visitor who had been signed out while on a workspace page arrived there with a brand-new guest, who cannot open
+someone else's workspace, and saw a bare "Not found". A new guest now ignores `next` (it can only open its own
+things) except for invite links, a double click can no longer create two guests, and a workspace the person cannot
+open shows the same "We can't open this" card as documents.
 
 **Creating.** Creating a workspace opens it straight away (it starts empty, with buttons for a new document or
 whiteboard).

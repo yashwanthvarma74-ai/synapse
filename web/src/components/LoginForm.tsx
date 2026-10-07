@@ -1,5 +1,5 @@
 'use client'
-import { Suspense, useState, type FormEvent } from 'react'
+import { Suspense, useRef, useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { api, tokenStore, type User } from '@/lib/api'
 import { startGuest } from '@/lib/guest'
@@ -33,15 +33,22 @@ function Form() {
     }
   }
 
+  // A guest is a brand-new account, so it can never open the page the visitor was sent here from (that
+  // belonged to someone else). It goes to its own Welcome document, except for an invite link, which it
+  // should return to and accept.
+  const starting = useRef(false)
   async function guest() {
+    if (starting.current) return // a double click must not create two guests
+    starting.current = true
     setBusy(true)
     setError('')
     try {
       const s = await startGuest()
-      router.replace(next === '/' ? `/w/${s.workspaceId}` : next)
+      router.replace(next.startsWith('/join/') ? next : `/doc/${s.welcomeId}`)
     } catch (err) {
       setError((err as Error).message)
       setBusy(false)
+      starting.current = false
     }
   }
 
