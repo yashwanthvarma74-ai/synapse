@@ -26,10 +26,12 @@ export default function Landing() {
 
   return (
     <div className="landing">
-      <section className="hero" aria-labelledby="hero-title">
+      <section className="hero-band" aria-labelledby="hero-title">
+        {['s1', 's2', 's3', 's4', 's5', 's6'].map((c) => <span key={c} className={`sticker ${c}`} aria-hidden="true" />)}
+        <div className="hero-inner">
         <div>
           <span className="eyebrow">Open source · works offline</span>
-          <h1 id="hero-title">Write together, <span className="grad">even when the internet doesn&apos;t.</span></h1>
+          <h1 id="hero-title">Write together, even when the internet doesn&apos;t.</h1>
           <p className="lead">
             Synapse is a shared notebook and whiteboard. Everyone edits at the same time and you see each other&apos;s
             cursors. If your connection drops, nothing is lost: it all merges when you&apos;re back.
@@ -49,7 +51,10 @@ export default function Landing() {
         <div className="hero-visual">
           <HeroArt className="hero-art" />
         </div>
+        </div>
       </section>
+
+      <div className="landing-body">
 
       <section aria-labelledby="how-title">
         <h2 id="how-title" className="section-title">How it works</h2>
@@ -89,8 +94,9 @@ export default function Landing() {
       <section className="cta-card" aria-labelledby="ready-title">
         <h2 id="ready-title">Ready to try it?</h2>
         <p>It takes one click, and there is nothing to install. Guest work is kept for a month, and you can save it any time.</p>
-        <button className="btn light large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
+        <button className="btn large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
       </section>
+      </div>
     </div>
   )
 }

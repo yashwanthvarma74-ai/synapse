@@ -15,15 +15,15 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
         ['body text on panel', t.fg, t.panel],
         ['muted text on page', t.muted, t.bg],
         ['muted text on panel', t.muted, t.panel],
-        ['links on page', t.accent, t.bg],
-        ['links on panel', t.accent, t.panel],
+        ['links on page', t.link, t.bg],
+        ['links on panel', t.link, t.panel],
         ['text on accent buttons', t['on-accent'], t.accent],
         ['error text on page', t.danger, t.bg],
         ['error text on panel', t.danger, t.panel],
         ['text on the offline-toggle highlight', '#000000', t.warn],
         ['body text on cards', t.fg, t.surface],
         ['muted text on cards', t.muted, t.surface],
-        ['links on cards', t.accent, t.surface],
+        ['links on cards', t.link, t.surface],
         ['error text on cards', t.danger, t.surface],
         ['white text on the red delete button', '#ffffff', t.danger],
         ['red delete-button text on the page', t.danger, t.bg],
@@ -45,7 +45,7 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
   })
 
   it('the stylesheet really defines the tokens the tests rely on', () => {
-    for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn', 'surface', 'accent-soft']) {
+    for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn', 'surface', 'accent-soft', 'link']) {
       expect(themes.light[k], `light --${k}`).toBeTruthy()
     }
   })
