@@ -1,4 +1,4 @@
-// Passwords: scrypt (built into Node, memory-hard). Sessions: signed JWTs (HS256).
+// Passwords use scrypt (built into Node). Sessions are signed JWTs (HS256).
 import { scrypt, randomBytes, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
 import { SignJWT, jwtVerify } from 'jose'
@@ -24,7 +24,7 @@ export async function signToken(userId: string, secret: string, ttl = '12h') {
     .sign(new TextEncoder().encode(secret))
 }
 
-// Returns the user id, or null for a missing / forged / expired token
+// The user id, or null for a missing, forged or expired token
 export async function verifyToken(token: string | null | undefined, secret: string): Promise<string | null> {
   if (!token) return null
   try {

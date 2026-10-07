@@ -1,7 +1,5 @@
-// What a new person sees first. Instead of an empty dashboard, every new account gets a
-// workspace with a "Welcome" document that teaches the app by being the app, and a sample
-// board. The rich text is written with the EDITOR'S OWN schema (StarterKit), so what is
-// stored here is guaranteed to open correctly in the editor.
+// What a new person sees first: a workspace with a Welcome document and a sample board, not an empty
+// dashboard. The Welcome text is written with the editor's own schema, so it always opens correctly.
 import { ObjectId } from 'mongodb'
 import * as Y from 'yjs'
 import { getSchema, type JSONContent } from '@tiptap/core'
@@ -13,7 +11,7 @@ import { extractText } from './text.js'
 
 const schema = getSchema([StarterKit])
 
-// ---- tiny helpers to write the document as data -----------------------------------------
+// Tiny helpers to write the document as data
 type Run = string | { bold: string }
 const runs = (parts: Run[]): JSONContent[] =>
   parts.map((p) => (typeof p === 'string' ? { type: 'text', text: p } : { type: 'text', text: p.bold, marks: [{ type: 'bold' }] }))
@@ -25,9 +23,9 @@ const list = (kind: 'bulletList' | 'orderedList', items: Run[][]): JSONContent =
 })
 const quote = (...parts: Run[]): JSONContent => ({ type: 'blockquote', content: [{ type: 'paragraph', content: runs(parts) }] })
 
-export const WELCOME_TITLE = 'Welcome to Synapse'
+const WELCOME_TITLE = 'Welcome to Synapse'
 
-export const welcomeDocument: JSONContent = {
+const welcomeDocument: JSONContent = {
   type: 'doc',
   content: [
     h(1, WELCOME_TITLE),
@@ -52,15 +50,15 @@ export const welcomeDocument: JSONContent = {
   ],
 }
 
-export async function writeWelcomeDocument(doc: Y.Doc) {
+async function writeWelcomeDocument(doc: Y.Doc) {
   prosemirrorJSONToYXmlFragment(schema, welcomeDocument, doc.getXmlFragment('default'))
 }
 
-// ---- the sample board ---------------------------------------------------------------------
+// The sample board
 interface Shape { kind: 'rect' | 'ellipse' | 'sticky'; x: number; y: number; w: number; h: number; text: string; color: string; id: string }
 const shape = (id: string, kind: Shape['kind'], x: number, y: number, w: number, hh: number, text: string, color: string): Shape => ({ id, kind, x, y, w, h: hh, text, color })
 
-export function writeSampleBoard(doc: Y.Doc) {
+function writeSampleBoard(doc: Y.Doc) {
   const shapes: Shape[] = [
     shape('idea', 'sticky', -300, -160, 190, 120, 'Drag me anywhere', '#ffe066'),
     shape('edit', 'sticky', -300, 20, 190, 120, 'Double-click a shape to edit its text', '#ffa8a8'),
@@ -86,7 +84,7 @@ export function writeSampleBoard(doc: Y.Doc) {
   })
 }
 
-// ---- put it all in the database for one user -------------------------------------------------
+// Put it all in the database for one user
 export async function createStarterWorkspace(c: Collections, store: DocStore, userId: ObjectId) {
   const now = new Date()
   const workspaceId = new ObjectId()

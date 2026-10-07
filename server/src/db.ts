@@ -1,9 +1,9 @@
-// Collections for the app's metadata. Document CONTENT lives in doc_updates /
-// doc_snapshots (see mongoStore.ts); everything here is small, server-authoritative data.
+// Collections for the app's own data. Document content lives in doc_updates and doc_snapshots
+// (see mongoStore.ts); everything here is small and decided by the server.
 import { ObjectId, type Collection, type Db } from 'mongodb'
 import type { Role } from './room.js'
 
-export interface User {
+interface User {
   _id: ObjectId
   email: string
   name: string
@@ -11,19 +11,19 @@ export interface User {
   guest?: boolean // a one-click "try it" account; can be upgraded to a real one
   createdAt: Date
 }
-export interface Workspace {
+interface Workspace {
   _id: ObjectId
   name: string
   ownerId: ObjectId
   createdAt: Date
 }
-export interface Membership {
+interface Membership {
   _id: ObjectId
   workspaceId: ObjectId
   userId: ObjectId
   role: Role
 }
-export interface DocumentMeta {
+interface DocumentMeta {
   _id: ObjectId
   workspaceId: ObjectId
   title: string
@@ -32,7 +32,7 @@ export interface DocumentMeta {
   updatedAt: Date
   createdAt: Date
 }
-export interface Comment {
+interface Comment {
   _id: ObjectId
   docId: ObjectId
   authorId: ObjectId
@@ -46,7 +46,7 @@ export interface Comment {
 }
 
 // A shareable link that adds whoever opens it to a workspace with a fixed role.
-export interface Invite {
+interface Invite {
   _id: ObjectId
   code: string // unguessable, travels in the link
   workspaceId: ObjectId

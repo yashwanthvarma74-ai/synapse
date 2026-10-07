@@ -1,7 +1,7 @@
 // MongoDB implementation of DocStore.
-//   doc_updates:   one record per edit, ordered by a per-document sequence number
-//   doc_snapshots: compacted state (label = null) and named versions (label set)
-// Load = latest unlabeled snapshot + updates newer than it.
+//   doc_updates: one record per edit, ordered by a per-document sequence number
+//   doc_snapshots: the compacted state (no label) and named versions (with a label)
+// Loading merges the latest snapshot with the updates after it.
 import { MongoClient, Binary, type Db, type Collection } from 'mongodb'
 import * as Y from 'yjs'
 import { mergeStored, type DocStore, type LoadedDoc } from './store.js'
@@ -32,8 +32,7 @@ export class MongoStore implements DocStore {
   private counters: Collection<{ _id: string; seq: number }>
 
   constructor(url: string, dbName: string) {
-    // Give up on an unreachable database after 5 s (the default is 30 s), so a start-up
-    // against a dead database fails fast and requests during an outage fail quickly.
+    // give up on an unreachable database after 5 s (the default is 30), so a bad start-up or an outage fails fast
     this.client = new MongoClient(url, { serverSelectionTimeoutMS: 5000, connectTimeoutMS: 5000 })
     this.db = this.client.db(dbName)
     this.updates = this.db.collection('doc_updates')
@@ -43,7 +42,7 @@ export class MongoStore implements DocStore {
 
   async init() {
     await this.client.connect()
-    // Every field we filter or sort on is indexed
+    // index everything we filter or sort on
     await this.updates.createIndex({ docId: 1, seq: 1 }, { unique: true })
     await this.snapshots.createIndex({ docId: 1, version: -1 })
   }
@@ -52,7 +51,7 @@ export class MongoStore implements DocStore {
     await this.client.close()
   }
 
-  // Atomic per-document counter, so several gateways never reuse a sequence number
+  // atomic per-document counter, so gateways never reuse a sequence number
   private async nextSeq(docId: string) {
     const r = await this.counters.findOneAndUpdate(
       { _id: docId },
@@ -62,12 +61,10 @@ export class MongoStore implements DocStore {
     return r!.seq
   }
 
-  // CRDT updates are idempotent: applying the same update twice changes nothing.
-  // That lets us skip locks entirely. Rules that make it safe with many writers:
-  //   load    = merge ALL unlabeled snapshots + ALL remaining updates
-  //   compact = merge what it read, insert the result, then delete ONLY the exact
-  //             records it read (never "everything up to seq N", which could
-  //             delete an update that was still being written)
+  // Yjs updates are idempotent (applying one twice changes nothing), so no locks are needed. Loading
+  // merges every snapshot and update it finds. Compacting merges what it read, inserts the result, then
+  // deletes only the exact records it read, never "everything up to seq N", which could delete an update
+  // that was still being written.
   async load(docId: string): Promise<LoadedDoc> {
     const snaps = await this.snapshots.find({ docId, label: null }).toArray()
     const updates = await this.updates.find({ docId }).sort({ seq: 1 }).toArray()
@@ -94,8 +91,7 @@ export class MongoStore implements DocStore {
       updates: pending.map((u) => bytes(u.update)),
     })
     const last = await this.snapshots.findOne({ docId }, { sort: { version: -1 } })
-    // Write the new snapshot BEFORE deleting anything: a crash in between leaves
-    // duplicates (harmless), never missing data.
+    // write the new snapshot before deleting anything: a crash in between leaves duplicates, never a gap
     await this.snapshots.insertOne({
       docId,
       version: (last?.version ?? 0) + 1,
@@ -116,7 +112,7 @@ export class MongoStore implements DocStore {
     ])
   }
 
-  // ---- named versions (used by version history) --------------------------------
+  // Named versions (used by version history)
 
   // Save a named, permanent snapshot. `liveState` is what a gateway holds in memory right now; merging it with
   // the stored data (safe, merges are idempotent) means the version includes edits that are not saved yet.

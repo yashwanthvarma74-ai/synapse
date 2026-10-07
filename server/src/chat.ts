@@ -1,12 +1,11 @@
-// Per-document chat. Messages travel over the same WebSocket as the document (so the same
-// sign-in and the same role checks apply), are saved in MongoDB, and are relayed between
-// gateways on the same bus as edits. They are NOT part of the shared document: chat is an
-// ordinary append-only log, not a CRDT, so a chat message can never alter the page.
+// Per-document chat. Messages travel over the document's WebSocket (so the same sign-in and role
+// checks apply), are saved in MongoDB and relayed between gateways on the same bus as edits. They are
+// not part of the shared document: chat is a plain append-only log, so a message can never change the page.
 //
-// Wire format (after the one-byte-ish message type):
-//   MSG_CHAT  client -> gateway   [4, text, clientId]      "please send this"
-//   MSG_CHAT  gateway -> clients  [4, json]                the stored message (clientId lets the sender match it)
-//   MSG_CHAT_ERROR gateway -> sender [5, clientId, code]   the message was not sent
+// Messages (after the type byte):
+//   MSG_CHAT, client to gateway:  [4, text, clientId]
+//   MSG_CHAT, gateway to clients: [4, json]  (the saved message; clientId lets the sender recognise it)
+//   MSG_CHAT_ERROR, to the sender: [5, clientId, code]
 import type { Db, Collection } from 'mongodb'
 import { ObjectId } from 'mongodb'
 
@@ -34,8 +33,8 @@ export interface ChatStore {
   deleteDocument(docId: string): Promise<void>
 }
 
-// Plain text only. Control characters and the invisible "bidi" overrides that can make text read
-// backwards (a spoofing trick) are removed; blank runs are tidied. Returns null if nothing is left.
+// Plain text only. Control characters and the invisible bidirectional overrides (which can make text
+// read backwards) are removed, and blank runs are tidied. Returns null if nothing is left.
 export function cleanChatText(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
   const text = raw
@@ -67,7 +66,7 @@ export class TokenBucket {
   }
 }
 
-// ---- in memory (tests, and gateways run without a database) -----------------------------------------
+// In memory (tests, and gateways run without a database)
 export class MemoryChatStore implements ChatStore {
   private byDoc = new Map<string, ChatMessage[]>()
   private n = 0
@@ -89,7 +88,7 @@ export class MemoryChatStore implements ChatStore {
   }
 }
 
-// ---- MongoDB ----------------------------------------------------------------------------------------
+// MongoDB
 interface ChatDoc { _id: ObjectId; docId: string; userId: string; name: string; text: string; at: Date }
 
 export class MongoChatStore implements ChatStore {

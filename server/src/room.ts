@@ -1,5 +1,5 @@
-// A Room is one open document on this gateway: the Yjs doc, the awareness
-// (cursors, presence) and the sockets connected to it.
+// A room is one open document on a gateway: the Yjs doc, its awareness (cursors, presence)
+// and the sockets connected to it.
 import type { WebSocket } from 'ws'
 import * as Y from 'yjs'
 import * as syncProtocol from 'y-protocols/sync'
@@ -12,19 +12,19 @@ import { m } from './telemetry.js'
 import { logger } from './logger.js'
 import { MSG_CHAT, MSG_CHAT_ERROR, TokenBucket, cleanChatText, type ChatErrorCode, type ChatMessage, type ChatStore } from './chat.js'
 
-export const MSG_SYNC = 0
-export const MSG_AWARENESS = 1
-export const MSG_PING = 2 // client -> gateway: [2, bytes]
-export const MSG_PONG = 3 // gateway -> client: the same bytes, echoed
+const MSG_SYNC = 0
+const MSG_AWARENESS = 1
+const MSG_PING = 2 // client -> gateway: [2, bytes]
+const MSG_PONG = 3 // gateway -> client: the same bytes, echoed
 export const MSG_SAVE_VERSION = 6 // client -> gateway: [6, label, clientId]
 export const MSG_VERSION_SAVED = 7 // gateway -> client: [7, clientId, versionNumber]
 export const MSG_VERSION_ERROR = 8 // gateway -> client: [8, clientId, code]
-export type VersionErrorCode = 'forbidden' | 'invalid' | 'rate' | 'unavailable'
+type VersionErrorCode = 'forbidden' | 'invalid' | 'rate' | 'unavailable'
 
 export type Role = 'owner' | 'editor' | 'commenter' | 'viewer'
-export const canWrite = (role: Role) => role === 'owner' || role === 'editor'
+const canWrite = (role: Role) => role === 'owner' || role === 'editor'
 
-// Origins tag where a change came from, so we never echo it back to its source.
+// where a change came from, so it is never sent back to its source
 const ORIGIN_STORE = 'store'
 const ORIGIN_BUS = 'bus'
 
@@ -76,7 +76,7 @@ export class Room {
     this.updatesSinceSnapshot = updates.length
   }
 
-  // ---- connections ------------------------------------------------------
+  // Connections
 
   addConn(ws: WebSocket, role: Role, userId: string, name = 'Someone') {
     this.conns.set(ws, { role, userId, name, awarenessIds: new Set() })
@@ -109,8 +109,8 @@ export class Room {
     if (this.conns.size === 0) this.opts.onEmpty(this)
   }
 
-  // Re-check roles of open sockets (after an access change, and on a timer).
-  // resolve() returns the user's current role, or null if access was removed.
+  // Re-check the role of each open socket (after an access change, and on a timer). resolve() gives the
+  // current role, or null if access was removed.
   async recheck(resolve: (userId: string) => Promise<Role | null>, onlyUserId?: string) {
     for (const [ws, conn] of [...this.conns]) {
       if (onlyUserId && conn.userId !== onlyUserId) continue
@@ -123,7 +123,7 @@ export class Room {
     }
   }
 
-  // ---- incoming messages -------------------------------------------------
+  // Incoming messages
 
   handleMessage(ws: WebSocket, data: Uint8Array) {
     const conn = this.conns.get(ws)
@@ -165,9 +165,8 @@ export class Room {
     }
 
     if (type === MSG_SYNC) {
-      // Sub-types: 0 = step1 (state vector), 1 = step2 (diff), 2 = update.
-      // Step2 and update carry writes. Role is checked here, on EVERY message,
-      // so revoking access takes effect immediately.
+      // Sub-types: 0 = step 1 (state vector), 1 = step 2 (diff), 2 = update. Step 2 and updates are writes,
+      // so the role is checked on every message and revoking access takes effect at once.
       const syncType = decoding.peekVarUint(decoder)
       const isWrite = syncType !== syncProtocol.messageYjsSyncStep1
       m.messages.add(1, { kind: syncType === syncProtocol.messageYjsSyncStep1 ? 'sync_step1' : syncType === syncProtocol.messageYjsSyncStep2 ? 'sync_step2' : 'sync_update' })
@@ -192,9 +191,8 @@ export class Room {
     }
   }
 
-  // ---- named versions -----------------------------------------------------------------------
-  // Saved from the document held in memory, taken the instant the message is read. Messages on one connection
-  // arrive in order, so every edit the person made before pressing Save is already in it.
+  // Saves a version from the document held in memory, captured as the message is read. Messages on one
+  // connection arrive in order, so every edit made before pressing Save is already in it.
   private versionReply(ws: WebSocket, type: number, cid: string, value: string | number) {
     const enc = encoding.createEncoder()
     encoding.writeVarUint(enc, type)
@@ -224,7 +222,7 @@ export class Room {
     }
   }
 
-  // ---- chat ---------------------------------------------------------------------------------
+  // Chat
 
   private chatReject(ws: WebSocket, cid: string, code: ChatErrorCode) {
     m.chatMessages.add(1, { result: code })
@@ -235,9 +233,8 @@ export class Room {
     this.send(ws, encoding.toUint8Array(enc))
   }
 
-  // Who may chat is decided HERE, on every message, from the role the server holds for this socket:
-  // owners, editors and commenters may send; viewers may read. The author's name and the time come
-  // from the server too, so a client can not pretend to be someone else.
+  // Who may chat is decided here, on every message, from the role the server holds for this socket:
+  // owners, editors and commenters send, viewers read. The name and time come from the server too.
   private handleChat(ws: WebSocket, conn: Conn, rawText: string, cid: string) {
     m.messages.add(1, { kind: 'chat' })
     if (conn.role === 'viewer') return this.chatReject(ws, cid, 'forbidden')
@@ -267,7 +264,7 @@ export class Room {
     })
   }
 
-  // ---- outgoing: doc changes -> sockets, store and bus ---------------------
+  // Outgoing: doc changes -> sockets, store and bus
 
   private onDocUpdate = (update: Uint8Array, origin: unknown) => {
     const enc = encoding.createEncoder()
@@ -326,16 +323,13 @@ export class Room {
     }
   }
 
-  // ---- persistence ---------------------------------------------------------
+  // Persistence
 
-  // Writes are chained so they hit the store in order.
-  // If the database is unreachable the edit still reached everyone live, but it
-  // is NOT stored. Rather than queue every missed update (unbounded memory), we
-  // remember only that the room is "dirty". When the database answers again we
-  // write the room's WHOLE current state as one update. Updates are idempotent, so
-  // writing state that is already stored is harmless, and nothing typed during the
-  // outage is lost as long as this gateway stays up. (If it dies first, the clients
-  // still hold the edits and resend them on reconnect: see fault test F3.)
+  // Writes are chained so they reach the store in order.
+  // If the database is down, an edit still reaches everyone live but is not stored. Rather than queue every
+  // missed update (memory would grow without limit) the room just remembers it is "dirty", and once the
+  // database answers it writes its whole current state as one update. That is safe because updates are
+  // idempotent. If the gateway dies first, the clients still hold the edits and resend them on reconnect.
   private dirty = false
   private retryTimer: ReturnType<typeof setTimeout> | null = null
   private retryDelay = 1000
@@ -395,9 +389,8 @@ export class Room {
     }
   }
 
-  // Re-read the stored state and merge it in. Fixes any update this gateway missed
-  // (a lost Redis relay message, a subscription gap). Safe to run any time: merging
-  // data we already have changes nothing, and new data is sent on to our clients.
+  // Re-read the stored state and merge it in. This repairs anything the gateway missed (a lost relay
+  // message, a gap in the subscription) and is safe to run at any time.
   async resync() {
     if (this.closed) return
     try {

@@ -8,7 +8,7 @@ import net from 'node:net'
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-export function portOpen(port: number): Promise<boolean> {
+function portOpen(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const s = net.connect(port, '127.0.0.1')
     s.once('connect', () => { s.destroy(); resolve(true) })
@@ -25,7 +25,7 @@ export async function waitPort(port: number, open: boolean, ms = 20_000) {
   throw new Error(`port ${port} did not become ${open ? 'open' : 'closed'}`)
 }
 
-export class Service {
+class Service {
   private child: ChildProcess | null = null
   constructor(private name: string, private port: number, private cmd: string, private args: string[]) {}
   async start() {

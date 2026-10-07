@@ -1,6 +1,5 @@
-// Redis pub/sub implementation of Bus. Each room maps to one channel.
-// Two connections are needed: a Redis connection that has subscribed can't
-// run other commands, so publishing uses its own connection.
+// Redis pub/sub implementation of Bus, one channel per room. It needs two connections: a connection that
+// has subscribed can't run other commands, so publishing gets its own.
 import { Redis } from 'ioredis'
 import type { AccessEvent, Bus, BusHandler } from './bus.js'
 import { m, observeGauge } from './telemetry.js'
@@ -63,8 +62,8 @@ export class RedisBus implements Bus {
     })
   }
 
-  // A Redis hiccup must not crash the gateway: log it and carry on. Local
-  // clients keep working, and cross-gateway relay resumes when Redis returns.
+  // a Redis hiccup must not crash the gateway: log it and carry on. Local clients keep working and the relay
+  // resumes when Redis returns
   private onError = (err: Error) => {
     m.relayErrors.add(1)
     logger.error({ err: err.message }, 'redis bus error')

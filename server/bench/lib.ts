@@ -9,9 +9,9 @@ import { signToken } from '../src/auth.js'
 import { collections, ensureIndexes } from '../src/db.js'
 import { MongoStore } from '../src/mongoStore.js'
 
-export const SECRET = 'bench-secret-bench-secret-bench-secret'
-export const MONGO = 'mongodb://127.0.0.1:27017'
-export const REDIS = 'redis://127.0.0.1:6379'
+const SECRET = 'bench-secret-bench-secret-bench-secret'
+const MONGO = 'mongodb://127.0.0.1:27017'
+const REDIS = 'redis://127.0.0.1:6379'
 
 export const now = () => performance.timeOrigin + performance.now() // ms, sub-ms precision, comparable across clients in this process
 
@@ -86,7 +86,7 @@ export async function setupDoc(db: string, users: number, mongoUrl = MONGO) {
   return { docId: docId.toHexString(), tokens, store, drop: async () => { await store.db.dropDatabase(); await store.close() } }
 }
 
-export function percentile(sorted: number[], p: number) {
+function percentile(sorted: number[], p: number) {
   if (sorted.length === 0) return NaN
   return sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))]
 }
@@ -110,7 +110,7 @@ export function sampleProc(pid: number) {
   return { cpu: Number(out[0]), rssMb: Math.round(Number(out[1]) / 1024) }
 }
 
-export function machine() {
+function machine() {
   return {
     cpu: os.cpus()[0].model, cores: os.cpus().length, ramGb: Math.round(os.totalmem() / 2 ** 30),
     os: `${os.type()} ${os.release()}`, node: process.version,

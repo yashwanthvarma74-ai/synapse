@@ -1,6 +1,5 @@
-// The gateway: accepts WebSockets at /collab/<docId>, checks who the user is,
-// and hands each socket to the Room for that document. It holds no truth of its
-// own: the store does, so any gateway can serve any room.
+// The gateway accepts WebSockets at /collab/<docId>, checks who the user is and hands each socket to the
+// room for that document. It keeps no state of its own (the store does), so any gateway can serve any room.
 import http from 'node:http'
 import { WebSocketServer, type WebSocket } from 'ws'
 import { Room, type Role } from './room.js'
@@ -30,16 +29,15 @@ export interface GatewayOptions {
   // Current role of a user on a doc (null = no access). Enables live revocation.
   resolveRole?: (userId: string, docId: string) => Promise<Role | null>
   recheckMs?: number
-  // Anti-entropy: every resyncMs each open room re-reads the store, so a missed relay
-  // message heals on its own. 0 turns it off.
+  // Every resyncMs each open room re-reads the store, so a missed relay message heals on its own. 0 turns it off.
   resyncMs?: number
   onSettled?: (docId: string, doc: import('yjs').Doc) => void
   // Where chat messages are saved. Without it, chat is unavailable (the sender is told so).
   chat?: import('./chat.js').ChatStore
   // Where named versions are saved (the same database as the edits)
   versions?: import('./store.js').VersionStore
-  // Single-port mode: plain HTTP requests (anything that is not the WebSocket upgrade or /health)
-  // go to this handler, normally the API. Hosts that expose one port per service need this.
+  // Single-port mode: plain HTTP requests (anything but the WebSocket upgrade and /health) go to this
+  // handler, normally the API. Hosts that expose one port per service need it.
   fallback?: (req: http.IncomingMessage, res: http.ServerResponse) => void
 }
 
@@ -59,8 +57,8 @@ export function createGateway(opts: GatewayOptions) {
     res.writeHead(404).end()
   })
 
-  // Rooms that are shutting down. A new room for the same doc waits for the old
-  // one to finish saving, so it never loads stale data.
+  // Rooms that are shutting down. A new room for the same document waits for the old one to finish
+  // saving, so it never loads stale data.
   const closing = new Map<string, Promise<void>>()
 
   function getRoom(docId: string): Promise<Room> {
@@ -77,11 +75,9 @@ export function createGateway(opts: GatewayOptions) {
           chat: opts.chat,
           versions: opts.versions,
           onEmpty: (r) => {
-            // Close the room shortly after the last person leaves. The grace
-            // period covers quick refreshes and a join racing with the cleanup.
+            // close the room shortly after the last person leaves; the delay covers quick refreshes
             setTimeout(() => {
-              // Only close once, only if still empty, and only remove OUR map
-              // entry (a newer room for the same doc must never be removed).
+              // only close once, only if still empty, and only remove our own map entry
               if (r.closed || r.conns.size > 0) return
               r.closed = true
               if (rooms.get(docId) === created) rooms.delete(docId)
@@ -109,7 +105,7 @@ export function createGateway(opts: GatewayOptions) {
       return socket.destroy()
     }
     const docId = match[1]
-    // Auth runs BEFORE the upgrade, so unauthorised clients never get a socket
+    // Auth runs before the upgrade, so unauthorised clients never get a socket
     const auth = await Promise.resolve(opts.authorize({ docId, url })).catch(() => null)
     if (!auth) {
       m.joins.add(1, { result: 'rejected' })
@@ -125,11 +121,10 @@ export function createGateway(opts: GatewayOptions) {
     // Messages that arrive while the room is still loading must not be lost
     const buffered: Uint8Array[] = []
     let room: Room | null = null
-    // A socket error (for example a message over the size limit) must never be an
-    // uncaught exception: that would take the whole gateway down for everyone.
+    // a socket error (an oversized message, say) must never become an uncaught exception that takes
+    // the gateway down for everyone
     ws.on('error', () => ws.terminate())
-    // Anything a client sends is untrusted. A malformed message closes THAT socket and
-    // nothing else.
+    // anything a client sends is untrusted: a malformed message closes that socket and nothing else
     const handle = (r: Room, bytes: Uint8Array) => {
       try {
         r.handleMessage(ws, bytes)
@@ -171,8 +166,7 @@ export function createGateway(opts: GatewayOptions) {
     for (const m of buffered) handle(room, m)
   }
 
-  // Live access control: re-check open sockets when the API says access changed,
-  // and every recheckMs as a safety net in case an event was missed.
+  // Re-check open sockets when the API says access changed, and every recheckMs in case an event was missed.
   const recheckAll = (userId?: string) => {
     const resolveRole = opts.resolveRole
     if (!resolveRole) return

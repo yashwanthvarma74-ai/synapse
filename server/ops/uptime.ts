@@ -16,7 +16,7 @@ import * as encoding from 'lib0/encoding'
 import * as decoding from 'lib0/decoding'
 
 export interface ProbeConfig { apiUrl: string; gatewayUrl: string; canaryToken?: string; canaryDoc?: string; timeoutMs?: number }
-export interface Check { name: string; ok: boolean; ms: number; error?: string }
+interface Check { name: string; ok: boolean; ms: number; error?: string }
 export interface ProbeResult { ok: boolean; at: string; checks: Check[] }
 
 const httpBase = (url: string) => url.replace(/^ws/, 'http').replace(/\/$/, '')

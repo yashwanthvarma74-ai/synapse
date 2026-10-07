@@ -1,6 +1,5 @@
-// Entry point. SERVICE=gateway | api | both (default both, handy for development).
-// In production you would run many gateways and a few API instances separately,
-// all sharing MongoDB and Redis.
+// Entry point. SERVICE=gateway | api | both (the default, handy in development). In production you would
+// run several gateways and a few API instances separately, all sharing MongoDB and Redis.
 import { randomUUID } from 'node:crypto'
 import { MongoStore } from './mongoStore.js'
 import { collections, ensureIndexes, ensureSearchIndex, oid } from './db.js'
@@ -33,8 +32,8 @@ await chat.init()
 // Atlas Search is on automatically for mongodb+srv:// (Atlas) URLs; ATLAS_SEARCH=false/true overrides
 const atlasSearch = process.env.ATLAS_SEARCH ? process.env.ATLAS_SEARCH === 'true' : (process.env.MONGO_URL ?? '').startsWith('mongodb+srv://')
 if (atlasSearch) await ensureSearchIndex(c).catch((err) => logger.error({ err: String(err) }, 'could not create the Atlas Search index; search will use the $text index'))
-// Without Redis the API and the gateway in THIS process still hear each other (through an in-process hub), so
-// removing someone's access closes their open connections at once. With several processes, Redis is needed.
+// Without Redis the API and the gateway in this process still hear each other (through an in-process hub),
+// so removing someone's access closes their open connections at once. Several processes need Redis.
 const bus = process.env.REDIS_URL ? new RedisBus(process.env.REDIS_URL, randomUUID().slice(0, 8)) : new LocalHub().connect('local')
 if (!process.env.REDIS_URL) logger.warn('REDIS_URL not set: single process only. Access changes reach connections in this process at once; other gateways would not hear them')
 
@@ -43,8 +42,8 @@ if (s3 && process.env.S3_CREATE_BUCKET === 'true') await ensureBucket(s3).catch(
 if (!process.env.ANTHROPIC_API_KEY) logger.info('ANTHROPIC_API_KEY not set: the AI summary action is turned off')
 if (!s3) logger.warn('S3_BUCKET / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY not set: uploads are turned off')
 
-// Single-port mode: when the host gives us ONE port (the PORT variable, as Render, Railway and Heroku do),
-// the API and the WebSocket gateway share it. Needs SERVICE=both (the default).
+// Single-port mode: when the host gives us one port (PORT, as Render, Railway and Heroku do) the API and
+// the gateway share it. Needs SERVICE=both, the default.
 const singlePort = !!process.env.PORT && service === 'both'
 
 const api = service === 'gateway' ? null : createApi({

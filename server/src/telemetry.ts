@@ -1,12 +1,10 @@
-// Metrics (OpenTelemetry). The rest of the code calls `m.something.add(...)` freely.
-// Until initTelemetry() registers an SDK those calls hit no-op instruments and cost
-// nothing, which is why the gateway, API and tests need no setup. (OpenTelemetry's
-// metrics API cannot bind instruments created BEFORE the SDK exists, so initTelemetry
-// rebuilds them: `m` is one shared object whose fields are swapped at that point.)
+// Metrics (OpenTelemetry). The rest of the code calls m.something.add(...) freely. Until initTelemetry()
+// registers an SDK those calls hit no-op instruments, so the gateway, the API and the tests need no setup.
+// (OpenTelemetry cannot bind instruments created before the SDK exists, so initTelemetry rebuilds them
+// and swaps them into the shared `m` object.)
 //
-// Labels are a small fixed set of words (never a user id, document id or URL), for
-// two reasons: Prometheus gets slow when labels have many values, and metrics should
-// not carry anything about who is editing what.
+// Labels are a small fixed set of words, never a user id, document id or URL: Prometheus slows down when
+// labels have many values, and metrics should not say who is editing what.
 import { metrics, type Attributes } from '@opentelemetry/api'
 import { AggregationType, MeterProvider, type MetricReader } from '@opentelemetry/sdk-metrics'
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus'
@@ -23,7 +21,7 @@ const BYTES = [64, 256, 1024, 4096, 16384, 65536, 262144, 1048576, 8388608]
 function createInstruments() {
   const meter = metrics.getMeter('synapse')
   return {
-  // ---- gateway ----
+  // Gateway
   sockets: meter.createUpDownCounter('synapse_gateway_open_sockets', { description: 'WebSockets currently open on this gateway' }),
   joins: meter.createCounter('synapse_gateway_joins', { description: 'Attempts to join a room, by result (accepted or rejected)' }),
   messages: meter.createCounter('synapse_gateway_messages', { description: 'Protocol messages received from clients, by kind' }),
@@ -38,16 +36,16 @@ function createInstruments() {
   dirtyRooms: meter.createUpDownCounter('synapse_gateway_dirty_rooms', { description: 'Rooms holding edits the database has not accepted yet' }),
   compactions: meter.createCounter('synapse_gateway_compactions', { description: 'Log compactions, by result' }),
   resyncs: meter.createCounter('synapse_gateway_resyncs', { description: 'Rooms re-read from the database to repair missed relay messages, by reason' }),
-  // ---- relay (Redis) ----
+  // Relay (Redis)
   relayPublished: meter.createCounter('synapse_relay_published', { description: 'Messages this gateway sent to other gateways' }),
   relayReceived: meter.createCounter('synapse_relay_received', { description: 'Messages this gateway received from other gateways' }),
   relayErrors: meter.createCounter('synapse_relay_errors', { description: 'Redis errors' }),
   relayReconnects: meter.createCounter('synapse_relay_reconnects', { description: 'Times the Redis subscription came back after being lost' }),
-  // ---- API ----
+  // API
   httpDuration: meter.createHistogram('synapse_http_request_duration', { unit: 'ms', description: 'API request time, by method, route and status class' }),
   authFailures: meter.createCounter('synapse_auth_failures', { description: 'Rejected logins and tokens, by kind' }),
   rateLimited: meter.createCounter('synapse_rate_limited', { description: 'Requests refused by the rate limiter' }),
-  // ---- reported by browsers (see recordClientMetric) ----
+  // Reported by browsers (see recordClientMetric)
   clientRtt: meter.createHistogram('synapse_client_gateway_rtt', { unit: 'ms', description: 'Round trip browser to gateway and back, measured in the browser' }),
   clientTimeToSync: meter.createHistogram('synapse_client_time_to_sync', { unit: 'ms', description: 'From opening a connection until the document is synced' }),
   clientConnections: meter.createCounter('synapse_client_connections', { description: 'Browser connection attempts, by outcome (attempt, synced, failed)' }),
@@ -60,9 +58,8 @@ function createInstruments() {
 
 export const m = createInstruments()
 
-// ---- browser-reported metrics: a strict allowlist -------------------------------------
-// Browsers are untrusted. Only these names, only these label values, and only sane
-// numbers are accepted, so nobody can invent new time series or poison the graphs.
+// Browsers are untrusted: only these names, these label values and sane numbers are accepted, so nobody
+// can invent new time series or poison the graphs.
 type ClientRule = { record: (value: number, labels: Attributes) => void; max: number; labels?: Record<string, readonly string[]> }
 const CLIENT_METRICS: Record<string, ClientRule> = {
   rtt: { record: (v) => m.clientRtt.record(v), max: 60_000 },
@@ -73,7 +70,7 @@ const CLIENT_METRICS: Record<string, ClientRule> = {
   connection: { record: (_v, l) => m.clientConnections.add(1, l), max: 1, labels: { outcome: ['attempt', 'synced', 'failed'] } },
 }
 
-export const CLIENT_METRIC_NAMES = Object.keys(CLIENT_METRICS)
+const CLIENT_METRIC_NAMES = Object.keys(CLIENT_METRICS)
 
 // Returns true if the event was accepted
 export function recordClientMetric(name: string, value: unknown, labels: Record<string, unknown> = {}): boolean {
@@ -94,7 +91,7 @@ export function recordClientMetric(name: string, value: unknown, labels: Record<
   return true
 }
 
-// ---- observable values (read when Prometheus scrapes) ----------------------------------
+// Observable values (read when Prometheus scrapes)
 // Returns a function that stops reporting, so a gateway that shuts down cleans up.
 export function observeGauge(name: string, description: string, read: () => number): () => void {
   const gauge = metrics.getMeter('synapse').createObservableGauge(name, { description })
@@ -103,7 +100,7 @@ export function observeGauge(name: string, description: string, read: () => numb
   return () => gauge.removeCallback(callback)
 }
 
-// ---- start-up -------------------------------------------------------------------------
+// Start-up
 export interface TelemetryHandle {
   reader: MetricReader
   shutdown: () => Promise<void>

@@ -1,26 +1,23 @@
-// The bus carries protocol messages between gateway instances.
-// Production uses Redis pub/sub; LocalHub does the same job in one process,
-// which lets tests run several "gateways" without Redis.
+// The bus carries messages between gateways: Redis pub/sub in production, an in-process hub for
+// tests and single-process runs.
 import { EventEmitter } from 'node:events'
 
 export type BusHandler = (message: Uint8Array) => void
 
-// Sent by the API when someone's access changes, so every gateway can re-check
-// open sockets right away (revoking access must not wait for a reconnect).
+// Published when someone's access changes, so gateways re-check open connections straight away.
 export interface AccessEvent {
   userId: string
   workspaceId: string
 }
 
 export interface Bus {
-  // Called when the relay connection comes back after being lost. Messages
-  // published meanwhile are gone for good (pub/sub does not buffer), so rooms must
-  // re-read the stored state.
+  // Called when the relay reconnects. Messages sent while it was down are gone (pub/sub does not
+  // buffer), so rooms re-read the stored state.
   onResync(handler: () => void): () => void
   publishAccess(event: AccessEvent): void
   onAccess(handler: (event: AccessEvent) => void): () => void
   publish(docId: string, message: Uint8Array): void
-  // handler only receives messages published by OTHER gateways
+  // only hears from other gateways
   subscribe(docId: string, handler: BusHandler): () => void
 }
 

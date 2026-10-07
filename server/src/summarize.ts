@@ -1,7 +1,6 @@
-// "Summarize this board" (and documents). The text goes to the Anthropic API from THIS server:
-// the API key never reaches a browser. Everything inside the board or document is untrusted
-// text written by anyone with edit access, so it is passed as DATA, wrapped in tags, with an
-// instruction not to follow anything written inside it. The answer is shown as plain text.
+// "Summarize this board" for documents and boards. The text goes to the Anthropic API from this server,
+// so the key never reaches a browser. A board is untrusted text written by anyone who can edit it, so it is
+// sent as data inside tags with an instruction to ignore anything written in it. The answer is shown as plain text.
 import Anthropic from '@anthropic-ai/sdk'
 import * as Y from 'yjs'
 import { extractText } from './text.js'
@@ -10,7 +9,7 @@ export interface SummaryInput { kind: 'doc' | 'canvas'; title: string; content: 
 export type Summarizer = (input: SummaryInput) => Promise<string>
 
 export const MAX_CONTENT_CHARS = 20_000
-export const DEFAULT_MODEL = 'claude-sonnet-5-5'
+const DEFAULT_MODEL = 'claude-sonnet-5-5'
 
 // A whiteboard as readable text: what is on it and what is connected to what
 export function describeBoard(doc: Y.Doc): string {

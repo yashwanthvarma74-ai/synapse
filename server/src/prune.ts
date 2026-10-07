@@ -1,9 +1,8 @@
-// Guest accounts pile up on a public instance ("Try it now" creates one each time). This removes
-// OLD guests and what only they used. It is deliberately careful:
-//   * a guest who upgraded to a real account is not a guest any more, so it is never touched
-//   * a workspace is only deleted if every member is an old guest, so nobody loses a workspace
-//     that real people still share (the old guest is just removed from it instead)
-//   * dry run is the default; nothing is deleted unless you ask
+// Guest accounts pile up on a public instance ("Try it now" makes one each time). This removes old guests
+// and what only they used, carefully:
+//   - a guest who upgraded is a real account now and is never touched
+//   - a workspace is only deleted if every member is an old guest; otherwise the old guest is just removed from it
+//   - a dry run is the default, nothing is deleted unless you ask
 import type { ObjectId } from 'mongodb'
 import type { Collections } from './db.js'
 import type { MongoStore } from './mongoStore.js'
@@ -50,7 +49,7 @@ export async function pruneGuests(c: Collections, store: MongoStore, opts: { old
   return result
 }
 
-// CLI:  npx tsx src/prune.ts --days 30            (shows what WOULD be removed)
+// CLI:  npx tsx src/prune.ts --days 30            (shows what would be removed)
 //       npx tsx src/prune.ts --days 30 --delete   (actually removes it)
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { MongoStore } = await import('./mongoStore.js')

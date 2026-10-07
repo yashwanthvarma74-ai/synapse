@@ -1,7 +1,6 @@
-// Object storage for uploaded images and files (S3, Cloudflare R2, or MinIO locally).
-// Bytes NEVER pass through this server: the API hands the browser a short-lived, pre-signed
-// URL and the browser uploads straight to the bucket. The URL is signed for one exact key,
-// content type and size, so it cannot be reused to store anything else.
+// Object storage for uploads (S3, Cloudflare R2, or MinIO locally). File bytes never pass through this
+// server: the API gives the browser a short-lived, pre-signed URL and the browser uploads straight to the
+// bucket. The URL is signed for one key, type and size, so it can't be reused to store anything else.
 import { DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client, CreateBucketCommand, HeadBucketCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
@@ -31,8 +30,8 @@ export function s3Settings(env = process.env): S3Settings | null {
   if (!env.S3_BUCKET || !env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY) return null
   return {
     endpoint: env.S3_ENDPOINT || undefined, // R2: https://<account>.r2.cloudflarestorage.com, MinIO: http://127.0.0.1:9000
-    // The address BROWSERS use, when it differs from the one this server uses (for example inside Docker,
-    // where the server says http://minio:9000 and browsers say http://localhost:9000). Signed URLs carry it.
+    // The address browsers use, when it differs from the server's own (inside Docker the server says
+    // http://minio:9000 and browsers say http://localhost:9000). Signed URLs carry it.
     publicEndpoint: env.S3_PUBLIC_ENDPOINT || undefined,
     region: env.S3_REGION || 'auto',
     bucket: env.S3_BUCKET,
@@ -41,7 +40,7 @@ export function s3Settings(env = process.env): S3Settings | null {
   }
 }
 
-export function makeS3Client(s: S3Settings, endpoint = s.endpoint) {
+function makeS3Client(s: S3Settings, endpoint = s.endpoint) {
   return new S3Client({
     region: s.region,
     endpoint,
@@ -56,7 +55,7 @@ export function makeS3Client(s: S3Settings, endpoint = s.endpoint) {
 // Signing never touches the network, so this client can use the browsers' address
 export function s3Storage(s: S3Settings, client = makeS3Client(s, s.publicEndpoint ?? s.endpoint), admin = makeS3Client(s)): Storage {
   return {
-    // deleting talks to the bucket from THIS server, so it uses the server's own address, not the browsers'
+    // deleting talks to the bucket from this server, so it uses the server's own address, not the browsers'
     deletePrefix: async (prefix) => {
       let deleted = 0
       let token: string | undefined
@@ -74,7 +73,7 @@ export function s3Storage(s: S3Settings, client = makeS3Client(s, s.publicEndpoi
     presignPut: (key, contentType, size) =>
       getSignedUrl(client, new PutObjectCommand({ Bucket: s.bucket, Key: key, ContentType: contentType, ContentLength: size }), {
         expiresIn: PUT_SECONDS,
-        // sign these headers so the browser MUST send exactly this type and size
+        // sign these headers so the browser must send exactly this type and size
         signableHeaders: new Set(['content-type', 'content-length']),
       }),
     presignGet: (key, opts) =>
