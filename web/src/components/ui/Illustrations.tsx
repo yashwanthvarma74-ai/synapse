@@ -26,7 +26,7 @@ const Cursor = ({ x, y, color, name }: { x: number; y: number; color: string; na
 export function HeroArt({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 520 420" {...svgProps}>
-      <ellipse cx="260" cy="214" rx="250" ry="190" style={fill('var(--sticker-purple)')} />
+      <ellipse cx="260" cy="214" rx="250" ry="190" style={fill('var(--accent-soft)')} />
       {/* the shared document */}
       <rect x="62" y="48" width="396" height="290" rx="18" style={fill('var(--surface)', { stroke: 'var(--line)', strokeWidth: 2 })} />
       <rect x="62" y="48" width="396" height="40" rx="18" style={fill('var(--panel)')} />
@@ -84,7 +84,7 @@ export function OfflineArt({ small = false }: { small?: boolean }) {
           <Line x={92} y={42} w={90} /><Line x={92} y={64} w={130} /><Line x={92} y={86} w={80} />
           <rect x="48" y="128" width="224" height="12" rx="6" style={fill('var(--line)')} />
           <g transform="translate(246 0)" style={stroke('var(--warn)')} strokeWidth="3" strokeLinecap="round"><path d="M2 12 C 9 3, 23 3, 30 12" /><path d="M8 19 C 13 14, 19 14, 24 19" /><path d="M1 1 L31 30" /></g>
-          <g transform="translate(110 148)"><rect width="100" height="24" rx="12" style={fill('var(--sticker-purple)', { stroke: 'var(--line)' })} /><path d="M14 12 l4 4 l8 -9" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={stroke('var(--ok)')} /><text x="34" y="16" fontSize="11" fontWeight="700" fontFamily="system-ui, sans-serif" style={fill('var(--fg)')}>Saved here</text></g>
+          <g transform="translate(110 148)"><rect width="100" height="24" rx="12" style={fill('var(--accent-soft)', { stroke: 'var(--line)' })} /><path d="M14 12 l4 4 l8 -9" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" style={stroke('var(--ok)')} /><text x="34" y="16" fontSize="11" fontWeight="700" fontFamily="system-ui, sans-serif" style={fill('var(--fg)')}>Saved here</text></g>
         </>
       )}
     </svg>
@@ -144,7 +144,7 @@ export function NotFoundArt() {
     <svg viewBox="0 0 200 140" {...svgProps}>
       <rect x="40" y="22" width="120" height="96" rx="12" style={fill('var(--surface)', { stroke: 'var(--line)', strokeWidth: 2 })} />
       <Line x={58} y={42} w={60} color="var(--muted)" h={9} /><Line x={58} y={60} w={84} /><Line x={58} y={76} w={50} />
-      <circle cx="132" cy="92" r="20" style={fill('var(--sticker-purple)', { stroke: 'var(--accent)', strokeWidth: 3 })} /><path d="M147 107 l16 16" strokeWidth="5" strokeLinecap="round" style={stroke('var(--accent)')} />
+      <circle cx="132" cy="92" r="20" style={fill('var(--accent-soft)', { stroke: 'var(--accent)', strokeWidth: 3 })} /><path d="M147 107 l16 16" strokeWidth="5" strokeLinecap="round" style={stroke('var(--accent)')} />
       <text x="132" y="99" textAnchor="middle" fontSize="20" fontWeight="800" fontFamily="system-ui, sans-serif" style={fill('var(--fg)')}>?</text>
     </svg>
   )

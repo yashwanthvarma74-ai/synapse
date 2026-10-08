@@ -1,64 +1,46 @@
-/* Design tokens, following the Notion-style system: a warm paper canvas, near-black ink, one blue for actions,
-   and a sticker palette that only ever decorates. Synapse is light-only on purpose.
-   Every text colour here is checked by src/test/a11y.test.ts. */
+/* Design tokens. Synapse is light-only on purpose; every text colour here is checked by src/test/a11y.test.ts. */
 :root {
   color-scheme: light;
 
-  /* surfaces */
-  --bg: #f6f5f4; /* warm paper: the page canvas and the footer */
-  --surface: #ffffff; /* cards, panels, fields, the header */
-  --panel: #f6f5f4;
-  --line: #e6e6e6; /* hairline */
-  --line-strong: #dddddd; /* field borders */
+  /* surfaces and text */
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --panel: #eff1f8;
+  --fg: #12141c;
+  --muted: #586074;
+  --line: #e3e6ef;
+  --line-strong: #cdd2e1;
 
-  /* text */
-  --fg: #000000; /* ink; body text is drawn at 95% alpha (see base.css) */
-  --fg-2: #31302e; /* warm charcoal */
-  --muted: #615d59; /* stone */
-  --faint: #a39e98; /* ash: placeholders only */
+  /* brand */
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-soft: #eef0ff;
+  --on-accent: #ffffff; /* text on anything accent-coloured */
+  --gradient: linear-gradient(135deg, #5b54ee 0%, #4f46e5 50%, #4338ca 100%);
+  --gradient-text: linear-gradient(100deg, #4f46e5 0%, #7c3aed 100%);
 
-  /* the one structural accent */
-  --accent: #0075de;
-  --accent-strong: #005bab; /* pressed state */
-  --link: #005bab; /* inline links; the pressed blue keeps 4.5:1 on the paper canvas */
-  --accent-soft: #f6f5f4;
-  --on-accent: #ffffff;
-  --secondary: #213183; /* the dark indigo hero band */
+  /* status */
+  --danger: #c92a2a;
+  --success: #1b7a34; /* green for text */
+  --ok: #2f9e44; /* green for dots and marks */
+  --warn: #e67700;
 
-  /* the sticker palette: decoration only, never structure */
-  --sticker-sky: #62aef0;
-  --sticker-purple: #d6b6f6;
-  --sticker-purple-deep: #391c57;
-  --sticker-pink: #ff64c8;
-  --sticker-orange: #dd5b00;
-  --sticker-orange-deep: #793400;
-  --sticker-teal: #2a9d99;
-  --sticker-green: #1aae39;
-  --sticker-brown: #523410;
+  /* depth: soft, tinted shadows in layers */
+  --shadow-xs: 0 1px 2px rgba(18, 20, 28, 0.06);
+  --shadow-sm: 0 1px 2px rgba(18, 20, 28, 0.05), 0 4px 14px rgba(40, 40, 120, 0.06);
+  --shadow-md: 0 2px 4px rgba(18, 20, 28, 0.05), 0 12px 32px rgba(40, 40, 120, 0.1);
+  --shadow-lg: 0 8px 16px rgba(18, 20, 28, 0.08), 0 28px 70px rgba(30, 30, 100, 0.22);
+  --ring: 0 0 0 4px rgba(79, 70, 229, 0.18);
 
-  /* status is carried by stickers, not a separate palette */
-  --danger: #793400;
-  --ok: #1aae39;
-  --warn: #dd5b00;
-
-  /* depth: many near-transparent layers */
-  --shadow-1: 0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02), 0 2.025px 7.847px rgba(0, 0, 0, 0.027), 0 4px 18px rgba(0, 0, 0, 0.04);
-  --shadow-2: 0 1px 3px rgba(0, 0, 0, 0.01), 0 3px 7px rgba(0, 0, 0, 0.02), 0 7px 15px rgba(0, 0, 0, 0.02), 0 14px 28px rgba(0, 0, 0, 0.035), 0 23px 52px rgba(0, 0, 0, 0.05);
-  --ring: 0 0 0 3px rgba(0, 117, 222, 0.25);
-
-  /* shape */
-  --r-xs: 4px;
-  --r-sm: 5px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-full: 9999px;
-
+  /* shape and motion */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --fast: 120ms;
-  --slow: 220ms;
+  --fast: 140ms;
+  --slow: 260ms;
 
   /* layout */
-  --header-height: 64px;
-  --content: 1200px;
+  --header-height: 60px;
+  --content: 1180px;
 }
