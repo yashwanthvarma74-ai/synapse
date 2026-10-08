@@ -7,7 +7,7 @@ import { keys, useAction, useWorkspaces } from '@/lib/queries'
 import { useSession } from '@/lib/useSession'
 import Search from '@/components/home/Search'
 import Landing from '@/components/home/Landing'
-import { EmptyDocsArt } from '@/components/ui/Illustrations'
+import { Button, Card, EmptyState, Input, buttonClass } from '@yashwanthvarma74/react'
 
 const ROLE_HELP: Record<string, string> = {
   owner: 'You own this', editor: 'You can edit', commenter: 'You can comment', viewer: 'You can read',
@@ -48,7 +48,7 @@ export default function Dashboard() {
       {user.guest && (
         <div className="banner">
           <p><strong>You&apos;re using a guest account.</strong> Create a free account to keep your work and use it on other devices.</p>
-          <Link className="btn small" href="/upgrade">Save your work</Link>
+          <Link className={buttonClass({ variant: 'primary', size: 'sm' })} href="/upgrade">Save your work</Link>
         </div>
       )}
 
@@ -56,18 +56,16 @@ export default function Dashboard() {
       {error && <p role="alert" className="error">{error}</p>}
 
       {workspaces?.length === 0 ? (
-        <div className="empty">
-          <EmptyDocsArt />
-          <strong>No workspaces yet</strong>
-          Create your first one below. It only takes a name.
-        </div>
+        <EmptyState title="No workspaces yet" description="Create your first one below. It only takes a name." headingLevel={2} />
       ) : (
         <ul className="cards" aria-label="Workspaces">
           {workspaces?.map((w) => (
             <li key={w.id}>
-              <Link href={`/w/${w.id}`} className="card doc-card">
-                <strong>{w.name}</strong>
-                <span className="meta">{ROLE_HELP[w.role] ?? w.role}</span>
+              <Link href={`/w/${w.id}`} className="doc-link">
+                <Card interactive className="doc-card">
+                  <strong>{w.name}</strong>
+                  <span className="meta">{ROLE_HELP[w.role] ?? w.role}</span>
+                </Card>
               </Link>
             </li>
           ))}
@@ -75,8 +73,8 @@ export default function Dashboard() {
       )}
 
       <form onSubmit={create} className="create-row">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name a new workspace, for example “Team notes”" maxLength={80} aria-label="New workspace name" />
-        <button className="btn secondary">Create workspace</button>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name a new workspace, for example “Team notes”" maxLength={80} aria-label="New workspace name" />
+        <Button variant="secondary" type="submit">Create workspace</Button>
       </form>
     </div>
   )

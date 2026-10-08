@@ -7,7 +7,7 @@ const downloadMenu = (p: Page) => p.getByRole('button', { name: 'Download' })
 
 async function download(p: Page, choice: RegExp): Promise<{ file: Download; bytes: Buffer }> {
   await downloadMenu(p).click()
-  const [file] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: choice }).click()])
+  const [file] = await Promise.all([p.waitForEvent('download'), p.getByRole('menuitem', { name: choice }).click()])
   return { file, bytes: await readFile((await file.path())!) }
 }
 
@@ -74,7 +74,7 @@ test.describe('documents', () => {
     const p = await windowFor(browser, g.token)
     await openDoc(p, made.id)
     await downloadMenu(p).click()
-    await p.getByRole('button', { name: /Plain text/ }).click()
+    await p.getByRole('menuitem', { name: /Plain text/ }).click()
     await expect(p.getByRole('alert').filter({ hasText: 'nothing to download yet' })).toBeVisible()
   })
 
@@ -130,7 +130,7 @@ test.describe('whiteboards', () => {
     await p.goto(`/doc/${made.id}`)
     await expect(p.locator('canvas')).toBeVisible()
     await downloadMenu(p).click()
-    await p.getByRole('button', { name: /PNG image/ }).click()
+    await p.getByRole('menuitem', { name: /PNG image/ }).click()
     await expect(p.getByRole('alert').filter({ hasText: 'nothing to download yet' })).toBeVisible()
   })
 })

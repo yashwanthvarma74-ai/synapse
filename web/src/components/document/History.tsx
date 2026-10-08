@@ -7,7 +7,7 @@ import { restoreInto, stateToDoc, type DocType } from '@/lib/collab/versions'
 import { fullDate, timeAgo } from '@/lib/time'
 import type { Collab } from '@/lib/collab/useCollab'
 import VersionPreview from './VersionPreview'
-import { EmptyDocsArt } from '../ui/Illustrations'
+import { Button, EmptyState, Input } from '@yashwanthvarma74/react'
 
 interface Props {
   docId: string
@@ -68,8 +68,8 @@ export default function History({ docId, collab, role, type, connected }: Props)
       <p className="muted">Save the {type === 'canvas' ? 'board' : 'document'} as it is now. You can come back to it any time.</p>
       {canEdit && (
         <form onSubmit={save} className="row">
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Name this version" maxLength={80} aria-label="Version name" disabled={!connected} />
-          <button className="btn" disabled={!connected || !label.trim() || action.pending}>{action.pending ? 'Saving…' : 'Save'}</button>
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Name this version" maxLength={80} aria-label="Version name" disabled={!connected} />
+          <Button variant="primary" type="submit" disabled={!connected || !label.trim() || action.pending}>{action.pending ? 'Saving…' : 'Save'}</Button>
         </form>
       )}
       {canEdit && !connected && <p className="hint">You&apos;re offline. Saving a version needs a connection.</p>}
@@ -77,11 +77,8 @@ export default function History({ docId, collab, role, type, connected }: Props)
       {error && <p role="alert" className="error">{error}</p>}
 
       {versions.length === 0 ? (
-        <div className="empty">
-          <EmptyDocsArt />
-          <strong>No saved versions yet</strong>
-          Name a version before a big change. You can preview it and bring it back whenever you like.
-        </div>
+        <EmptyState title="No saved versions yet" headingLevel={3}
+          description="Name a version before a big change. You can preview it and bring it back whenever you like." />
       ) : (
         <ul className="list versions">
           {versions.map((v) => (

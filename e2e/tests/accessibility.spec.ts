@@ -7,6 +7,8 @@ import { expect, test, editor, newGuest, openDoc, typeAtEnd, windowFor } from '.
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 async function scan(page: Page) {
+  // let fade-ins finish: axe reads the colour mid-fade, which is not what anyone sees
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => null))))
   const r = await new AxeBuilder({ page }).withTags(TAGS).analyze()
   // print what is wrong in a readable way if anything is
   const summary = r.violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`)
@@ -80,7 +82,7 @@ test('workspace page, and the delete-workspace dialog', async ({ browser, reques
   await expect(p.getByText('New here?')).toBeVisible()
   await scan(p)
   await p.getByRole('button', { name: 'Delete workspace' }).click()
-  await expect(p.getByRole('dialog')).toBeVisible()
+  await expect(p.getByRole('alertdialog')).toBeVisible()
   await scan(p)
 })
 

@@ -28,7 +28,7 @@ afterEach(() => {
 describe('ShareDialog', () => {
   it('opens as a dialog with plain-language choices, defaulting to editor', async () => {
     render(<ShareDialog workspaceId="w1" open onClose={() => {}} />)
-    expect(screen.getByRole('dialog', { hidden: true }).hasAttribute('open')).toBe(true)
+    expect(screen.getByRole('dialog', { name: 'Invite people' })).toBeTruthy()
     expect((screen.getByLabelText(/can edit/i) as HTMLInputElement).checked).toBe(true)
     expect(screen.getByLabelText(/can comment/i)).toBeTruthy()
     expect(screen.getByLabelText(/can only view/i)).toBeTruthy()

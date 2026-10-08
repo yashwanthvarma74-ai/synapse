@@ -12,7 +12,7 @@ import ShareDialog from './ShareDialog'
 import DeleteWorkspaceDialog from './DeleteWorkspaceDialog'
 import CantOpen from '../layout/CantOpen'
 import { useQueryClient } from '@tanstack/react-query'
-import { EmptyDocsArt } from '../ui/Illustrations'
+import { Badge, Button, Card, EmptyState, Input, Select } from '@yashwanthvarma74/react'
 
 const ROLES: Role[] = ['owner', 'editor', 'commenter', 'viewer']
 const ROLE_LABEL: Record<Role, string> = { owner: 'Owner', editor: 'Editor', commenter: 'Commenter', viewer: 'Viewer' }
@@ -79,8 +79,8 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
         </div>
         {isOwner && (
           <div className="row" style={{ margin: 0 }}>
-            <button className="btn" onClick={() => setSharing(true)}>Invite people</button>
-            <button className="btn danger-outline" onClick={() => setDeleting(true)}>Delete workspace</button>
+            <Button variant="primary" onClick={() => setSharing(true)}>Invite people</Button>
+            <Button variant="danger" onClick={() => setDeleting(true)}>Delete workspace</Button>
           </div>
         )}
       </div>
@@ -110,25 +110,24 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
       )}
       {canEdit && (
         <div className="create-row" role="group" aria-label="Create something new">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give it a name (optional)" maxLength={120} aria-label="Name for the new document or board" />
-          <button className="btn" onClick={create('doc')}>New document</button>
-          <button className="btn secondary" onClick={create('canvas')}>New whiteboard</button>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give it a name (optional)" maxLength={120} aria-label="Name for the new document or board" />
+          <Button variant="primary" onClick={create('doc')}>New document</Button>
+          <Button variant="secondary" onClick={create('canvas')}>New whiteboard</Button>
         </div>
       )}
       {docs?.length === 0 ? (
-        <div className="empty">
-          <EmptyDocsArt />
-          <strong>Nothing here yet</strong>
-          {canEdit ? 'Create a document to write in, or a whiteboard to sketch on.' : 'When someone adds a document, you will see it here.'}
-        </div>
+        <EmptyState title="Nothing here yet" headingLevel={2}
+          description={canEdit ? 'Create a document to write in, or a whiteboard to sketch on.' : 'When someone adds a document, you will see it here.'} />
       ) : (
         <ul className="cards" aria-label="Documents and boards">
           {docs?.map((d) => (
             <li key={d.id}>
-              <Link href={`/doc/${d.id}`} className="card doc-card">
-                <span className="icon"><DocIcon type={d.type} /></span>
-                <strong>{d.title}</strong>
-                <span className="meta">{d.type === 'canvas' ? 'Whiteboard' : 'Document'} · edited {timeAgo(d.updatedAt)}</span>
+              <Link href={`/doc/${d.id}`} className="doc-link">
+                <Card interactive className="doc-card">
+                  <span className="icon"><DocIcon type={d.type} /></span>
+                  <strong>{d.title}</strong>
+                  <span className="meta">{d.type === 'canvas' ? 'Whiteboard' : 'Document'} · edited {timeAgo(d.updatedAt)}</span>
+                </Card>
               </Link>
             </li>
           ))}
@@ -142,15 +141,15 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
             <span>{m.name} <span className="muted">{m.email.endsWith('@guest.invalid') ? 'guest' : m.email}</span></span>
             {isOwner ? (
               <span className="row" style={{ margin: 0 }}>
-                <select value={m.role} aria-label={`Role for ${m.name}`}
+                <Select value={m.role} aria-label={`Role for ${m.name}`}
                   onChange={(ev) => void run(() => api(`/workspaces/${workspaceId}/members`, { method: 'PUT', body: { email: m.email, role: ev.target.value } }))()}>
                   {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                </select>
+                </Select>
                 {m.id !== user.id && (
                   <button className="link" aria-label={`Remove ${m.name}`} onClick={run(() => api(`/workspaces/${workspaceId}/members/${m.id}`, { method: 'DELETE' }))}>Remove</button>
                 )}
               </span>
-            ) : <span className="badge">{ROLE_LABEL[m.role]}</span>}
+            ) : <Badge>{ROLE_LABEL[m.role]}</Badge>}
           </li>
         ))}
       </ul>
@@ -158,11 +157,11 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
         <details>
           <summary>Add someone who already has an account</summary>
           <form onSubmit={addMember} className="create-row">
-            <input type="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} placeholder="Their email address" aria-label="Email of an existing user" required />
-            <select value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value as Role })} aria-label="Role for the new person">
+            <Input type="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} placeholder="Their email address" aria-label="Email of an existing user" required />
+            <Select value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value as Role })} aria-label="Role for the new person">
               {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-            </select>
-            <button className="btn secondary">Add</button>
+            </Select>
+            <Button variant="secondary" type="submit">Add</Button>
           </form>
         </details>
       )}

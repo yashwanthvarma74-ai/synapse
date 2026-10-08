@@ -25,6 +25,7 @@ import { useChat } from '@/lib/chat/useChat'
 import Tabs from '../ui/Tabs'
 import ShareDialog from '../workspace/ShareDialog'
 import CantOpen from '../layout/CantOpen'
+import { Button } from '@yashwanthvarma74/react'
 
 // PixiJS touches `window`, so the canvas only loads in the browser
 const CanvasBoard = dynamic(() => import('../board/CanvasBoard'), { ssr: false, loading: () => <p className="muted">Loading canvas…</p> })
@@ -124,7 +125,7 @@ function DocumentView({ docId, meta, setMeta, userId, userName }: { docId: strin
               getObjects={() => listObjects(collab.doc)}
             />
           )}
-          {meta.role === 'owner' && !revoked && <button className="btn" onClick={() => setSharing(true)}>Share</button>}
+          {meta.role === 'owner' && !revoked && <Button variant="primary" onClick={() => setSharing(true)}>Share</Button>}
         </div>
       </div>
       {revoked && <p role="alert" className="error">Your access to this document was removed. Your local copy has been deleted.</p>}

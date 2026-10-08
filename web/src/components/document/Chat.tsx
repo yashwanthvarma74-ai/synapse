@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { ChatStore, ChatView } from '@/lib/chat/chatStore'
-import { EmptyCommentsArt } from '../ui/Illustrations'
+import { Button, EmptyState, Textarea } from '@yashwanthvarma74/react'
 
 const MAX = 2000
 
@@ -73,11 +73,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
         )}
         {!view.loaded && <p className="muted">Loading messages…</p>}
         {empty && (
-          <div className="empty">
-            <EmptyCommentsArt />
-            <strong>No messages yet</strong>
-            Say hello. Everyone in this document will see it.
-          </div>
+          <EmptyState title="No messages yet" headingLevel={3} description="Say hello. Everyone in this document will see it." />
         )}
         <ul className="chat-list">
           {view.messages.map((m) => (
@@ -106,7 +102,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
       {canWrite ? (
         <form onSubmit={submit} className="stack">
           <label htmlFor="chat-input" className="sr-only">Message</label>
-          <textarea
+          <Textarea
             id="chat-input"
             value={text}
             onChange={(e) => { setText(e.target.value); store?.dismissNotice() }}
@@ -118,7 +114,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
           />
           <div className="row spread">
             <span className="muted" aria-live="off">{text.length > MAX - 200 ? `${MAX - text.length} characters left` : ''}</span>
-            <button className="btn" disabled={offline || !text.trim()}>Send</button>
+            <Button variant="primary" type="submit" disabled={offline || !text.trim()}>Send</Button>
           </div>
         </form>
       ) : (

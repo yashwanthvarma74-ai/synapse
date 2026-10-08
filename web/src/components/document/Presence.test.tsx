@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as Y from 'yjs'
 import { Awareness } from 'y-protocols/awareness'
@@ -43,11 +43,11 @@ describe('Presence', () => {
     const { container, join } = setup()
     join(2, 'Kalyan')
     const list = screen.getByRole('list', { name: 'People in this document' })
-    expect(list.textContent).toContain('Yash')
-    expect(list.textContent).toContain('Kalyan')
-    const initials = container.querySelectorAll('.avatar')
+    const names = within(list).getAllByRole('img').map((el) => el.getAttribute('aria-label'))
+    expect(names).toContain('Yash')
+    expect(names).toContain('Kalyan')
+    const initials = container.querySelectorAll('[role="img"] > [aria-hidden="true"]')
     expect(initials.length).toBe(2)
-    for (const el of initials) expect(el.getAttribute('aria-hidden')).toBe('true')
   })
 
   it('announces joins and leaves politely, but not the people already here on arrival', () => {

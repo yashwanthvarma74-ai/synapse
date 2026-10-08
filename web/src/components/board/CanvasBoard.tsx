@@ -5,6 +5,7 @@ import { CanvasRenderer } from '@/lib/board/canvasRenderer'
 import { useUi } from '@/lib/uiStore'
 import { updateObject, type CanvasObject } from '@/lib/board/canvasModel'
 import type { Collab } from '@/lib/collab/useCollab'
+import { Button, Dialog, DialogBody, DialogClose, DialogFooter, DialogHeader, DialogTitle } from '@yashwanthvarma74/react'
 
 // Small outline icons. They sit next to a visible word, so they are decoration.
 const ICONS: Record<string, string> = {
@@ -65,7 +66,6 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
   const [zoom, setZoom] = useState(1)
   const helpOpen = useUi((s) => s.canvasHelpOpen)
   const setHelpOpen = useUi((s) => s.setCanvasHelpOpen)
-  const help = useRef<HTMLDialogElement>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -96,14 +96,6 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
   }, [collab, readOnly, stress, setTool])
 
   const r = () => renderer.current
-
-  // open and close the help <dialog> (native: it traps focus and closes on Escape)
-  useEffect(() => {
-    const d = help.current
-    if (!d) return
-    if (helpOpen && !d.open) d.showModal()
-    if (!helpOpen && d.open) d.close()
-  }, [helpOpen])
 
   function commitEdit(save: boolean) {
     if (editing && save) updateObject(collab.doc, editing.id, { text: editing.text.slice(0, 500) })
@@ -232,8 +224,9 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
           plus Z undoes; Enter edits the text of the selected shape.
         </p>
         <div className="sr-only" role="status" aria-live="polite">{announcement}</div>
-        <dialog ref={help} onClose={() => setHelpOpen(false)} aria-labelledby="canvas-help-title">
-          <h2 id="canvas-help-title">Using the whiteboard</h2>
+        <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+          <DialogHeader><DialogTitle>Using the whiteboard</DialogTitle><DialogClose /></DialogHeader>
+          <DialogBody>
           <ul className="help-list">
             <li><span>Add a shape</span><span>Use the buttons above the board</span></li>
             <li><span>Move a shape</span><span>Drag it, or press <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd></span></li>
@@ -247,8 +240,9 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
             <li><span>Zoom</span><span><kbd>Ctrl</kbd>+scroll, or <kbd>+</kbd> and <kbd>-</kbd>; <kbd>0</kbd> resets</span></li>
           </ul>
           <p className="hint">Everyone who has the board open sees your changes, with your name on your pointer.</p>
-          <div className="dialog-actions"><button className="btn" onClick={() => setHelpOpen(false)}>Got it</button></div>
-        </dialog>
+          </DialogBody>
+          <DialogFooter><Button variant="primary" onClick={() => setHelpOpen(false)}>Got it</Button></DialogFooter>
+        </Dialog>
       </div>
 
       <section className="panel" aria-label="Object list">

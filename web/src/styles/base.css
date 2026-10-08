@@ -4,7 +4,7 @@ html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-hei
 html, body { margin: 0; background: var(--bg); color: var(--fg); }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--mrd-font-family-sans);
   font-size: 16px;
   line-height: 1.6;
   min-height: 100dvh;

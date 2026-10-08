@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { api } from '@/lib/api'
+import { Button } from '@yashwanthvarma74/react'
 
 // "Summarize this board": the server sends the text to an AI service and returns a short summary, shown
 // as plain text (never HTML) because anyone who can edit the page could have written what it summarised.
@@ -29,7 +30,7 @@ export default function Summary({ docId, type }: { docId: string; type: 'doc' | 
     <section aria-label="Summary" className="panel">
       <h2>Summary</h2>
       <p className="muted">Get a short summary of this {what}. The text of this {what} is sent to an AI service to write it.</p>
-      <button className="btn" onClick={run} disabled={busy}>{busy ? 'Writing a summary…' : `Summarize this ${what}`}</button>
+      <Button variant="primary" onClick={run} disabled={busy}>{busy ? 'Writing a summary…' : `Summarize this ${what}`}</Button>
       {error && <p role="alert" className="error">{error}</p>}
       <div role="status" aria-live="polite">
         {summary && (

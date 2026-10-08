@@ -85,6 +85,7 @@ describe('Tabs (WAI-ARIA tabs pattern)', () => {
     const seen: string[] = []
     render(<Tabs label="t" tabs={three} onChange={(id) => seen.push(id)} />)
     fireEvent.click(screen.getByRole('tab', { name: 'History' }))
+    screen.getAllByRole('tab')[1].focus() // the design system moves focus from the tab that really has it
     fireEvent.keyDown(screen.getAllByRole('tab')[1], { key: 'ArrowRight' })
     expect(seen).toEqual(['b', 'c'])
   })

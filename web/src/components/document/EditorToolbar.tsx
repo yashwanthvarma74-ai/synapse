@@ -1,6 +1,7 @@
 'use client'
 import type { Editor } from '@tiptap/react'
 import { useEditorState } from '@tiptap/react'
+import { IconButton } from '@yashwanthvarma74/react'
 import { BoldIcon, BulletsIcon, CodeIcon, HeadingIcon, ImageIcon, ItalicIcon, NumbersIcon, PaperclipIcon, QuoteIcon, RedoIcon, StrikeIcon, SubheadingIcon, UndoIcon } from '../ui/Icons'
 
 // Formatting buttons: an icon each, named for screen readers, with the keyboard shortcut in the tooltip.
@@ -17,9 +18,7 @@ export default function EditorToolbar({ editor, disabled }: { editor: Editor | n
   const off = disabled || !editor
   const run = (fn: (c: ReturnType<Editor['chain']>) => { run: () => boolean }) => () => editor && fn(editor.chain().focus()).run()
   const btn = (label: string, shortcut: string, pressed: boolean | null, onClick: () => void, content: React.ReactNode) => (
-    <button type="button" aria-label={label} title={shortcut ? `${label} (${shortcut})` : label} aria-pressed={pressed ?? undefined} disabled={off} onClick={onClick}>
-      {content}
-    </button>
+    <IconButton label={label} icon={content} size="sm" title={shortcut ? `${label} (${shortcut})` : label} aria-pressed={pressed ?? undefined} disabled={off} onClick={onClick} />
   )
   return (
     <div className="format-bar" role="toolbar" aria-label="Formatting">

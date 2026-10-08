@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { startGuest } from '@/lib/guest'
 import { BoardIcon, CheckIcon, CommentIcon, DocumentIcon, HistoryIcon, LinkIcon, SearchIcon } from '../ui/Icons'
 import { HeroArt, MergeArt, OfflineArt, WriteTogetherArt } from '../ui/Illustrations'
+import { Button, Card, buttonClass } from '@yashwanthvarma74/react'
 
 // What a first-time visitor sees: what this is, why it is different, and one big button.
 export default function Landing() {
@@ -35,8 +36,8 @@ export default function Landing() {
             cursors. If your connection drops, nothing is lost: it all merges when you&apos;re back.
           </p>
           <div className="cta-row">
-            <button className="btn large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
-            <Link className="btn secondary large" href="/login">Sign in</Link>
+            <Button variant="primary" size="lg" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</Button>
+            <Link className={buttonClass({ variant: 'secondary', size: 'lg' })} href="/login">Sign in</Link>
           </div>
           <p className="cta-note">One click. You&apos;ll get a sample document and board to play with. You can create an account later and keep everything.</p>
           {error && <p role="alert" className="error">{error}</p>}
@@ -55,21 +56,21 @@ export default function Landing() {
         <h2 id="how-title" className="section-title">How it works</h2>
         <p className="section-sub">Three ideas, and you already know how to use all of them.</p>
         <ol className="steps">
-          <li className="step card">
+          <li className="step"><Card padding="none">
             <div className="step-art"><WriteTogetherArt /></div>
             <h3>Write together</h3>
             <p>Open a page with a friend. You each get a coloured cursor with your name, and changes show up as they happen.</p>
-          </li>
-          <li className="step card">
+          </Card></li>
+          <li className="step"><Card padding="none">
             <div className="step-art"><OfflineArt /></div>
             <h3>Keep going offline</h3>
             <p>Lost your signal on a train? Keep typing. Your work is saved on your own device, not just on a server.</p>
-          </li>
-          <li className="step card">
+          </Card></li>
+          <li className="step"><Card padding="none">
             <div className="step-art"><MergeArt /></div>
             <h3>Everything merges</h3>
             <p>When you reconnect, everyone&apos;s changes combine automatically. No conflicts to sort out, nothing overwritten.</p>
-          </li>
+          </Card></li>
         </ol>
       </section>
 
@@ -89,7 +90,7 @@ export default function Landing() {
       <section className="cta-card" aria-labelledby="ready-title">
         <h2 id="ready-title">Ready to try it?</h2>
         <p>It takes one click, and there is nothing to install. Guest work is kept for a month, and you can save it any time.</p>
-        <button className="btn light large" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</button>
+        <Button variant="secondary" size="lg" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now, no sign-up'}</Button>
       </section>
     </div>
   )

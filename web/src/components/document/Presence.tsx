@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import type { Collab } from '@/lib/collab/useCollab'
+import { Avatar } from '@yashwanthvarma74/react'
 
 interface Peer {
   id: number
@@ -53,10 +54,7 @@ export default function Presence({ collab }: { collab: Collab }) {
       <ul className="avatars" aria-label="People in this document">
         {peers.map((p) => (
           <li key={p.id}>
-            <span className="avatar" style={{ background: p.color }} aria-hidden="true" title={p.name}>
-              {p.name.slice(0, 2).toUpperCase()}
-            </span>
-            <span className="sr-only">{p.name}</span>
+            <Avatar name={p.name} size="sm" title={p.name} style={{ background: p.color, color: '#fff' }} />
           </li>
         ))}
       </ul>

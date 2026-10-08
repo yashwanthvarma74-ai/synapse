@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { Menu } from '@yashwanthvarma74/react'
 import type { CanvasObject } from '@/lib/board/canvasModel'
 import type { JsonNode } from '@/lib/export/blocks'
 import { DownloadIcon } from '../ui/Icons'
@@ -31,34 +32,11 @@ interface Props {
 }
 
 export default function DownloadMenu({ title, kind, getContent, getObjects }: Props) {
-  const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
-  const root = useRef<HTMLDivElement>(null)
-  const button = useRef<HTMLButtonElement>(null)
+  const [pdfNote, setPdfNote] = useState('')
   const choices = kind === 'canvas' ? BOARD_CHOICES : DOCUMENT_CHOICES
-
-  useEffect(() => {
-    if (!open) return
-    const away = (e: MouseEvent) => !root.current?.contains(e.target as Node) && setOpen(false)
-    document.addEventListener('mousedown', away)
-    return () => document.removeEventListener('mousedown', away)
-  }, [open])
-
-  const items = () => [...(root.current?.querySelectorAll<HTMLButtonElement>('[data-choice]') ?? [])]
-
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Escape' && open) {
-      setOpen(false)
-      button.current?.focus()
-    } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && open) {
-      e.preventDefault()
-      const all = items()
-      const at = all.indexOf(document.activeElement as HTMLButtonElement)
-      all[(at + (e.key === 'ArrowDown' ? 1 : -1) + all.length) % all.length]?.focus()
-    }
-  }
 
   async function choose(choice: Choice) {
     setBusy(choice.format)
@@ -71,8 +49,6 @@ export default function DownloadMenu({ title, kind, getContent, getObjects }: Pr
           : await exportDocument(choice.format as DocFormat, getContent?.() ?? { type: 'doc' }, title)
       saveFile(file)
       setMessage(`${file.filename} downloaded.`)
-      setOpen(false)
-      button.current?.focus()
     } catch (err) {
       setFailed(true)
       setMessage(err instanceof NothingToExport ? err.message : "The file couldn't be created. Please try again.")
@@ -81,32 +57,31 @@ export default function DownloadMenu({ title, kind, getContent, getObjects }: Pr
     }
   }
 
-  // PDF uses a built-in font that does not cover every script. Say so before it surprises someone.
-  const content = kind === 'doc' && open ? getContent?.() : null
-  const missing = content ? pdfProblems(content) : []
+  // PDF uses a built-in font that does not cover every script. Say so when the menu opens, before it surprises someone.
+  function onOpenChange(open: boolean) {
+    if (!open || kind !== 'doc') return
+    const missing = pdfProblems(getContent?.() ?? { type: 'doc' })
+    setPdfNote(missing.length > 0
+      ? `PDF can't show some characters here (${missing.slice(0, 4).join(' ')}${missing.length > 4 ? '…' : ''}). Word or plain text will keep them.`
+      : '')
+  }
 
   return (
-    <div className="download" ref={root} onKeyDown={onKeyDown}>
-      <button ref={button} type="button" className="btn secondary" aria-expanded={open} aria-controls="download-list" onClick={() => setOpen((o) => !o)}>
-        <DownloadIcon size={16} />
-        Download
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      {open && (
-        <div id="download-list" className="download-list" role="group" aria-label={kind === 'canvas' ? 'Download the board as' : 'Download the document as'}>
+    <div className="download">
+      <Menu onOpenChange={onOpenChange}>
+        <Menu.Trigger variant="secondary">
+          <DownloadIcon size={16} />
+          Download
+        </Menu.Trigger>
+        <Menu.Content aria-label={kind === 'canvas' ? 'Download the board as' : 'Download the document as'} placement="bottom end">
           {choices.map((c) => (
-            <button key={c.format} type="button" data-choice onClick={() => choose(c)} disabled={busy !== null}>
-              <span>{busy === c.format ? 'Preparing…' : c.title}</span>
-              <span className="muted">{c.hint}</span>
-            </button>
+            <Menu.Item key={c.format} id={c.format} shortcut={c.hint} disabled={busy !== null} onAction={() => void choose(c)}>
+              {busy === c.format ? 'Preparing…' : c.title}
+            </Menu.Item>
           ))}
-          {missing.length > 0 && (
-            <p className="hint">
-              PDF can&apos;t show some characters here ({missing.slice(0, 4).join(' ')}{missing.length > 4 ? '…' : ''}). Word or plain text will keep them.
-            </p>
-          )}
-        </div>
-      )}
+        </Menu.Content>
+      </Menu>
+      {pdfNote && <p className="hint download-note">{pdfNote}</p>}
       <p role={failed ? 'alert' : 'status'} className={failed ? 'download-note error' : 'sr-only'}>{message}</p>
     </div>
   )

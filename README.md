@@ -70,6 +70,12 @@ flowchart LR
 5. Every other gateway with that room open forwards it to its clients, where Yjs merges it deterministically.
 6. The updates are appended to a log in MongoDB and periodically compacted into a snapshot.
 
+### Built with the design system
+
+The interface is built from the published component library [Meridian](https://github.com/yashwanthvarma74-ai/designSystem)
+(`@yashwanthvarma74/react` and `@yashwanthvarma74/tokens`): buttons, fields, dialogs, tabs, menus, cards and
+avatars all come from it, and Synapse's colours are the library's tokens. See [ADR 0019](docs/adr/0019-build-the-ui-with-the-design-system.md).
+
 ### Two consistency domains (the central design decision)
 
 | Document content | Access control |

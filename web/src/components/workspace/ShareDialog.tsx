@@ -1,7 +1,8 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { api } from '@/lib/api'
 import { keys, useAction, useInvites, type Invite } from '@/lib/queries'
+import { Button, Dialog, DialogBody, DialogClose, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input } from '@yashwanthvarma74/react'
 const ROLES = [
   { value: 'editor', label: 'Can edit', help: 'Change documents and boards' },
   { value: 'commenter', label: 'Can comment', help: 'Read, and leave comments' },
@@ -12,7 +13,6 @@ const linkFor = (code: string) => `${window.location.origin}/join/${code}`
 
 // Invite people with a link. Whoever opens it can join with the role you pick.
 export default function ShareDialog({ workspaceId, open, onClose }: { workspaceId: string; open: boolean; onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null)
   const [role, setRole] = useState<Invite['role']>('editor')
   const { data: invites = [], error: loadError } = useInvites(workspaceId, open)
   const [newest, setNewest] = useState<string | null>(null)
@@ -20,14 +20,6 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
   const action = useAction([keys.invites(workspaceId)])
   const error = action.error || loadError?.message || ''
   const busy = action.pending
-
-  // open and close the native <dialog>: it traps focus and closes on Escape for us
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
 
   async function create() {
     setMessage('')
@@ -56,9 +48,13 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
   const shown = newest ?? invites[0]?.code ?? null
 
   return (
-    <dialog ref={ref} onClose={onClose} aria-labelledby="share-title">
-      <h2 id="share-title">Invite people</h2>
-      <p className="muted">Create a link and send it to anyone. They can join in one click, with no account needed.</p>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogHeader>
+        <DialogTitle>Invite people</DialogTitle>
+        <DialogDescription>Create a link and send it to anyone. They can join in one click, with no account needed.</DialogDescription>
+        <DialogClose />
+      </DialogHeader>
+      <DialogBody>
       <fieldset style={{ border: 0, padding: 0, margin: '12px 0' }}>
         <legend style={{ fontWeight: 600, marginBottom: 6 }}>What can they do?</legend>
         <div className="stack">
@@ -70,14 +66,14 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
           ))}
         </div>
       </fieldset>
-      <button className="btn" onClick={create} disabled={busy}>{busy ? 'Creating…' : 'Create invite link'}</button>
+      <Button variant="primary" onClick={create} disabled={busy}>{busy ? 'Creating…' : 'Create invite link'}</Button>
 
       {shown && (
         <div style={{ marginTop: 16 }}>
           <label htmlFor="invite-link">Your link</label>
           <div className="copy-box">
-            <input id="invite-link" readOnly value={linkFor(shown)} onFocus={(e) => e.currentTarget.select()} />
-            <button className="btn secondary" onClick={() => copy(shown)}>Copy link</button>
+            <Input id="invite-link" readOnly value={linkFor(shown)} onFocus={(e) => e.currentTarget.select()} />
+            <Button variant="secondary" onClick={() => copy(shown)}>Copy link</Button>
           </div>
           <p className="hint">Anyone with this link can join, so share it like you would share the document itself. It stops working after 7 days.</p>
         </div>
@@ -102,7 +98,8 @@ export default function ShareDialog({ workspaceId, open, onClose }: { workspaceI
 
       <p role="status" className="muted" style={{ minHeight: '1.5em' }}>{message}</p>
       {error && <p role="alert" className="error">{error}</p>}
-      <div className="dialog-actions"><button className="btn secondary" onClick={onClose}>Done</button></div>
-    </dialog>
+      </DialogBody>
+      <DialogFooter><Button variant="secondary" onClick={onClose}>Done</Button></DialogFooter>
+    </Dialog>
   )
 }

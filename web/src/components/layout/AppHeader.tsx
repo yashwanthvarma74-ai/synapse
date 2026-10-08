@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Logo from '../ui/Logo'
 import { useSession } from '@/lib/useSession'
 import { startGuest } from '@/lib/guest'
+import { Badge, Button, buttonClass } from '@yashwanthvarma74/react'
 
 // The bar at the top of every page: who you are, and the one thing you most likely want next.
 export default function AppHeader() {
@@ -32,18 +33,18 @@ export default function AppHeader() {
         <nav className="header-actions" aria-label="Account">
           {!ready ? null : user ? (
             <>
-              <Link className="btn ghost small" href="/">Your workspaces</Link>
+              <Link className={buttonClass({ variant: 'ghost', size: 'sm' })} href="/">Your workspaces</Link>
               <span className="who">
                 {user.name}
-                {user.guest && <span className="guest-badge">Guest</span>}
+                {user.guest && <Badge variant="accent">Guest</Badge>}
               </span>
-              {user.guest && <Link className="btn small" href="/upgrade">Save your work</Link>}
-              <button className="btn secondary small" onClick={signOut}>Sign out</button>
+              {user.guest && <Link className={buttonClass({ variant: 'primary', size: 'sm' })} href="/upgrade">Save your work</Link>}
+              <Button variant="secondary" size="sm" onClick={signOut}>Sign out</Button>
             </>
           ) : (
             <>
-              <Link className="btn ghost small" href="/login">Sign in</Link>
-              <button className="btn small" onClick={tryIt} disabled={busy}>{busy ? 'Setting up…' : 'Try it now'}</button>
+              <Link className={buttonClass({ variant: 'ghost', size: 'sm' })} href="/login">Sign in</Link>
+              <Button variant="primary" size="sm" onClick={tryIt} disabled={busy}>{busy ? 'Setting up…' : 'Try it now'}</Button>
             </>
           )}
         </nav>

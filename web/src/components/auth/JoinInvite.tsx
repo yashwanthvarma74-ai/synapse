@@ -7,6 +7,7 @@ import { startGuest } from '@/lib/guest'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
 import { JoinArt, NotFoundArt } from '../ui/Illustrations'
+import { Button, Card, buttonClass } from '@yashwanthvarma74/react'
 
 interface InviteInfo { workspaceName: string; inviterName: string; role: Exclude<Role, 'owner'> }
 const WHAT: Record<InviteInfo['role'], string> = {
@@ -51,33 +52,33 @@ export default function JoinInvite({ code }: { code: string }) {
 
   if (problem && !info) {
     return (
-      <div className="card join-card">
+      <Card padding="lg" className="join-card">
         <NotFoundArt />
         <h1>This invite link doesn&apos;t work</h1>
         <p className="muted">{problem}</p>
-        <Link className="btn" href="/">Go to Synapse</Link>
-      </div>
+        <Link className={buttonClass({ variant: 'primary', size: 'md' })} href="/">Go to Synapse</Link>
+      </Card>
     )
   }
   if (!info || !ready) return <div className="page"><p className="muted">Checking your invite…</p></div>
 
   return (
-    <div className="card join-card">
+    <Card padding="lg" className="join-card">
       <JoinArt />
       <h1>{info.inviterName} invited you</h1>
       <p>to join <strong>{info.workspaceName}</strong>, where you&apos;ll be able to {WHAT[info.role]}.</p>
       {problem && <p role="alert" className="error">{problem}</p>}
       <div className="stack">
         {user ? (
-          <button className="btn large" onClick={accept} disabled={busy}>{busy ? 'Joining…' : `Join as ${user.name}`}</button>
+          <Button variant="primary" size="lg" onClick={accept} disabled={busy}>{busy ? 'Joining…' : `Join as ${user.name}`}</Button>
         ) : (
           <>
-            <button className="btn large" onClick={joinAsGuest} disabled={busy}>{busy ? 'Joining…' : 'Join now, no sign-up'}</button>
-            <Link className="btn secondary" href={`/login?next=${encodeURIComponent(`/join/${code}`)}`}>I already have an account</Link>
+            <Button variant="primary" size="lg" onClick={joinAsGuest} disabled={busy}>{busy ? 'Joining…' : 'Join now, no sign-up'}</Button>
+            <Link className={buttonClass({ variant: 'secondary', size: 'md' })} href={`/login?next=${encodeURIComponent(`/join/${code}`)}`}>I already have an account</Link>
             <p className="hint" style={{ textAlign: 'center' }}>Joining as a guest gives you a temporary name. You can create an account afterwards and keep everything.</p>
           </>
         )}
       </div>
-    </div>
+    </Card>
   )
 }

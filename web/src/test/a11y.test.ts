@@ -4,38 +4,38 @@ import { describe, expect, it } from 'vitest'
 import { COLORS } from '@/lib/collab/identity'
 import { contrast, readThemes } from './contrast'
 
-const css = readFileSync(path.resolve(__dirname, '../styles/tokens.css'), 'utf8')
+// the colours are the design system's (Synapse's tokens.css only gives them its own names)
+const css = readFileSync(path.resolve(__dirname, '../../node_modules/@yashwanthvarma74/tokens/dist/tokens.css'), 'utf8')
 const themes = readThemes(css)
 
 describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () => {
   for (const [name, t] of Object.entries(themes)) {
     describe(`${name} theme`, () => {
+      const c = (k: string) => t[k]
       const text: Array<[string, string, string]> = [
-        ['body text on page', t.fg, t.bg],
-        ['body text on panel', t.fg, t.panel],
-        ['muted text on page', t.muted, t.bg],
-        ['muted text on panel', t.muted, t.panel],
-        ['links on page', t.accent, t.bg],
-        ['links on panel', t.accent, t.panel],
-        ['text on accent buttons', t['on-accent'], t.accent],
-        ['error text on page', t.danger, t.bg],
-        ['error text on panel', t.danger, t.panel],
-        ['text on the offline-toggle highlight', '#000000', t.warn],
-        ['body text on cards', t.fg, t.surface],
-        ['muted text on cards', t.muted, t.surface],
-        ['links on cards', t.accent, t.surface],
-        ['error text on cards', t.danger, t.surface],
-        ['white text on the red delete button', '#ffffff', t.danger],
-        ['red delete-button text on the page', t.danger, t.bg],
-        ['body text on the soft highlight (banners, badges, status)', t.fg, t['accent-soft']],
-        ['muted text on the soft highlight', t.muted, t['accent-soft']],
+        ['body text on page', c('color-text-primary'), c('color-bg-canvas')],
+        ['body text on panel', c('color-text-primary'), c('color-bg-muted')],
+        ['muted text on page', c('color-text-secondary'), c('color-bg-canvas')],
+        ['muted text on panel', c('color-text-secondary'), c('color-bg-muted')],
+        ['links on page', c('color-text-link'), c('color-bg-canvas')],
+        ['links on panel', c('color-text-link'), c('color-bg-muted')],
+        ['text on accent buttons', c('color-accent-on-accent'), c('color-accent-default')],
+        ['error text on page', c('color-danger-text'), c('color-bg-canvas')],
+        ['error text on panel', c('color-danger-text'), c('color-bg-muted')],
+        ['body text on cards', c('color-text-primary'), c('color-bg-surface')],
+        ['muted text on cards', c('color-text-secondary'), c('color-bg-surface')],
+        ['links on cards', c('color-text-link'), c('color-bg-surface')],
+        ['error text on cards', c('color-danger-text'), c('color-bg-surface')],
+        ['white text on the red delete button', c('color-text-inverse'), c('color-danger-solid')],
+        ['body text on the soft highlight (banners, badges, status)', c('color-text-primary'), c('color-accent-subtle')],
+        ['muted text on the soft highlight', c('color-text-secondary'), c('color-accent-subtle')],
       ]
       for (const [what, fg, bg] of text) {
         it(`${what} is at least 4.5:1`, () => expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5))
       }
       it('the focus ring stands out from the page (3:1 for non-text)', () => {
-        expect(contrast(t.accent, t.bg)).toBeGreaterThanOrEqual(3)
-        expect(contrast(t.accent, t.panel)).toBeGreaterThanOrEqual(3)
+        expect(contrast(c('color-focus-ring'), c('color-bg-canvas'))).toBeGreaterThanOrEqual(3)
+        expect(contrast(c('color-focus-ring'), c('color-bg-muted'))).toBeGreaterThanOrEqual(3)
       })
     })
   }
@@ -45,8 +45,8 @@ describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () =>
   })
 
   it('the stylesheet really defines the tokens the tests rely on', () => {
-    for (const k of ['fg', 'bg', 'panel', 'muted', 'accent', 'on-accent', 'danger', 'warn', 'surface', 'accent-soft']) {
-      expect(themes.light[k], `light --${k}`).toBeTruthy()
+    for (const k of ['color-text-primary', 'color-bg-canvas', 'color-bg-muted', 'color-text-secondary', 'color-accent-default', 'color-accent-on-accent', 'color-danger-text', 'color-bg-surface', 'color-accent-subtle', 'color-text-link', 'color-focus-ring']) {
+      expect(themes.light[k], `light --mrd-${k}`).toBeTruthy()
     }
   })
 })

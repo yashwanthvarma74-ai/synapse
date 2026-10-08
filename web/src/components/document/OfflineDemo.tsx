@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { SynapseProvider } from '@/lib/collab/provider'
 import { OfflineArt } from '../ui/Illustrations'
+import { Select } from '@yashwanthvarma74/react'
 
 // A built-in way to see the main idea: switch the connection off, keep typing, switch it
 // back on and watch everything merge. It only affects this browser window.
@@ -35,7 +36,7 @@ export default function OfflineDemo({ provider }: { provider: SynapseProvider })
             </button>
             <label style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               Slow the connection by
-              <select
+              <Select
                 style={{ flex: 'none' }}
                 value={latency}
                 onChange={(e) => {
@@ -48,7 +49,7 @@ export default function OfflineDemo({ provider }: { provider: SynapseProvider })
                 <option value={200}>0.2 seconds</option>
                 <option value={1000}>1 second</option>
                 <option value={3000}>3 seconds</option>
-              </select>
+              </Select>
             </label>
           </div>
         </div>

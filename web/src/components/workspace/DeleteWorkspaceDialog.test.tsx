@@ -16,7 +16,7 @@ afterEach(() => { cleanup(); apiMock.mockReset() })
 describe('DeleteWorkspaceDialog', () => {
   it('says exactly what will be lost, and that it cannot be undone', () => {
     render(<DeleteWorkspaceDialog {...props} others={3} items={5} onClose={() => {}} onDeleted={() => {}} />)
-    const text = screen.getByRole('dialog', { hidden: true }).textContent!
+    const text = screen.getByRole('alertdialog').textContent!
     expect(text).toContain('5 documents and boards')
     expect(text).toMatch(/version history, comments, chat messages, uploaded files and invite links/)
     expect(text).toContain('3 other people will lose access')
@@ -25,10 +25,10 @@ describe('DeleteWorkspaceDialog', () => {
 
   it('uses singular wording for one item and one other person, and says nothing about others when alone', () => {
     const { rerender } = render(<DeleteWorkspaceDialog {...props} items={1} others={1} onClose={() => {}} onDeleted={() => {}} />)
-    expect(screen.getByRole('dialog', { hidden: true }).textContent).toContain('1 document or board')
-    expect(screen.getByRole('dialog', { hidden: true }).textContent).toContain('1 other person will lose access')
+    expect(screen.getByRole('alertdialog').textContent).toContain('1 document or board')
+    expect(screen.getByRole('alertdialog').textContent).toContain('1 other person will lose access')
     rerender(<DeleteWorkspaceDialog {...props} others={0} onClose={() => {}} onDeleted={() => {}} />)
-    expect(screen.getByRole('dialog', { hidden: true }).textContent).not.toContain('lose access')
+    expect(screen.getByRole('alertdialog').textContent).not.toContain('lose access')
   })
 
   it('keeps Delete off until the name is typed (any capitalisation, extra spaces ignored)', () => {

@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useSearch } from '@/lib/queries'
+import { Button, Input } from '@yashwanthvarma74/react'
 
 export default function Search() {
   const [q, setQ] = useState('')
@@ -16,8 +17,8 @@ export default function Search() {
   return (
     <section aria-label="Search documents">
       <form onSubmit={run} className="row">
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search all your documents" aria-label="Search documents" />
-        <button className="btn">Search</button>
+        <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search all your documents" aria-label="Search documents" />
+        <Button variant="primary" type="submit">Search</Button>
       </form>
       {error && <p role="alert" className="error">{error.message}</p>}
       {hits && (

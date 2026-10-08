@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
+import "@yashwanthvarma74/react/styles.css";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/components.css";
@@ -11,15 +12,7 @@ import AppHeader from "@/components/layout/AppHeader";
 import Providers from "@/components/layout/Providers";
 import SiteFooter from "@/components/layout/SiteFooter";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://synapse-app-beta.vercel.app";
 const DESCRIPTION = "Write documents and sketch on a whiteboard together, live. It keeps working with no internet and merges everyone's changes when you reconnect. Try it in one click, no sign-up.";
@@ -40,9 +33,10 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "Synapse – write together, even offline", description: DESCRIPTION, images: ["/social.jpg"] },
 };
 
+// data-theme is fixed to light: Synapse is a light-only app, though the design system also has dark and high contrast.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" data-theme="light" className={inter.variable}>
       <body>
         <Providers>
           <a href="#main" className="skip-link">Skip to main content</a>

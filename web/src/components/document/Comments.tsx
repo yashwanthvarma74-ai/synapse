@@ -7,7 +7,7 @@ import { api, type CommentItem, type Role } from '@/lib/api'
 import { keys, useAction, useComments } from '@/lib/queries'
 import { atLeast } from '@/lib/roles'
 import type { Collab } from '@/lib/collab/useCollab'
-import { EmptyCommentsArt } from '../ui/Illustrations'
+import { Button, EmptyState, Textarea } from '@yashwanthvarma74/react'
 
 // A comment is anchored with Yjs relative positions. Unlike a character offset, a relative position
 // follows the text it was attached to, so the comment keeps its place while others type before it.
@@ -63,11 +63,8 @@ export default function Comments({ docId, collab, editor, role, userId }: {
       <h2>Comments</h2>
       {error && <p role="alert" className="error">{error}</p>}
       {roots.length === 0 && (
-        <div className="empty">
-          <EmptyCommentsArt />
-          <strong>No comments yet</strong>
-          {editor ? 'Select some text in the page, then write a comment here. It stays attached to those words.' : 'Write a comment to start a conversation.'}
-        </div>
+        <EmptyState title="No comments yet" headingLevel={3}
+          description={editor ? 'Select some text in the page, then write a comment here. It stays attached to those words.' : 'Write a comment to start a conversation.'} />
       )}
       <ul className="list">
         {roots.map((c) => (
@@ -92,8 +89,8 @@ export default function Comments({ docId, collab, editor, role, userId }: {
       </ul>
       {canComment ? (
         <form onSubmit={add} className="stack">
-          <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={editor ? 'Select text in the document first to attach your comment to it' : 'Write a comment'} maxLength={4000} rows={3} aria-label="New comment" />
-          <button className="btn">Comment</button>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={editor ? 'Select text in the document first to attach your comment to it' : 'Write a comment'} maxLength={4000} rows={3} aria-label="New comment" />
+          <Button variant="primary" type="submit">Comment</Button>
         </form>
       ) : <p className="muted">Viewers can read comments but not write them.</p>}
     </section>
