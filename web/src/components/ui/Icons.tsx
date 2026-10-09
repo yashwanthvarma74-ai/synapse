@@ -17,10 +17,10 @@ export const RedoIcon = (p: Props) => <Icon {...p}><path d="m15 14 5-5-5-5" /><p
 export const BoldIcon = (p: Props) => <Icon {...p}><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z" /><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z" /></Icon>
 export const ItalicIcon = (p: Props) => <Icon {...p}><path d="M19 4h-9" /><path d="M14 20H5" /><path d="m15 4-6 16" /></Icon>
 export const StrikeIcon = (p: Props) => <Icon {...p}><path d="M16 4H9.5a3.5 3.5 0 0 0-3.2 4.6" /><path d="M14 12a4 4 0 0 1 0 8H6" /><path d="M4 12h16" /></Icon>
-export const HeadingIcon = (p: Props) => <Icon {...p}><path d="M5 5v14M13 5v14M5 12h8" /><path d="m17 11 3-2v10" /></Icon>
-export const SubheadingIcon = (p: Props) => <Icon {...p}><path d="M5 5v14M13 5v14M5 12h8" /><path d="M16.5 10.5a2 2 0 1 1 3.4 1.5L16.5 18H21" /></Icon>
+export const HeadingIcon = (p: Props) => <Icon {...p}><path d="M4 12h8M4 18V6M12 18V6" /><path d="m17 12 3-2v8" /></Icon>
+export const SubheadingIcon = (p: Props) => <Icon {...p}><path d="M4 12h8M4 18V6M12 18V6" /><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1" /></Icon>
 export const BulletsIcon = (p: Props) => <Icon {...p}><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1" /><circle cx="4.5" cy="12" r="1" /><circle cx="4.5" cy="18" r="1" /></Icon>
-export const NumbersIcon = (p: Props) => <Icon {...p}><path d="M10 6h10M10 12h10M10 18h10" /><path d="M4 5.5 5.5 5v4M4 12.5h2l-2 3h2M4 17.5h2v1.5H4.5M4 19h2" /></Icon>
+export const NumbersIcon = (p: Props) => <Icon {...p}><path d="M10 6h11M10 12h11M10 18h11" /><path d="M4 10h2M4 6h1v4" /><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" /></Icon>
 export const QuoteIcon = (p: Props) => <Icon {...p}><path d="M10 11H6V7h4v4Zm0 0c0 3-1 4-4 5M19 11h-4V7h4v4Zm0 0c0 3-1 4-4 5" /></Icon>
 export const CodeIcon = (p: Props) => <Icon {...p}><path d="m8 7-5 5 5 5M16 7l5 5-5 5" /></Icon>
 export const ImageIcon = (p: Props) => <Icon {...p}><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="10" r="1.6" /><path d="m21 16-5-5-8 9" /></Icon>
