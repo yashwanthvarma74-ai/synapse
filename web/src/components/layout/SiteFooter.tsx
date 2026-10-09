@@ -1,6 +1,5 @@
 // Shown at the bottom of every page: who made this, and where the code is.
-const REPO = 'https://github.com/yashwanthvarma74-ai/synapse'
-const AUTHOR_PAGE = 'https://github.com/yashwanthvarma74-ai'
+import { AUTHOR_PAGE, REPO } from '@/lib/site'
 
 export default function SiteFooter() {
   return (

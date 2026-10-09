@@ -1,14 +1,13 @@
 /* ---- header ---- */
 .app-header {
   position: sticky; top: 0; z-index: 20;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: saturate(180%) blur(14px);
-  border-bottom: 1px solid rgba(227, 230, 239, 0.9);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 .app-header-inner { max-width: var(--content); margin: 0 auto; min-height: var(--header-height); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.18rem; letter-spacing: -0.03em; color: var(--fg); text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.0625rem; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; }
 .brand:hover { color: var(--fg); }
-.brand svg { flex: none; filter: drop-shadow(0 2px 6px rgba(79, 70, 229, 0.35)); }
+.brand svg { flex: none; }
 .header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .who { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; padding: 0 8px; }
 

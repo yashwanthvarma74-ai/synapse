@@ -1,5 +1,5 @@
-// Not a test: regenerates the readme screenshots (docs/images) and the link-preview image from the
-// production build, with two named people editing together. Run on purpose:
+// Not a test: regenerates the readme screenshots (docs/images), the link-preview image and the product
+// picture on the landing page from the production build, with two named people editing together. Run on purpose:
 //   shots=1 npx playwright test --project=chromium tests/screenshots.spec.ts
 import { expect, test } from '@playwright/test'
 import path from 'node:path'
@@ -75,4 +75,35 @@ test('screenshots', async ({ browser, request, page }) => {
   await j.goto(`/join/${await inviteCode(request, yash, 'editor')}`)
   await expect(j.getByRole('heading', { name: 'Yash invited you' })).toBeVisible()
   await j.screenshot({ path: path.join(OUT, 'join.jpg'), ...shot })
+})
+
+// The picture on the landing page: the same two-person document, drawn at twice the size so it stays sharp.
+test('landing page product picture', async ({ browser, request }) => {
+  const yash = await person(request, 'Yash')
+  const kalyan = await person(request, 'Kalyan')
+  const code = await inviteCode(request, yash, 'editor')
+  await request.post(`${API}/invites/${code}/accept`, { headers: { authorization: `Bearer ${kalyan.token}` }, data: {} })
+  const open = async (token: string) => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 750 }, deviceScaleFactor: 2 })
+    await ctx.addInitScript((t) => { try { localStorage.setItem('synapse:token', t) } catch {} }, token)
+    const p = await ctx.newPage()
+    await openDoc(p, yash.docId)
+    return p
+  }
+  const a = await open(yash.token)
+  const b = await open(kalyan.token)
+  await expect(a.getByText('2 people here')).toBeVisible()
+  // each person types at the end of a one-line heading, so both cursors sit cleanly in the text
+  await editor(b).locator('h2').first().click()
+  await b.keyboard.press('End')
+  await b.keyboard.type(' (Kalyan, typing live)')
+  await expect(editor(a)).toContainText('Kalyan, typing live')
+  await editor(a).locator('h1').first().click()
+  await a.keyboard.press('End')
+  await a.keyboard.type(' (Yash, editing too)')
+  await expect(editor(b)).toContainText('Yash, editing too')
+  await a.waitForTimeout(600)
+  await a.evaluate(() => window.scrollTo(0, 0))
+  await a.waitForTimeout(400)
+  await a.screenshot({ path: path.resolve(HERE, '../../web/public/product.jpg'), type: 'jpeg', quality: 82 })
 })

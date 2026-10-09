@@ -24,11 +24,22 @@ describe('Landing page', () => {
 
   it('says what Synapse is, in plain words, with one clear heading', () => {
     render(<Landing />)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/write together/i)
-    expect(screen.getByText(/nothing is lost/i)).toBeTruthy()
-    // the three ideas, in order
-    expect(screen.getAllByRole('listitem').length).toBeGreaterThan(8)
-    for (const t of ['Write together', 'Keep going offline', 'Everything merges']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/keep working offline/i)
+    expect(screen.getByText(/never costs anyone their work/i)).toBeTruthy()
+    for (const t of ['What is in it', 'What happens when you go offline', 'See it for yourself']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+  })
+
+  it('lists what it does and walks through the offline story in order', () => {
+    render(<Landing />)
+    for (const t of ['Real-time editing', 'Offline by default', 'Conflict-free merging', 'Whiteboard', 'Version history', 'Sharing and roles']) {
+      expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+    }
+    for (const t of ['You keep typing', 'You reconnect', 'Everything merges']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+  })
+
+  it('shows the product, with a description for screen readers', () => {
+    render(<Landing />)
+    expect(screen.getByRole('img', { name: /Synapse document open in two windows/ })).toBeTruthy()
   })
 
   it('one click creates a guest and opens the Welcome document', async () => {

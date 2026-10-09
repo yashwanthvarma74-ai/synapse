@@ -4,7 +4,7 @@ const API = 'http://127.0.0.1:4101'
 
 test('"Try it now" opens the Welcome document, and the workspace (with the Sample board) is one click away', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Try it now, no sign-up' }).first().click()
+  await page.getByRole('button', { name: 'Try it now', exact: true }).first().click()
   await expect(page).toHaveURL(/\/doc\//)
   await expect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
   await page.getByRole('link', { name: /Back to the workspace/ }).click()
