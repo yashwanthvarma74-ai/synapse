@@ -20,7 +20,7 @@ test('links shared on social apps get a title, description, image and author', a
   await page.goto('/')
   const meta = (sel: string) => page.locator(sel).first().getAttribute('content')
   expect(await meta('meta[property="og:title"]')).toContain('Synapse')
-  expect(await meta('meta[property="og:description"]')).toContain('no internet')
+  expect(await meta('meta[property="og:description"]')).toContain('CRDTs')
   expect(await meta('meta[property="og:image"]')).toMatch(/\/social\.jpg$/)
   expect(await meta('meta[name="twitter:card"]')).toBe('summary_large_image')
   expect(await meta('meta[name="author"]')).toBe('Yashwanth Varma')

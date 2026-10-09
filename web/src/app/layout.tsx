@@ -15,22 +15,22 @@ import SiteFooter from "@/components/layout/SiteFooter";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://synapse-app-beta.vercel.app";
-const DESCRIPTION = "Write documents and sketch on a whiteboard together, live. It keeps working with no internet and merges everyone's changes when you reconnect. Try it in one click, no sign-up.";
+const DESCRIPTION = "Local-first, real-time collaborative documents and canvas built on CRDTs. Edits apply on your device first and replicas converge without conflicts after any network partition. Open source.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: { default: "Synapse – write together, even offline", template: "%s – Synapse" },
+  title: { default: "Synapse – local-first, real-time collaborative workspace", template: "%s – Synapse" },
   description: DESCRIPTION,
   authors: [{ name: "Yashwanth Varma", url: "https://github.com/yashwanthvarma74-ai" }],
   creator: "Yashwanth Varma",
   openGraph: {
     type: "website",
     siteName: "Synapse",
-    title: "Synapse – write together, even offline",
+    title: "Synapse – local-first, real-time collaborative workspace",
     description: DESCRIPTION,
     images: [{ url: "/social.jpg", width: 1200, height: 630, alt: "Synapse: a shared document and whiteboard" }],
   },
-  twitter: { card: "summary_large_image", title: "Synapse – write together, even offline", description: DESCRIPTION, images: ["/social.jpg"] },
+  twitter: { card: "summary_large_image", title: "Synapse – local-first, real-time collaborative workspace", description: DESCRIPTION, images: ["/social.jpg"] },
 };
 
 // data-theme is fixed to light: Synapse is a light-only app, though the design system also has dark and high contrast.

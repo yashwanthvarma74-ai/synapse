@@ -24,17 +24,17 @@ describe('Landing page', () => {
 
   it('says what Synapse is, in plain words, with one clear heading', () => {
     render(<Landing />)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/keep working offline/i)
-    expect(screen.getByText(/never costs anyone their work/i)).toBeTruthy()
-    for (const t of ['What is in it', 'What happens when you go offline', 'See it for yourself']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/local-first, real-time collaborative workspace/i)
+    expect(screen.getByText(/converge without conflicts/i)).toBeTruthy()
+    for (const t of ['What sets it apart', 'How offline editing merges', 'Try it']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
-  it('lists what it does and walks through the offline story in order', () => {
+  it('lists what sets it apart and walks through the offline merge in order', () => {
     render(<Landing />)
-    for (const t of ['Real-time editing', 'Offline by default', 'Conflict-free merging', 'Whiteboard', 'Version history', 'Sharing and roles']) {
+    for (const t of ['Local-first', 'Convergent by construction', 'Low-latency fan-out', 'Two consistency domains', 'Stateless gateways', 'Measured and observable']) {
       expect(screen.getByRole('heading', { name: t })).toBeTruthy()
     }
-    for (const t of ['You keep typing', 'You reconnect', 'Everything merges']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+    for (const t of ['Apply locally', 'Sync state vectors', 'Merge deterministically']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
   it('shows the product, with a description for screen readers', () => {
