@@ -63,7 +63,7 @@ export default function Comments({ docId, collab, editor, role, userId }: {
       <h2>Comments</h2>
       {error && <p role="alert" className="error">{error}</p>}
       {roots.length === 0 && (
-        <EmptyState title="No comments yet" headingLevel={3}
+        <EmptyState className="empty-plain" title="No comments yet" headingLevel={3}
           description={editor ? 'Select some text in the page, then write a comment here. It stays attached to those words.' : 'Write a comment to start a conversation.'} />
       )}
       <ul className="list">

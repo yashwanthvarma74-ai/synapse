@@ -73,7 +73,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
         )}
         {!view.loaded && <p className="muted">Loading messages…</p>}
         {empty && (
-          <EmptyState title="No messages yet" headingLevel={3} description="Say hello. Everyone in this document will see it." />
+          <EmptyState className="empty-plain" title="No messages yet" headingLevel={3} description="Say hello. Everyone in this document will see it." />
         )}
         <ul className="chat-list">
           {view.messages.map((m) => (

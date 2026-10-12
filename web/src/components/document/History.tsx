@@ -77,7 +77,7 @@ export default function History({ docId, collab, role, type, connected }: Props)
       {error && <p role="alert" className="error">{error}</p>}
 
       {versions.length === 0 ? (
-        <EmptyState title="No saved versions yet" headingLevel={3}
+        <EmptyState className="empty-plain" title="No saved versions yet" headingLevel={3}
           description="Name a version before a big change. You can preview it and bring it back whenever you like." />
       ) : (
         <ul className="list versions">

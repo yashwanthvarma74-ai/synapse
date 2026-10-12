@@ -56,7 +56,7 @@ export default function Dashboard() {
       {error && <p role="alert" className="error">{error}</p>}
 
       {workspaces?.length === 0 ? (
-        <EmptyState title="No workspaces yet" description="Create your first one below. It only takes a name." headingLevel={2} />
+        <EmptyState className="empty-plain" title="No workspaces yet" description="Create your first one below. It only takes a name." headingLevel={2} />
       ) : (
         <ul className="cards" aria-label="Workspaces">
           {workspaces?.map((w) => (

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Logo from '../ui/Logo'
 import { useSession } from '@/lib/useSession'
 import { startGuest } from '@/lib/guest'
-import { Badge, Button, buttonClass } from '@yashwanthvarma74/react'
+import { Button, buttonClass } from '@yashwanthvarma74/react'
 
 // The bar at the top of every page: who you are, and the one thing you most likely want next.
 export default function AppHeader() {
@@ -36,7 +36,7 @@ export default function AppHeader() {
               <Link className={buttonClass({ variant: 'ghost', size: 'sm' })} href="/">Your workspaces</Link>
               <span className="who">
                 {user.name}
-                {user.guest && <Badge variant="accent">Guest</Badge>}
+                {user.guest && <span className="who-note">guest</span>}
               </span>
               {user.guest && <Link className={buttonClass({ variant: 'primary', size: 'sm' })} href="/upgrade">Save your work</Link>}
               <Button variant="secondary" size="sm" onClick={signOut}>Sign out</Button>

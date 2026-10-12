@@ -21,7 +21,8 @@ label { display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem; fo
 .copy-box input { font-family: var(--mrd-font-family-mono); font-size: 0.85rem; }
 select { min-width: 0; }
 
-.banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: var(--radius); background: var(--accent-soft); border: 1px solid var(--mrd-palette-indigo-100); margin-bottom: 20px; }
+/* a plain notice: white, with a hairline, no tint */
+.banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); margin-bottom: 20px; }
 .banner p { margin: 0; }
 .list { list-style: none; padding: 0; margin: 8px 0; }
 .list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -49,3 +50,7 @@ select { min-width: 0; }
 .slash-menu { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg); }
 /* links that look like buttons (the design system's buttonClass) are not underlined */
 a[class*='mrd_Button-module_button'], a[class*='mrd_Button-module_button']:hover { text-decoration: none; }
+
+/* the design system's empty state draws an icon in a tinted square; here it is just a heading and a line */
+.empty-plain [class*='EmptyState-module_iconWrap'] { display: none; }
+.who-note { color: var(--muted); font-size: 0.8125rem; }

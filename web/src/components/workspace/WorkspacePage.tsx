@@ -12,7 +12,7 @@ import ShareDialog from './ShareDialog'
 import DeleteWorkspaceDialog from './DeleteWorkspaceDialog'
 import CantOpen from '../layout/CantOpen'
 import { useQueryClient } from '@tanstack/react-query'
-import { Badge, Button, Card, EmptyState, Input, Select } from '@yashwanthvarma74/react'
+import { Button, Card, EmptyState, Input, Select } from '@yashwanthvarma74/react'
 
 const ROLES: Role[] = ['owner', 'editor', 'commenter', 'viewer']
 const ROLE_LABEL: Record<Role, string> = { owner: 'Owner', editor: 'Editor', commenter: 'Commenter', viewer: 'Viewer' }
@@ -116,7 +116,7 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
         </div>
       )}
       {docs?.length === 0 ? (
-        <EmptyState title="Nothing here yet" headingLevel={2}
+        <EmptyState className="empty-plain" title="Nothing here yet" headingLevel={2}
           description={canEdit ? 'Create a document to write in, or a whiteboard to sketch on.' : 'When someone adds a document, you will see it here.'} />
       ) : (
         <ul className="cards" aria-label="Documents and boards">
@@ -149,7 +149,7 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
                   <button className="link" aria-label={`Remove ${m.name}`} onClick={run(() => api(`/workspaces/${workspaceId}/members/${m.id}`, { method: 'DELETE' }))}>Remove</button>
                 )}
               </span>
-            ) : <Badge>{ROLE_LABEL[m.role]}</Badge>}
+            ) : <span className="who-note">{ROLE_LABEL[m.role]}</span>}
           </li>
         ))}
       </ul>
