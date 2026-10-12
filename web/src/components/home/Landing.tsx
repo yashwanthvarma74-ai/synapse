@@ -8,10 +8,10 @@ import { startGuest } from '@/lib/guest'
 import { CRDT_POST, REPO } from '@/lib/site'
 
 const DIFFERENCES = [
-  { title: 'Local-first', text: 'The copy on your device is the working copy. Edits apply instantly and persist in IndexedDB. The server is a sync relay and durable store, not a gatekeeper.' },
-  { title: 'Convergent by construction', text: 'Documents and canvas are Yjs CRDTs. A randomised harness ran 10,000 concurrent-edit scenarios, and every one ended with identical state on all replicas.' },
-  { title: 'Low-latency fan-out', text: 'Server-side update propagation p95 of 0.82 ms on one gateway and 1.25 ms across two via Redis pub/sub, with every edit persisted to MongoDB. Loopback, one machine.' },
-  { title: 'Two consistency domains', text: 'Content merges as a CRDT, while access control stays server-authoritative. Revoking a role closes the live socket, and a viewer’s writes are dropped on the server.' },
+  { title: 'Local first', text: 'The copy on your device is the working copy. Edits apply instantly and persist in IndexedDB. The server is a sync relay and durable store, not a gatekeeper.' },
+  { title: 'Convergent by construction', text: 'Documents and canvas are Yjs CRDTs. A randomised harness ran 10,000 concurrent edit scenarios, and every one ended with identical state on all replicas.' },
+  { title: 'Low latency fan out', text: 'Server side update propagation p95 of 0.82 ms on one gateway and 1.25 ms across two via Redis pub/sub, with every edit persisted to MongoDB. Loopback, one machine.' },
+  { title: 'Two consistency domains', text: 'Content merges as a CRDT, while access control stays with the server. Revoking a role closes the live socket, and a viewer’s writes are dropped on the server.' },
   { title: 'Stateless gateways', text: 'WebSocket gateways hold no durable state and coordinate through Redis. 200 editors in one room were measured with no lost messages.' },
   { title: 'Measured and observable', text: 'OpenTelemetry traces, Prometheus metrics, structured logs and k6 load tests. The benchmark report states what was measured and what was not.' },
 ]
@@ -43,9 +43,9 @@ export default function Landing() {
   return (
     <div className="landing">
       <section className="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">Local-first, real-time collaborative workspace.</h1>
+        <h1 id="hero-title">Local first, real time collaborative workspace.</h1>
         <p className="lead">
-          Rich-text documents and a shared canvas built on CRDTs. Every device keeps a full copy, edits apply locally
+          Rich text documents and a shared canvas built on CRDTs. Every device keeps a full copy, edits apply locally
           first, and replicas converge without conflicts after any network partition.
         </p>
         <div className="cta-row">
@@ -54,7 +54,7 @@ export default function Landing() {
             View source<span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
-        <p className="meta">No sign-up needed. Open source, MIT licence.</p>
+        <p className="meta">No sign up needed. Open source, MIT licence.</p>
         {error && <p role="alert" className="error">{error}</p>}
         <figure className="product">
           <Image
@@ -79,8 +79,8 @@ export default function Landing() {
           ))}
         </ul>
         <p className="also">
-          Also included: comments anchored to text, named version history with restore, per-document chat, full-text
-          search, role-based sharing by link, and export to PDF, Word, Markdown, PNG and SVG.
+          Also included: comments anchored to text, named version history with restore, per document chat, full text
+          search, role based sharing by link, and export to PDF, Word, Markdown, PNG and SVG.
         </p>
       </section>
 

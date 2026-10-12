@@ -24,14 +24,14 @@ describe('Landing page', () => {
 
   it('says what Synapse is, in plain words, with one clear heading', () => {
     render(<Landing />)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/local-first, real-time collaborative workspace/i)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/local first, real time collaborative workspace/i)
     expect(screen.getByText(/converge without conflicts/i)).toBeTruthy()
     for (const t of ['What sets it apart', 'How offline editing merges', 'Try it']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
   it('lists what sets it apart and walks through the offline merge in order', () => {
     render(<Landing />)
-    for (const t of ['Local-first', 'Convergent by construction', 'Low-latency fan-out', 'Two consistency domains', 'Stateless gateways', 'Measured and observable']) {
+    for (const t of ['Local first', 'Convergent by construction', 'Low latency fan out', 'Two consistency domains', 'Stateless gateways', 'Measured and observable']) {
       expect(screen.getByRole('heading', { name: t })).toBeTruthy()
     }
     for (const t of ['Apply locally', 'Sync state vectors', 'Merge deterministically']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()

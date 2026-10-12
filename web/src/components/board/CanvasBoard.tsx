@@ -144,7 +144,7 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
     : tool === 'connect'
       ? 'Connect mode: click one shape, then another, to join them with a line. Press Escape to stop.'
       : selection.length
-        ? 'Drag to move. Drag the corner square to resize. Double-click to edit the text.'
+        ? 'Drag to move. Drag the corner square to resize. Double click to edit the text.'
         : 'Click a shape to select it. Drag empty space to move around. Scroll to pan, Ctrl+scroll to zoom.'
 
   return (
@@ -231,7 +231,7 @@ export default function CanvasBoard({ collab, readOnly }: { collab: Collab; read
             <li><span>Add a shape</span><span>Use the buttons above the board</span></li>
             <li><span>Move a shape</span><span>Drag it, or press <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd></span></li>
             <li><span>Resize a shape</span><span>Drag the corner square, or <kbd>Alt</kbd> + arrow keys</span></li>
-            <li><span>Edit the text</span><span>Double-click it, or press <kbd>Enter</kbd></span></li>
+            <li><span>Edit the text</span><span>Double click it, or press <kbd>Enter</kbd></span></li>
             <li><span>Join two shapes</span><span>Press Connect, then click each shape</span></li>
             <li><span>Change the colour</span><span>Select a shape, then pick a colour</span></li>
             <li><span>Delete</span><span><kbd>Delete</kbd> or the Delete button</span></li>

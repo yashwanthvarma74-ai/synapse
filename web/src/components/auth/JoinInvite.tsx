@@ -73,7 +73,7 @@ export default function JoinInvite({ code }: { code: string }) {
           <Button variant="primary" size="lg" onClick={accept} disabled={busy}>{busy ? 'Joining…' : `Join as ${user.name}`}</Button>
         ) : (
           <>
-            <Button variant="primary" size="lg" onClick={joinAsGuest} disabled={busy}>{busy ? 'Joining…' : 'Join now, no sign-up'}</Button>
+            <Button variant="primary" size="lg" onClick={joinAsGuest} disabled={busy}>{busy ? 'Joining…' : 'Join now, no sign up'}</Button>
             <Link className={buttonClass({ variant: 'secondary', size: 'md' })} href={`/login?next=${encodeURIComponent(`/join/${code}`)}`}>I already have an account</Link>
             <p className="hint" style={{ textAlign: 'center' }}>Joining as a guest gives you a temporary name. You can create an account afterwards and keep everything.</p>
           </>

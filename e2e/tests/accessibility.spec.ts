@@ -100,7 +100,7 @@ test('invite page', async ({ browser, request }) => {
   const ctx = await browser.newContext()
   const p = await ctx.newPage()
   await p.goto(`/join/${code}`)
-  await expect(p.getByRole('button', { name: 'Join now, no sign-up' })).toBeVisible()
+  await expect(p.getByRole('button', { name: 'Join now, no sign up' })).toBeVisible()
   await scan(p)
 })
 

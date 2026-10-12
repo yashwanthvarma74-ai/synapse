@@ -83,7 +83,7 @@ test('the invite link flow works for a brand-new visitor with no account', async
   const ctx = await browser.newContext()
   const p = await ctx.newPage()
   await p.goto(`/join/${code}`)
-  await p.getByRole('button', { name: 'Join now, no sign-up' }).click()
+  await p.getByRole('button', { name: 'Join now, no sign up' }).click()
   await expect(p).toHaveURL(/\/doc\//)
   await expect(editor(p)).toBeVisible()
 })

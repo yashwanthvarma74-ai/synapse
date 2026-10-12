@@ -41,7 +41,7 @@ const welcomeDocument: JSONContent = {
     list('bulletList', [
       [{ bold: 'Comment on a sentence.' }, ' Select some text, then write in the Comments panel on the right.'],
       [{ bold: 'Save a version.' }, ' Open History, name the current version, and restore it later if you change your mind.'],
-      [{ bold: 'Open the Sample board.' }, ' It is in this workspace. Drag shapes, double-click a note to edit it, and connect two shapes with a line.'],
+      [{ bold: 'Open the Sample board.' }, ' It is in this workspace. Drag shapes, double click a note to edit it, and connect two shapes with a line.'],
       [{ bold: 'Format your words.' }, ' Use the toolbar above the page for headings, lists and quotes. Keyboard shortcuts work too.'],
     ]),
     h(2, 'Why it is different'),
@@ -61,7 +61,7 @@ const shape = (id: string, kind: Shape['kind'], x: number, y: number, w: number,
 function writeSampleBoard(doc: Y.Doc) {
   const shapes: Shape[] = [
     shape('idea', 'sticky', -300, -160, 190, 120, 'Drag me anywhere', '#ffe066'),
-    shape('edit', 'sticky', -300, 20, 190, 120, 'Double-click a shape to edit its text', '#ffa8a8'),
+    shape('edit', 'sticky', -300, 20, 190, 120, 'Double click a shape to edit its text', '#ffa8a8'),
     shape('plan', 'rect', -20, -120, 180, 90, 'Plan', '#4dabf7'),
     shape('goal', 'ellipse', 230, -150, 150, 150, 'Goal', '#69db7c'),
     shape('tip', 'sticky', 40, 70, 210, 130, 'Use the Connect button to join two shapes with a line', '#d0bfff'),

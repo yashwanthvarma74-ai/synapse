@@ -106,7 +106,7 @@ export default function WorkspacePage({ workspaceId }: { workspaceId: string }) 
 
       <h2>Documents and boards</h2>
       {docs?.some((d) => d.title === 'Welcome to Synapse') && (
-        <p className="muted">New here? Open <strong>Welcome to Synapse</strong> for a one-minute tour, or the <strong>Sample board</strong> to try the whiteboard. You can also start a new document or whiteboard of your own.</p>
+        <p className="muted">New here? Open <strong>Welcome to Synapse</strong> for a one minute tour, or the <strong>Sample board</strong> to try the whiteboard. You can also start a new document or whiteboard of your own.</p>
       )}
       {canEdit && (
         <div className="create-row" role="group" aria-label="Create something new">
