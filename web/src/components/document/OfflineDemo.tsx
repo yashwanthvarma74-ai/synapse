@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import type { SynapseProvider } from '@/lib/collab/provider'
-import { OfflineArt } from '../ui/Illustrations'
 import { Select } from '@yashwanthvarma74/react'
 
 // A built-in way to see the main idea: switch the connection off, keep typing, switch it
@@ -15,7 +14,7 @@ export default function OfflineDemo({ provider }: { provider: SynapseProvider })
       <summary>Try offline mode</summary>
       <div className="demo-body">
         <div>
-          <p style={{ margin: '0 0 6px' }}>See what happens when the connection drops:</p>
+          <p style={{ margin: '0 0 6px' }}>Try it with two windows:</p>
           <ol>
             <li>Switch offline mode on. This window stops talking to the server.</li>
             <li>Keep typing. Open this page in a second window and type there too.</li>
@@ -53,7 +52,6 @@ export default function OfflineDemo({ provider }: { provider: SynapseProvider })
             </label>
           </div>
         </div>
-        <OfflineArt small />
       </div>
     </details>
   )

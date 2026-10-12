@@ -17,10 +17,8 @@
 .offline-demo summary::-webkit-details-marker { display: none; }
 .offline-demo summary::before { content: '\25B8'; color: var(--accent); display: inline-block; transition: transform var(--fast) var(--ease); }
 .offline-demo[open] summary::before { transform: rotate(90deg); }
-.offline-demo .demo-body { padding: 0 16px 16px; display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 16px; align-items: center; }
-@media (max-width: 700px) { .offline-demo .demo-body { grid-template-columns: 1fr; } }
+.offline-demo .demo-body { padding: 0 16px 16px; }
 .offline-demo ol { margin: 0 0 12px; padding-left: 1.2em; color: var(--muted); font-size: 0.92rem; }
-.offline-demo svg { width: 100%; height: auto; }
 .offline-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .offline-controls button { min-height: 36px; padding: 0 14px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--fg); border-radius: 10px; font-weight: 600; cursor: pointer; }
 .offline-controls button[aria-pressed='true'] { background: var(--warn); color: #000; border-color: var(--warn); }

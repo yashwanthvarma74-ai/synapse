@@ -79,7 +79,7 @@ test('workspace page, and the delete-workspace dialog', async ({ browser, reques
   const g = await newGuest(request)
   const p = await windowFor(browser, g.token)
   await p.goto(`/w/${g.workspaceId}`)
-  await expect(p.getByText('New here?')).toBeVisible()
+  await expect(p.getByText(/one minute tour/)).toBeVisible()
   await scan(p)
   await p.getByRole('button', { name: 'Delete workspace' }).click()
   await expect(p.getByRole('alertdialog')).toBeVisible()

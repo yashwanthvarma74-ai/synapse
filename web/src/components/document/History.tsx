@@ -65,7 +65,7 @@ export default function History({ docId, collab, role, type, connected }: Props)
   return (
     <section aria-label="Version history" className="panel">
       <h2>Version history</h2>
-      <p className="muted">Save the {type === 'canvas' ? 'board' : 'document'} as it is now. You can come back to it any time.</p>
+      <p className="muted">Save the {type === 'canvas' ? 'board' : 'document'} as a named version to preview or restore later.</p>
       {canEdit && (
         <form onSubmit={save} className="row">
           <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Name this version" maxLength={80} aria-label="Version name" disabled={!connected} />
@@ -77,8 +77,7 @@ export default function History({ docId, collab, role, type, connected }: Props)
       {error && <p role="alert" className="error">{error}</p>}
 
       {versions.length === 0 ? (
-        <EmptyState className="empty-plain" title="No saved versions yet" headingLevel={3}
-          description="Name a version before a big change. You can preview it and bring it back whenever you like." />
+        <EmptyState className="empty-plain" title="No saved versions yet" headingLevel={3} />
       ) : (
         <ul className="list versions">
           {versions.map((v) => (

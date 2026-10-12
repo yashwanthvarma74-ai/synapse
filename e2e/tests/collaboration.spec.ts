@@ -74,7 +74,7 @@ test('a stranger cannot open someone else\'s document', async ({ browser, reques
   const eve = await newGuest(request, 'Eve')
   const e = await windowFor(browser, eve.token)
   await e.goto(`/doc/${ann.docId}`)
-  await expect(e.getByRole('heading', { name: "We can't open this" })).toBeVisible()
+  await expect(e.getByRole('heading', { name: "Can't open this" })).toBeVisible()
 })
 
 test('the invite link flow works for a brand-new visitor with no account', async ({ browser, request }) => {

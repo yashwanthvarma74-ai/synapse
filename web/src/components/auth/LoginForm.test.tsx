@@ -80,7 +80,7 @@ describe('LoginForm', () => {
   it('offers to try the app with no account, and opens the Welcome document', async () => {
     startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     render(<LoginForm />)
-    fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/doc1'))
   })
 
@@ -88,7 +88,7 @@ describe('LoginForm', () => {
     startGuest.mockResolvedValue({ workspaceId: 'mine', welcomeId: 'mydoc', boardId: 'b' })
     nextParam = '/w/an-old-guests-workspace'
     render(<LoginForm />)
-    fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/doc/mydoc'))
     expect(replace).not.toHaveBeenCalledWith('/w/an-old-guests-workspace')
   })
@@ -97,14 +97,14 @@ describe('LoginForm', () => {
     startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     nextParam = '/join/abc123'
     render(<LoginForm />)
-    fireEvent.click(screen.getByRole('button', { name: /just let me try it/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue as guest/i }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/join/abc123'))
   })
 
   it('creates only one guest however fast the button is clicked', async () => {
     startGuest.mockResolvedValue({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     render(<LoginForm />)
-    const button = screen.getByRole('button', { name: /just let me try it/i })
+    const button = screen.getByRole('button', { name: /continue as guest/i })
     fireEvent.click(button)
     fireEvent.click(button)
     fireEvent.click(button)
@@ -115,7 +115,7 @@ describe('LoginForm', () => {
   it('lets the person try again after a failure', async () => {
     startGuest.mockRejectedValueOnce(new Error('Could not reach the server')).mockResolvedValueOnce({ workspaceId: 'w', welcomeId: 'doc1', boardId: 'b' })
     render(<LoginForm />)
-    const button = screen.getByRole('button', { name: /just let me try it/i })
+    const button = screen.getByRole('button', { name: /continue as guest/i })
     fireEvent.click(button)
     expect((await screen.findByRole('alert')).textContent).toBe('Could not reach the server')
     fireEvent.click(button)

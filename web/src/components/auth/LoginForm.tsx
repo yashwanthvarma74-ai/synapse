@@ -57,8 +57,7 @@ function Form() {
   return (
     <div className="page" style={{ maxWidth: 440 }}>
       <Card padding="lg"><form onSubmit={submit} className="stack" aria-describedby={error ? 'form-error' : undefined}>
-        <h1 style={{ fontSize: '1.5rem', margin: 0 }}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="muted" style={{ margin: 0 }}>{mode === 'login' ? 'Sign in to pick up where you left off.' : 'Free, and it takes a few seconds.'}</p>
+        <h1 style={{ fontSize: '1.5rem', margin: 0 }}>{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
         {mode === 'register' && (
           <label>Your name<Input value={form.name} onChange={set('name')} required maxLength={60} autoComplete="name" placeholder="How others will see you" /></label>
         )}
@@ -71,10 +70,10 @@ function Form() {
         {error && <p role="alert" id="form-error" className="error">{error}</p>}
         <Button variant="primary" size="lg" type="submit" disabled={busy}>{busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}</Button>
         <button type="button" className="link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}>
-          {mode === 'login' ? 'New here? Create an account' : 'Already have an account? Sign in'}
+          {mode === 'login' ? 'Create an account' : 'Already have an account? Sign in'}
         </button>
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', width: '100%' }} />
-        <Button variant="secondary" onClick={guest} disabled={busy}>Just let me try it, no account</Button>
+        <Button variant="secondary" onClick={guest} disabled={busy}>Continue as guest</Button>
       </form></Card>
     </div>
   )

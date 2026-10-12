@@ -28,7 +28,6 @@ select { min-width: 0; }
 .list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
 .list li:last-child { border-bottom: 0; }
 .notice { max-width: 520px; margin: 72px auto; padding: 0 16px; text-align: center; }
-.notice svg { width: 170px; margin: 0 auto 14px; display: block; }
 .tab-badge { display: inline-block; margin-left: 6px; min-width: 19px; padding: 0 6px; border-radius: 10px; background: var(--mrd-color-danger-solid); color: #fff; font-size: 0.72rem; line-height: 19px; text-align: center; font-weight: 700; }
 
 /* ---- status and presence ---- */

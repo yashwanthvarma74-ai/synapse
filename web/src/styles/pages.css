@@ -115,5 +115,4 @@
 
 /* ---- invite and sign-in ---- */
 .join-card { max-width: 480px; margin: 56px auto; text-align: center; padding: 32px; }
-.join-card .join-art { width: 180px; margin: 0 auto 10px; display: block; }
 .join-card .stack { text-align: left; }

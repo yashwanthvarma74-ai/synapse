@@ -62,7 +62,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
   return (
     <section aria-label="Chat" className="panel chat">
       <h2>Chat</h2>
-      <p className="muted chat-hint">Talk with the people in this page. Everyone who can open it can read the chat.</p>
+      <p className="muted chat-hint">Visible to everyone who can open this document.</p>
       {view.historyError && <p role="alert" className="error">{view.historyError}</p>}
 
       <div ref={scroller} onScroll={onScroll} className="chat-scroll" tabIndex={0} role="region" aria-label="Chat messages">
@@ -73,7 +73,7 @@ export default function Chat({ store, view, me, canWrite, connected }: {
         )}
         {!view.loaded && <p className="muted">Loading messages…</p>}
         {empty && (
-          <EmptyState className="empty-plain" title="No messages yet" headingLevel={3} description="Say hello. Everyone in this document will see it." />
+          <EmptyState className="empty-plain" title="No messages yet" headingLevel={3} />
         )}
         <ul className="chat-list">
           {view.messages.map((m) => (

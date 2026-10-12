@@ -21,7 +21,7 @@ test('a new guest sent to the sign-in page from someone else\'s workspace is not
   const p = await ctx.newPage()
   await p.goto(`/w/${old.workspaceId}`) // signed out, so the app sends the visitor to sign in
   await expect(p).toHaveURL(/\/login\?next=/)
-  await p.getByRole('button', { name: 'Just let me try it, no account' }).click()
+  await p.getByRole('button', { name: 'Continue as guest' }).click()
   await expect(p).toHaveURL(/\/doc\//) // their own Welcome document, not the old guest's workspace
   await expect(p.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
 })
@@ -31,7 +31,7 @@ test('a workspace you cannot open says so plainly instead of showing an empty pa
   const stranger = await newGuest(request, 'Stranger')
   const p = await windowFor(browser, stranger.token)
   await p.goto(`/w/${owner.workspaceId}`)
-  await expect(p.getByRole('heading', { name: "We can't open this" })).toBeVisible()
+  await expect(p.getByRole('heading', { name: "Can't open this" })).toBeVisible()
 })
 
 test('delete a workspace (after typing its name), then add a new one', async ({ browser, request }) => {

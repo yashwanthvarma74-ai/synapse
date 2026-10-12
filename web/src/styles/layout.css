@@ -12,12 +12,11 @@
 .who { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 500; padding: 0 8px; }
 
 /* ---- page shells ---- */
-.page { max-width: 1000px; margin: 0 auto; padding: 32px 20px 64px; animation: page-in var(--slow) var(--ease); }
+.page { max-width: 1000px; margin: 0 auto; padding: 32px 20px 64px; }
 .page.wide { max-width: var(--content); }
 .page-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: space-between; margin: 6px 0 24px; }
 .page-head h1 { font-size: clamp(1.8rem, 1.3rem + 1.8vw, 2.4rem); letter-spacing: -0.03em; }
 .page-head p { color: var(--muted); margin: 0; }
-@keyframes page-in { from { transform: translateY(6px); } }
 
 /* ---- footer ---- */
 .site-footer { border-top: 1px solid var(--line); margin-top: 56px; background: var(--surface); }

@@ -38,8 +38,8 @@ export default function UpgradeForm() {
   return (
     <div className="page" style={{ maxWidth: 440 }}>
       <Card padding="lg"><form onSubmit={submit} className="stack" aria-describedby={error ? 'form-error' : undefined}>
-        <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Keep your work</h1>
-        <p className="muted" style={{ margin: 0 }}>Everything you made as {user.name} comes with you. Pick how you want to sign in next time.</p>
+        <h1 style={{ fontSize: '1.5rem', margin: 0 }}>Create an account</h1>
+        <p className="muted" style={{ margin: 0 }}>Everything you made as {user.name} moves to the new account.</p>
         <label>Your name<Input value={form.name} onChange={set('name')} required maxLength={60} autoComplete="name" placeholder={user.name} /></label>
         <label>Email<Input type="email" value={form.email} onChange={set('email')} required autoComplete="email" /></label>
         <label>Password<Input type="password" value={form.password} onChange={set('password')} required minLength={8} autoComplete="new-password" aria-describedby="pw-hint" /></label>

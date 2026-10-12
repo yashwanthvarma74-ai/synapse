@@ -6,7 +6,6 @@ import { api, ApiError, type Role } from '@/lib/api'
 import { startGuest } from '@/lib/guest'
 import { useSession } from '@/lib/useSession'
 import { usePageTitle } from '@/lib/usePageTitle'
-import { JoinArt, NotFoundArt } from '../ui/Illustrations'
 import { Button, Card, buttonClass } from '@yashwanthvarma74/react'
 
 interface InviteInfo { workspaceName: string; inviterName: string; role: Exclude<Role, 'owner'> }
@@ -53,7 +52,6 @@ export default function JoinInvite({ code }: { code: string }) {
   if (problem && !info) {
     return (
       <Card padding="lg" className="join-card">
-        <NotFoundArt />
         <h1>This invite link doesn&apos;t work</h1>
         <p className="muted">{problem}</p>
         <Link className={buttonClass({ variant: 'primary', size: 'md' })} href="/">Go to Synapse</Link>
@@ -64,7 +62,6 @@ export default function JoinInvite({ code }: { code: string }) {
 
   return (
     <Card padding="lg" className="join-card">
-      <JoinArt />
       <h1>{info.inviterName} invited you</h1>
       <p>to join <strong>{info.workspaceName}</strong>, where you&apos;ll be able to {WHAT[info.role]}.</p>
       {problem && <p role="alert" className="error">{problem}</p>}
