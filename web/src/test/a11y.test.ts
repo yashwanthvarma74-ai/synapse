@@ -4,10 +4,9 @@ import { describe, expect, it } from 'vitest'
 import { COLORS } from '@/lib/collab/identity'
 import { contrast, readThemes } from './contrast'
 
-// the colours are the design system's, with the few overrides in Synapse's tokens.css applied on top
+// the colours are the design system's own; Synapse's tokens.css only gives them its names
 const css = readFileSync(path.resolve(__dirname, '../../node_modules/@yashwanthvarma74/tokens/dist/tokens.css'), 'utf8')
-const overrides = readFileSync(path.resolve(__dirname, '../styles/tokens.css'), 'utf8')
-const themes = readThemes(css, overrides)
+const themes = readThemes(css)
 
 describe('colour contrast (WCAG 2 AA), computed from the real stylesheet', () => {
   for (const [name, t] of Object.entries(themes)) {

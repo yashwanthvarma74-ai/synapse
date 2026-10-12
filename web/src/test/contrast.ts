@@ -13,9 +13,9 @@ export function contrast(a: string, b: string) {
 }
 
 // Read the colour tokens (--mrd-name: #hex) from the design system's light theme: everything in its
-// tokens.css before the dark theme starts, then Synapse's own overrides on top. Synapse has one theme: light.
-export function readThemes(css: string, overrides = '') {
-  const root = css.slice(0, css.indexOf("[data-theme='dark']")) + overrides
+// tokens.css before the dark theme starts. Synapse has one theme: light.
+export function readThemes(css: string) {
+  const root = css.slice(0, css.indexOf("[data-theme='dark']"))
   const light = Object.fromEntries([...root.matchAll(/--mrd-([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map((m) => [m[1], m[2]]))
   return { light }
 }

@@ -13,15 +13,15 @@ duplication the design system exists to remove.
 Synapse installs `@yashwanthvarma74/react` and `@yashwanthvarma74/tokens` and builds its screens from them:
 Button, Input, Textarea, Select, Dialog, Tabs, Menu, Badge, Avatar, Card, EmptyState and IconButton.
 
-- **Tokens.** `web/src/styles/tokens.css` only gives Synapse's own variable names (`--bg`, `--accent`, ...) to the
-  design system's `--mrd-*` tokens. It defines no colours of its own. A token change in the design system reaches
-  Synapse with a package update.
+- **Tokens.** `web/src/styles/tokens.css` only gives Synapse's variable names (`--bg`, `--accent`, ...) to the
+  design system's `--mrd-*` tokens. It defines no colours of its own. The near-black look, the single blue for
+  links and focus, and the tighter corners are Meridian's own "graphite" design language (0.2.0), so a token
+  change in the design system reaches Synapse with a package update.
 - **Light only.** `<html data-theme="light">` is fixed. The library also has dark and high contrast; Synapse chose
   not to ship them.
 - **What stays in Synapse.** The editor, the PixiJS board and its toolbar, chat bubbles, the version timeline and
   the "/" menu are product features, not general components. They are styled with the same tokens.
-- **Contrast tests** read the colours from the design system's `tokens.css` and then apply the theme overrides,
-  so they check the values users actually see.
+- **Contrast tests** read the colours from the design system's `tokens.css`, so they check the real values.
 
 ## Consequences
 
