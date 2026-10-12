@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Button, buttonClass } from '@yashwanthvarma74/react'
 import { startGuest } from '@/lib/guest'
 import { CRDT_POST, REPO } from '@/lib/site'
+import { BoardIcon, CheckIcon, CommentIcon, DownloadIcon, HistoryIcon, LinkIcon, SearchIcon } from '../ui/Icons'
 import { ConvergeDiagram, DomainsDiagram, GatewaysDiagram, LatencyDiagram, LocalFirstDiagram, ObservabilityDiagram } from './Diagrams'
 
 const DIFFERENCES = [
@@ -21,6 +22,21 @@ const DIFFERENCES = [
     text: 'Gateways keep no durable state and coordinate through Redis, so any gateway can serve any room.' },
   { title: 'Measured and observable', Art: ObservabilityDiagram, stat: 'SLO alerts', statLabel: 'tested with promtool',
     text: 'OpenTelemetry metrics, a Grafana dashboard, burn rate alerts and k6 load tests. The report says what was not measured.' },
+]
+
+const EXTRAS = [
+  { title: 'Comments', Icon: CommentIcon, text: 'Anchored to the text, so they follow it as it changes.' },
+  { title: 'Version history', Icon: HistoryIcon, text: 'Name a version, preview it as it was, restore it.' },
+  { title: 'Whiteboard', Icon: BoardIcon, text: 'Sticky notes, shapes and connectors on a pan and zoom canvas.' },
+  { title: 'Search', Icon: SearchIcon, text: 'Full text search across your workspaces, board text included.' },
+  { title: 'Sharing and roles', Icon: LinkIcon, text: 'Invite by link as editor, commenter or viewer. Revoke any time.' },
+  { title: 'Export', Icon: DownloadIcon, text: 'PDF, Word, Markdown, PNG and SVG, made in the browser.' },
+]
+
+const JOURNEY = [
+  { title: 'Open a sample', text: 'One click as a guest opens a document and a whiteboard.' },
+  { title: 'Invite a second window', text: 'Press Share, copy the link and open it somewhere else.' },
+  { title: 'Go offline, then back', text: 'Switch on offline mode, type in both, switch it off, and watch the copies merge.' },
 ]
 
 const STEPS = [
@@ -89,20 +105,47 @@ export default function Landing() {
             </li>
           ))}
         </ul>
-        <p className="also">
-          Also included: comments anchored to text, named version history with restore, per document chat, full text
-          search, role based sharing by link, and export to PDF, Word, Markdown, PNG and SVG.
-        </p>
       </section>
 
-      <section className="band split" aria-labelledby="offline-title">
-        <div>
-          <h2 id="offline-title">How offline editing merges</h2>
-          <p className="muted-lead">
-            Replicas are peers. The server relays updates between them and stores the log, but it does not decide the result.
-          </p>
+      <section className="band" aria-labelledby="extras-title">
+        <h2 id="extras-title">And everything around it</h2>
+        <ul className="extras">
+          {EXTRAS.map(({ title, Icon, text }) => (
+            <li key={title}>
+              <span className="extra-icon"><Icon size={20} /></span>
+              <div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="band" aria-labelledby="offline-title">
+        <h2 id="offline-title">How offline editing merges</h2>
+        <p className="muted-lead">
+          Replicas are peers. The server relays updates between them and stores the log, but it does not decide the result.{' '}
           <a href={CRDT_POST} target="_blank" rel="noopener">Why CRDTs and not operational transform<span className="sr-only"> (opens in a new tab)</span></a>
-        </div>
+        </p>
+        <figure className="timeline">
+          <div className="tl-grid" aria-hidden="true">
+            <span className="tl-head tl-c2">Online</span>
+            <span className="tl-head tl-c3">Offline</span>
+            <span className="tl-head tl-c4">Reconnected</span>
+            <b className="tl-who tl-r2">You</b>
+            <div className="tl-track tl-c2 tl-r2"><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /></div>
+            <div className="tl-track tl-off tl-c3 tl-r2"><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /></div>
+            <b className="tl-who tl-r3">Them</b>
+            <div className="tl-track tl-c2 tl-r3"><i className="tl-dot" /><i className="tl-dot" /></div>
+            <div className="tl-track tl-off tl-c3 tl-r3"><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /><i className="tl-dot" /></div>
+            <div className="tl-merged tl-c4"><span className="tl-check"><CheckIcon size={16} /></span><span>Same document on both</span></div>
+          </div>
+          <figcaption>
+            Two people edit apart, then reconnect. In the benchmark, 30 minutes of simulated offline typing merged in 44 to 58 ms
+            and every copy matched. Loopback, one machine.
+          </figcaption>
+        </figure>
         <ol className="steps">
           {STEPS.map((s) => (
             <li key={s.title}>
@@ -115,7 +158,15 @@ export default function Landing() {
 
       <section className="closing" aria-labelledby="ready-title">
         <h2 id="ready-title">Try it</h2>
-        <p>One click opens a sample document and board as a guest. Open the share link in a second window, switch on offline mode, and watch both copies merge.</p>
+        <p>See the merge yourself. It takes about a minute and needs no account.</p>
+        <ol className="journey">
+          {JOURNEY.map((j) => (
+            <li key={j.title}>
+              <h3>{j.title}</h3>
+              <p>{j.text}</p>
+            </li>
+          ))}
+        </ol>
         <div className="cta-row">
           <Button variant="primary" size="lg" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now'}</Button>
           <Link className={buttonClass({ variant: 'secondary', size: 'lg' })} href="/login">Sign in</Link>

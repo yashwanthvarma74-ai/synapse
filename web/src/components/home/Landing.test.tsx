@@ -26,7 +26,7 @@ describe('Landing page', () => {
     render(<Landing />)
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/local first, real time collaborative workspace/i)
     expect(screen.getByText(/converge without conflicts/i)).toBeTruthy()
-    for (const t of ['What sets it apart', 'How offline editing merges', 'Try it']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
+    for (const t of ['What sets it apart', 'And everything around it', 'How offline editing merges', 'Try it']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
   it('lists what sets it apart and walks through the offline merge in order', () => {
@@ -44,6 +44,13 @@ describe('Landing page', () => {
     const diagrams = container.querySelectorAll('svg.diagram')
     expect(diagrams.length).toBe(6)
     for (const d of diagrams) expect(d.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('draws the offline timeline for sighted readers and describes it in words', () => {
+    const { container } = render(<Landing />)
+    expect(container.querySelector('.tl-grid')?.getAttribute('aria-hidden')).toBe('true')
+    expect(screen.getByText(/44 to 58 ms and every copy matched/)).toBeTruthy()
+    for (const t of ['Comments', 'Version history', 'Whiteboard', 'Search', 'Sharing and roles', 'Export']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
   it('shows the product, with a description for screen readers', () => {
