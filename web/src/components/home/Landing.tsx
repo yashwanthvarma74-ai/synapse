@@ -6,14 +6,21 @@ import { useState } from 'react'
 import { Button, buttonClass } from '@yashwanthvarma74/react'
 import { startGuest } from '@/lib/guest'
 import { CRDT_POST, REPO } from '@/lib/site'
+import { ConvergeDiagram, DomainsDiagram, GatewaysDiagram, LatencyDiagram, LocalFirstDiagram, ObservabilityDiagram } from './Diagrams'
 
 const DIFFERENCES = [
-  { title: 'Local first', text: 'The copy on your device is the working copy. Edits apply instantly and persist in IndexedDB. The server is a sync relay and durable store, not a gatekeeper.' },
-  { title: 'Convergent by construction', text: 'Documents and canvas are Yjs CRDTs. A randomised harness ran 10,000 concurrent edit scenarios, and every one ended with identical state on all replicas.' },
-  { title: 'Low latency fan out', text: 'Server side update propagation p95 of 0.82 ms on one gateway and 1.25 ms across two via Redis pub/sub, with every edit persisted to MongoDB. Loopback, one machine.' },
-  { title: 'Two consistency domains', text: 'Content merges as a CRDT, while access control stays with the server. Revoking a role closes the live socket, and a viewer’s writes are dropped on the server.' },
-  { title: 'Stateless gateways', text: 'WebSocket gateways hold no durable state and coordinate through Redis. 200 editors in one room were measured with no lost messages.' },
-  { title: 'Measured and observable', text: 'OpenTelemetry traces, Prometheus metrics, structured logs and k6 load tests. The benchmark report states what was measured and what was not.' },
+  { title: 'Local first', Art: LocalFirstDiagram, stat: '16.6 ms', statLabel: 'keystroke to paint, p95',
+    text: 'The copy on your device is the working copy. Edits apply instantly and persist in IndexedDB. The server relays and stores.' },
+  { title: 'Convergent by construction', Art: ConvergeDiagram, stat: '10,000 / 10,000', statLabel: 'random runs ended identical',
+    text: 'Documents and canvas are Yjs CRDTs, so copies edited apart merge to the same state with no conflicts to resolve.' },
+  { title: 'Low latency fan out', Art: LatencyDiagram, stat: '0.82 ms', statLabel: 'server propagation, p95',
+    text: 'Every edit is relayed to the room and saved to MongoDB. Measured on loopback on one machine.' },
+  { title: 'Two consistency domains', Art: DomainsDiagram, stat: 'Every write', statLabel: 'role checked on the server',
+    text: 'Content merges as a CRDT, while access stays with the server. Revoking a role closes the live connection.' },
+  { title: 'Stateless gateways', Art: GatewaysDiagram, stat: '200 editors', statLabel: 'in one room, no lost messages',
+    text: 'Gateways keep no durable state and coordinate through Redis, so any gateway can serve any room.' },
+  { title: 'Measured and observable', Art: ObservabilityDiagram, stat: 'SLO alerts', statLabel: 'tested with promtool',
+    text: 'OpenTelemetry metrics, a Grafana dashboard, burn rate alerts and k6 load tests. The report says what was not measured.' },
 ]
 
 const STEPS = [
@@ -70,11 +77,15 @@ export default function Landing() {
 
       <section className="band" aria-labelledby="features-title">
         <h2 id="features-title">What sets it apart</h2>
-        <ul className="grid">
-          {DIFFERENCES.map((f) => (
-            <li key={f.title}>
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
+        <ul className="diffs">
+          {DIFFERENCES.map(({ title, Art, stat, statLabel, text }) => (
+            <li key={title} className="diff">
+              <div className="diff-art"><Art /></div>
+              <div className="diff-body">
+                <p className="stat"><span className="stat-value">{stat}</span><span className="stat-label">{statLabel}</span></p>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
             </li>
           ))}
         </ul>

@@ -37,6 +37,15 @@ describe('Landing page', () => {
     for (const t of ['Apply locally', 'Sync state vectors', 'Merge deterministically']) expect(screen.getByRole('heading', { name: t })).toBeTruthy()
   })
 
+  it('backs each point with a key figure, and keeps the diagrams out of the accessibility tree', () => {
+    const { container } = render(<Landing />)
+    const figures = [...container.querySelectorAll('.stat-value')].map((e) => e.textContent)
+    for (const t of ['16.6 ms', '10,000 / 10,000', '0.82 ms', '200 editors']) expect(figures).toContain(t)
+    const diagrams = container.querySelectorAll('svg.diagram')
+    expect(diagrams.length).toBe(6)
+    for (const d of diagrams) expect(d.getAttribute('aria-hidden')).toBe('true')
+  })
+
   it('shows the product, with a description for screen readers', () => {
     render(<Landing />)
     expect(screen.getByRole('img', { name: /Synapse document open in two windows/ })).toBeTruthy()
