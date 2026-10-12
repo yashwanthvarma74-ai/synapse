@@ -30,21 +30,22 @@ import { Button } from '@yashwanthvarma74/react'
 // PixiJS touches `window`, so the canvas only loads in the browser
 const CanvasBoard = dynamic(() => import('../board/CanvasBoard'), { ssr: false, loading: () => <p className="muted">Loading canvas…</p> })
 
-// Words a first-time user understands, not jargon
+// A short label on screen. The fuller explanation is in the tooltip and read out by screen readers.
 const STATUS = {
-  connecting: { text: 'Connecting…', hint: 'Reaching the server' },
-  connected: { text: 'Connected · changes sync as you type', hint: 'Everyone sees your changes right away' },
-  offline: { text: 'Offline · saved on this device, will sync when you reconnect', hint: 'Nothing is lost while you are offline' },
-  revoked: { text: 'Access removed', hint: 'You no longer have access to this document' },
+  connecting: { text: 'Connecting', more: '', hint: 'Reaching the server' },
+  connected: { text: 'Connected', more: '. Changes sync as you type.', hint: 'Everyone sees your changes right away' },
+  offline: { text: 'Offline', more: '. Saved on this device, and will sync when you reconnect.', hint: 'Saved on this device, will sync when you reconnect' },
+  revoked: { text: 'Access removed', more: '. You no longer have access to this document.', hint: 'You no longer have access to this document' },
 } as const
 
 function StatusPill({ collab }: { collab: Collab }) {
   const status = useStatus(collab.provider)
   const s = STATUS[status]
   return (
-    <span className={`status${status === 'connected' ? ' status-ok' : ''}`} role="status" title={s.hint}>
+    <span className="status" role="status" title={s.hint}>
       <span className={`dot ${status}`} aria-hidden="true" />
-      <span className="status-text">{s.text}</span>
+      <span>{s.text}</span>
+      {s.more && <span className="sr-only">{s.more}</span>}
     </span>
   )
 }

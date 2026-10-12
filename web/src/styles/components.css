@@ -31,11 +31,11 @@ select { min-width: 0; }
 .tab-badge { display: inline-block; margin-left: 6px; min-width: 19px; padding: 0 6px; border-radius: 10px; background: var(--mrd-color-danger-solid); color: #fff; font-size: 0.72rem; line-height: 19px; text-align: center; font-weight: 700; }
 
 /* ---- status and presence ---- */
-.status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-xs); }
-.status.status-ok { background: var(--mrd-palette-green-50); border-color: var(--mrd-palette-green-100); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-.dot.connected { background: var(--ok); box-shadow: 0 0 0 3px var(--mrd-palette-green-100); }
-.dot.connecting, .dot.offline { background: var(--warn); box-shadow: 0 0 0 3px var(--mrd-palette-amber-100); }
+.status { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8125rem; color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.dot.connected { background: var(--ok); }
+.dot.connecting, .dot.offline { background: var(--warn); }
+.dot.revoked { background: var(--mrd-color-danger-solid); }
 .presence { display: flex; gap: 8px; align-items: center; }
 .avatars { display: flex; list-style: none; margin: 0; padding: 0; }
 .avatars li + li { margin-left: -8px; }
