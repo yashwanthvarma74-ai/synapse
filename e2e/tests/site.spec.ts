@@ -27,3 +27,12 @@ test('links shared on social apps get a title, description, image and author', a
   const img = await page.request.get(new URL('/social.jpg', page.url()).toString())
   expect(img.status()).toBe(200)
 })
+
+test('the browser tab shows the Synapse icon, not the framework default', async ({ page, request }) => {
+  await page.goto('/')
+  const icons = await page.locator('link[rel~="icon"], link[rel="apple-touch-icon"]').evaluateAll((els) => els.map((e) => (e as HTMLLinkElement).getAttribute('href') ?? ''))
+  expect(icons.some((h) => h.includes('icon.svg'))).toBe(true)
+  expect(icons.some((h) => h.includes('favicon.ico'))).toBe(true)
+  expect(icons.some((h) => h.includes('apple-icon'))).toBe(true)
+  for (const href of icons) expect((await request.get(new URL(href, page.url()).toString())).ok(), href).toBe(true)
+})
