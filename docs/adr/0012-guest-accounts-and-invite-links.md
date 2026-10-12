@@ -11,7 +11,7 @@ needed the other person to have an account already. For a project meant to be op
 ## Decision
 
 **Guest accounts.** `POST /auth/guest` creates a real user with a random password nobody knows, a
-generated name ("Curious Otter"), a starter workspace, a Welcome document and a sample board, and
+generated name ("Guest 4821"), a starter workspace, a Welcome document and a sample board, and
 returns a token. Everything the app does for a normal account works for a guest. `POST /auth/upgrade`
 attaches an email and a password to the same account, so nothing is lost ("Save your work").
 

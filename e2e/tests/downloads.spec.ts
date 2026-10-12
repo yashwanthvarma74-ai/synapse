@@ -23,13 +23,13 @@ test.describe('documents', () => {
     const plain = txt.bytes.toString('utf8')
     expect(plain).toContain('Welcome to Synapse')
     expect(plain).toContain('TYPED-FOR-DOWNLOAD')
-    expect(plain).toMatch(/^1\. Type here\./m)
+    expect(plain).toMatch(/^1\. Edit\./m)
 
     const md = await download(p, /Markdown/)
     expect(md.file.suggestedFilename()).toBe('Welcome-to-Synapse.md')
     const markdown = md.bytes.toString('utf8')
     expect(markdown).toMatch(/^# Welcome to Synapse/m)
-    expect(markdown).toContain('**Type here.**') // bold carried across
+    expect(markdown).toContain('**Edit.**') // bold carried across
     expect(markdown).toContain('TYPED-FOR-DOWNLOAD')
   })
 
@@ -42,7 +42,7 @@ test.describe('documents', () => {
     const zip = await JSZip.loadAsync(bytes)
     const xml = await zip.file('word/document.xml')!.async('string')
     expect(xml).toContain('Welcome to Synapse')
-    expect(xml).toContain('Type here.')
+    expect(xml).toContain('Edit.')
     expect(xml).toContain('Heading1')
     expect(xml).toContain('Heading2')
   })
@@ -118,7 +118,7 @@ test.describe('whiteboards', () => {
     const svg = await download(p, /SVG image/)
     const markup = svg.bytes.toString('utf8')
     expect(markup).toMatch(/^<svg /)
-    for (const word of ['Plan', 'Goal', 'Drag me anywhere']) expect(markup).toContain(word)
+    for (const word of ['Plan', 'Goal', 'Drag to move']) expect(markup).toContain(word)
     expect(markup).toContain('<ellipse') // the "Goal" circle
     expect(markup).toContain('<line') // the connectors
   })

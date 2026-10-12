@@ -20,7 +20,8 @@ Button, Input, Textarea, Select, Dialog, Tabs, Menu, Badge, Avatar, Card, EmptyS
   not to ship them.
 - **What stays in Synapse.** The editor, the PixiJS board and its toolbar, chat bubbles, the version timeline and
   the "/" menu are product features, not general components. They are styled with the same tokens.
-- **Contrast tests** read the colours from the design system's `tokens.css`, so they check the real values.
+- **Contrast tests** read the colours from the design system's `tokens.css` and then apply the theme overrides,
+  so they check the values users actually see.
 
 ## Consequences
 

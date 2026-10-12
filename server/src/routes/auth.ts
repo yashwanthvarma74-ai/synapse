@@ -8,9 +8,7 @@ import { m } from '../telemetry.js'
 import { email, HttpError, idParam, limitFromEnv, parse, publicUser, rateLimit, route } from '../http.js'
 import { needAuth, type ApiContext } from './context.js'
 
-const ADJECTIVES = ['Curious', 'Brave', 'Calm', 'Clever', 'Gentle', 'Happy', 'Jolly', 'Kind', 'Lively', 'Mellow', 'Swift', 'Witty']
-const ANIMALS = ['Otter', 'Panda', 'Falcon', 'Heron', 'Lynx', 'Koala', 'Fox', 'Owl', 'Dolphin', 'Gecko', 'Badger', 'Robin']
-const guestName = () => `${ADJECTIVES[randomInt(ADJECTIVES.length)]} ${ANIMALS[randomInt(ANIMALS.length)]}`
+const guestName = () => `Guest ${1000 + randomInt(9000)}`
 
 // A guest has no password, so an expired token would lock them out of their own work.
 // Guests get a month, the same time the cleanup script keeps them for.

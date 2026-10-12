@@ -21,7 +21,6 @@ const list = (kind: 'bulletList' | 'orderedList', items: Run[][]): JSONContent =
   type: kind,
   content: items.map((parts) => ({ type: 'listItem', content: [{ type: 'paragraph', content: runs(parts) }] })),
 })
-const quote = (...parts: Run[]): JSONContent => ({ type: 'blockquote', content: [{ type: 'paragraph', content: runs(parts) }] })
 
 const WELCOME_TITLE = 'Welcome to Synapse'
 
@@ -29,24 +28,23 @@ const welcomeDocument: JSONContent = {
   type: 'doc',
   content: [
     h(1, WELCOME_TITLE),
-    p('Synapse is a shared notebook that never loses your work. Everyone can edit at the same time, and it keeps working when the internet does not.'),
-    h(2, 'Try it in one minute'),
+    p('Synapse is a collaborative editor that keeps working offline. Edits from every person and device merge without conflicts.'),
+    h(2, 'Things to try'),
     list('orderedList', [
-      [{ bold: 'Type here.' }, ' Click anywhere on this page and write something. It saves as you type.'],
-      [{ bold: 'Bring someone in.' }, ' Press Share at the top, copy the invite link, and open it in another window or send it to a friend. You will see each other typing, with names on the cursors.'],
-      [{ bold: 'Go offline on purpose.' }, ' Open "Try offline mode" under the title and switch it on. Keep typing. Your changes are safe on this device.'],
-      [{ bold: 'Come back online.' }, ' Switch it off. Everything merges. Nobody has to choose whose version wins, and nothing is lost.'],
+      [{ bold: 'Edit.' }, ' Type anywhere on this page. Changes are saved as you type.'],
+      [{ bold: 'Invite.' }, ' Press Share, copy the link and open it in a second window. Each cursor carries its owner\'s name.'],
+      [{ bold: 'Go offline.' }, ' Open "Try offline mode" under the title and switch it on. Keep typing in both windows.'],
+      [{ bold: 'Reconnect.' }, ' Switch it off. The two copies exchange what they are missing and merge.'],
     ]),
-    h(2, 'More things to try'),
+    h(2, 'Also here'),
     list('bulletList', [
-      [{ bold: 'Comment on a sentence.' }, ' Select some text, then write in the Comments panel on the right.'],
-      [{ bold: 'Save a version.' }, ' Open History, name the current version, and restore it later if you change your mind.'],
-      [{ bold: 'Open the Sample board.' }, ' It is in this workspace. Drag shapes, double click a note to edit it, and connect two shapes with a line.'],
-      [{ bold: 'Format your words.' }, ' Use the toolbar above the page for headings, lists and quotes. Keyboard shortcuts work too.'],
+      [{ bold: 'Comments.' }, ' Select text and write in the Comments panel. The comment stays on that text as the page changes.'],
+      [{ bold: 'Versions.' }, ' Save a named version in History, then preview or restore it.'],
+      [{ bold: 'Whiteboard.' }, ' The Sample board in this workspace has shapes, sticky notes and connectors.'],
+      [{ bold: 'Formatting.' }, ' Use the toolbar, or Markdown shortcuts such as # for a heading.'],
     ]),
-    h(2, 'Why it is different'),
-    quote('Two people edit the same sentence while offline? Both edits are kept, and every copy ends up identical.'),
-    p('Under the hood Synapse uses a CRDT, a data structure designed so that copies can be edited separately and merged in any order without a referee. The project documentation explains how it works, with measurements.'),
+    h(2, 'How it works'),
+    p('Documents are Yjs CRDTs. Each edit has a unique ID and a causal position, so concurrent edits can be applied in any order and every copy converges. The server relays and stores updates but does not decide the result. The repository documentation covers the design and the measurements.'),
   ],
 }
 
@@ -60,11 +58,11 @@ const shape = (id: string, kind: Shape['kind'], x: number, y: number, w: number,
 
 function writeSampleBoard(doc: Y.Doc) {
   const shapes: Shape[] = [
-    shape('idea', 'sticky', -300, -160, 190, 120, 'Drag me anywhere', '#ffe066'),
-    shape('edit', 'sticky', -300, 20, 190, 120, 'Double click a shape to edit its text', '#ffa8a8'),
+    shape('idea', 'sticky', -300, -160, 190, 120, 'Drag to move', '#ffe066'),
+    shape('edit', 'sticky', -300, 20, 190, 120, 'Double click to edit text', '#ffa8a8'),
     shape('plan', 'rect', -20, -120, 180, 90, 'Plan', '#4dabf7'),
     shape('goal', 'ellipse', 230, -150, 150, 150, 'Goal', '#69db7c'),
-    shape('tip', 'sticky', 40, 70, 210, 130, 'Use the Connect button to join two shapes with a line', '#d0bfff'),
+    shape('tip', 'sticky', 40, 70, 210, 130, 'Connect joins two shapes with a line', '#d0bfff'),
   ]
   const links: Array<[string, string, string]> = [['c1', 'plan', 'goal'], ['c2', 'idea', 'plan']]
   const objects = doc.getMap<Y.Map<unknown>>('objects')

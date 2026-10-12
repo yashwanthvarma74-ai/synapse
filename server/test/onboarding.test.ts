@@ -81,7 +81,7 @@ describe('first-run content', () => {
     expect(() => node.check()).not.toThrow() // throws if any node or mark breaks the schema
     const text = extractText(ydoc)
     expect(text).toContain('Welcome to Synapse')
-    expect(text).toContain('Go offline on purpose')
+    expect(text).toContain('Go offline.')
     expect(text).toContain('Press Share')
     expect(node.childCount).toBeGreaterThan(5)
   })
@@ -108,11 +108,11 @@ describe('first-run content', () => {
 })
 
 describe('guest accounts ("try it now")', () => {
-  it('creates a working account in one request, with starter content and a friendly name', async () => {
+  it('creates a working account in one request, with starter content and a plain name', async () => {
     const r = await request(api).post('/auth/guest')
     expect(r.status).toBe(201)
     expect(r.body.user.guest).toBe(true)
-    expect(r.body.user.name).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+$/) // like "Curious Otter"
+    expect(r.body.user.name).toMatch(/^Guest \d{4}$/) // like "Guest 4821"
     const me = await request(api).get('/me').set(auth(r.body.token))
     expect(me.body.guest).toBe(true)
     const docs = await request(api).get(`/workspaces/${r.body.starter.workspaceId}/documents`).set(auth(r.body.token))

@@ -1,6 +1,24 @@
-/* Synapse's own names for the Meridian design tokens (@yashwanthvarma74/tokens). Nothing is defined here:
-   every colour, radius and shadow comes from the design system, so a token change there reaches Synapse
-   with one package update. Synapse is light-only on purpose (see app/layout.tsx). */
+/* Synapse's own names for the Meridian design tokens (@yashwanthvarma74/tokens), plus its theme: the first block
+   below overrides a handful of Meridian values, and everything else comes straight from the design system.
+   Synapse is light-only on purpose (see app/layout.tsx). */
+
+/* The theme. Near-black for actions, one blue for links and focus, and tighter corners than the library default.
+   This block is read by src/test/a11y.test.ts, so every text pairing is contrast-checked with these values. */
+:root[data-theme='light'] {
+  --mrd-color-accent-default: #101828;
+  --mrd-color-accent-hover: #1d2939;
+  --mrd-color-accent-active: #000000;
+  --mrd-color-accent-subtle: #f1f3f6;
+  --mrd-color-accent-subtle-hover: #e4e7ec;
+  --mrd-color-accent-text: #101828;
+  --mrd-color-text-link: #0550ae;
+  --mrd-color-focus-ring: #0969da;
+  --mrd-radius-md: 0.25rem;
+  --mrd-radius-lg: 0.375rem;
+  --mrd-radius-xl: 0.5rem;
+  --mrd-radius-2xl: 0.625rem;
+}
+
 :root {
   color-scheme: light;
 
@@ -30,7 +48,7 @@
   --shadow-sm: var(--mrd-shadow-sm);
   --shadow-md: var(--mrd-shadow-md);
   --shadow-lg: var(--mrd-shadow-xl);
-  --ring: 0 0 0 3px var(--mrd-palette-indigo-200);
+  --ring: 0 0 0 3px rgba(9, 105, 218, 0.25);
   --radius-sm: var(--mrd-radius-lg);
   --radius: var(--mrd-radius-xl);
   --radius-lg: var(--mrd-radius-2xl);

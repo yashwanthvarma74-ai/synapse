@@ -105,7 +105,7 @@ describe('POST /documents/:id/summarize', () => {
     expect((await ask(api, u.token, u.doc)).body.summary).toBe('- a summary')
     expect((await ask(api, u.token, u.board)).status).toBe(200)
     expect(seen[0]).toMatchObject({ kind: 'doc', title: 'Welcome to Synapse' })
-    expect(seen[0].content).toContain('Try it in one minute')
+    expect(seen[0].content).toContain('Things to try')
     expect(seen[1]).toMatchObject({ kind: 'canvas', title: 'Sample board' })
     expect(seen[1].content).toContain('Shapes (5):')
     expect(seen[1].content).toContain('"Plan" -> "Goal"')
