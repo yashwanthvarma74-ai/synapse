@@ -28,7 +28,7 @@ extra checks found more. All were fixed and re-tested.
 | 4 | **4 of the 7 avatar and cursor-label colours failed 4.5:1 with white text** (from 2.48 to 4.35). axe missed this because only some colours happened to be on screen | New palette, all at least 4.9:1, locked in by a test |
 | 5 | Dark-theme error red was 4.19:1 | Separate dark-theme error colour (8.2:1) |
 | 6 | No skip link | "Skip to main content" link, verified with real keys |
-| 7 | Every page had the same title | Per-page titles ("Roadmap – Synapse"), set with Next.js metadata and refined once data loads |
+| 7 | Every page had the same title | Per-page titles ("Roadmap | Synapse"), set with Next.js metadata and refined once data loads |
 | 8 | Comments/History tabs were half-built ARIA tabs (no panels, no arrow keys) | Proper tabs pattern: roving tabindex, arrows, Home/End, labelled panels (`Tabs.tsx`, with tests) |
 | 9 | The offline button changed its label **and** used `aria-pressed` (reads as "Go online, pressed") | Constant name "Simulate offline", state in `aria-pressed`, plus "(on)" text so it is not colour only |
 | 10 | Repeated "Resolve", "Delete", "Preview", "Restore" buttons had no context | Each names its target ("Delete comment by Yash", "Restore version First draft") |

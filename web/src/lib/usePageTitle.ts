@@ -4,6 +4,6 @@ import { useEffect } from 'react'
 // navigating, and what the browser tab shows.
 export function usePageTitle(title: string | null | undefined) {
   useEffect(() => {
-    if (title) document.title = `${title} – Synapse`
+    if (title) document.title = `${title} | Synapse`
   }, [title])
 }
