@@ -1,0 +1,36 @@
+name: Release
+
+# Pushing a tag such as v1.0.0 publishes the server and web container images to GitHub Packages
+# and creates a GitHub release.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io/${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to the registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build and push the server image
+        run: |
+          docker build -t "$REGISTRY/synapse-server:${GITHUB_REF_NAME}" -t "$REGISTRY/synapse-server:latest" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" ./server
+          docker push --all-tags "$REGISTRY/synapse-server"
+      - name: Build and push the web image
+        run: |
+          docker build -t "$REGISTRY/synapse-web:${GITHUB_REF_NAME}" -t "$REGISTRY/synapse-web:latest" \
+            --build-arg NEXT_PUBLIC_API_URL=http://localhost:4001 --build-arg NEXT_PUBLIC_GATEWAY_URL=ws://localhost:4000 \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" ./web
+          docker push --all-tags "$REGISTRY/synapse-web"
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "Synapse ${GITHUB_REF_NAME}" --generate-notes
