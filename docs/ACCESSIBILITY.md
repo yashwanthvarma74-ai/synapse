@@ -116,36 +116,3 @@ region ("Added ellipse", "Connected", "Resized to 190 by 120").
 
 `npm run lint` is clean.
 
-## Re-running the browser audit
-
-```bash
-cd e2e && npx playwright test tests/accessibility.spec.ts --project=chromium --project=webkit
-```
-
-It starts its own copy of the app (see `e2e/playwright.config.ts`). axe is a dev dependency and is not shipped.
-
-## NOT verified, and known limits
-
-- **No screen reader was run.** Automated rules and key-press tests cannot tell
-  you how VoiceOver, NVDA or JAWS actually speak the page: reading order,
-  verbosity, how live regions interrupt, or how `role="application"` on the canvas
-  changes browse mode. This is the most important gap. Someone should test with at
-  least VoiceOver and one Windows reader before any accessibility claim is made.
-- **The canvas drawing itself is pixels.** The shapes are not exposed individually
-  to assistive technology; the **object list** is the accessible equivalent, and it
-  shows only the first 200 objects. Connectors are not in the list (deleting a
-  shape deletes its connectors). The whiteboard now has a **colour palette made of buttons**, so
-  colour can be changed with the keyboard in principle, but I did not test that flow with real key presses.
-- **Cursor labels and remote carets** inside the editor are visual only.
-- **Forced-colours (Windows high contrast) styles are untested.** They were added
-  from the standard approach and could not be emulated here.
-- **No testing on touch screens or with voice control**; target sizes meet the 24 px
-  minimum.
-- **Reduced motion** is respected in CSS, but the app has almost no animation.
-- **The comments panel refreshes every 5 seconds** without announcing new comments.
-- **Browser coverage:** axe ran in Chromium and **WebKit** (the engine of Safari, not Safari itself). **Firefox was not run**: the Playwright build of Firefox would not start on this Mac (macOS 27.0), even when launched by hand; it is configured for CI on Linux, which has not run yet.
-- **Text-only zoom** (a browser setting that enlarges text but not layout) was not
-  tested. Normal browser zoom is covered by the 320 px reflow check, which equals
-  400% zoom of a 1280 px window.
-- **WCAG 2.2 criteria not assessed:** timing, captions and audio (the app has no
-  media), and cognitive criteria such as consistent help.
