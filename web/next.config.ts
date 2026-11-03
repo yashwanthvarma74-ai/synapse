@@ -1,0 +1,13 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Next 16 generates extra instruction files in the project on first start; keep a fresh clone's `git status` clean
+  agentRules: false,
+  // The end-to-end tests build into their own folder so they never disturb a running dev server
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+  // Lets a second dev origin (127.0.0.1) work, so two different accounts can be
+  // signed in at once during manual testing (each origin has its own localStorage).
+  allowedDevOrigins: ['127.0.0.1'],
+};
+
+export default nextConfig;

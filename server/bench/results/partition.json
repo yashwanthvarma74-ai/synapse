@@ -1,0 +1,67 @@
+{
+  "when": "2026-10-05T20:19:04.304Z",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "cores": 14,
+    "ramGb": 24,
+    "os": "Darwin 27.0.0",
+    "node": "v26.10.0"
+  },
+  "target": "converge < 2 s after a 5-minute partition",
+  "rows": [
+    {
+      "simulatedMinutes": 1,
+      "bothOffline": false,
+      "editsPerSide": 240,
+      "docBytesAfter": 7170,
+      "convergenceMs": 8,
+      "identical": true,
+      "chars": 1981
+    },
+    {
+      "simulatedMinutes": 1,
+      "bothOffline": true,
+      "editsPerSide": 240,
+      "docBytesAfter": 6982,
+      "convergenceMs": 16,
+      "identical": true,
+      "chars": 1937
+    },
+    {
+      "simulatedMinutes": 5,
+      "bothOffline": false,
+      "editsPerSide": 1200,
+      "docBytesAfter": 30271,
+      "convergenceMs": 13,
+      "identical": true,
+      "chars": 5666
+    },
+    {
+      "simulatedMinutes": 5,
+      "bothOffline": true,
+      "editsPerSide": 1200,
+      "docBytesAfter": 30111,
+      "convergenceMs": 18,
+      "identical": true,
+      "chars": 5517
+    },
+    {
+      "simulatedMinutes": 30,
+      "bothOffline": false,
+      "editsPerSide": 7200,
+      "docBytesAfter": 173381,
+      "convergenceMs": 44,
+      "identical": true,
+      "chars": 29026
+    },
+    {
+      "simulatedMinutes": 30,
+      "bothOffline": true,
+      "editsPerSide": 7200,
+      "docBytesAfter": 175773,
+      "convergenceMs": 58,
+      "identical": true,
+      "chars": 28940
+    }
+  ]
+}

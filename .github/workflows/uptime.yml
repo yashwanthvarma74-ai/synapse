@@ -1,0 +1,50 @@
+# Outside-in uptime check, every 5 minutes. It does nothing until you set the repository
+# variables below (Settings > Secrets and variables > Actions), so it is safe to leave in.
+#   Variables: SYNAPSE_API_URL, SYNAPSE_GATEWAY_URL, SYNAPSE_CANARY_DOC
+#   Secret:    SYNAPSE_CANARY_TOKEN  (a long-lived token for a dedicated canary account that can open the canary document)
+# A failed run is your alert: GitHub emails you about failed scheduled workflows.
+name: uptime
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      SYNAPSE_API_URL: ${{ vars.SYNAPSE_API_URL }}
+      SYNAPSE_GATEWAY_URL: ${{ vars.SYNAPSE_GATEWAY_URL }}
+      SYNAPSE_CANARY_DOC: ${{ vars.SYNAPSE_CANARY_DOC }}
+      SYNAPSE_CANARY_TOKEN: ${{ secrets.SYNAPSE_CANARY_TOKEN }}
+    steps:
+      - name: Skip when not configured
+        id: configured
+        run: |
+          if [ -z "$SYNAPSE_API_URL" ] || [ -z "$SYNAPSE_GATEWAY_URL" ]; then
+            echo "Set the SYNAPSE_API_URL and SYNAPSE_GATEWAY_URL repository variables to turn this on." >> "$GITHUB_STEP_SUMMARY"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.configured.outputs.go == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.configured.outputs.go == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install
+        if: steps.configured.outputs.go == 'true'
+        working-directory: server
+        run: npm ci
+      - name: Probe
+        if: steps.configured.outputs.go == 'true'
+        working-directory: server
+        run: npx tsx ops/uptime.ts | tee "$GITHUB_STEP_SUMMARY"

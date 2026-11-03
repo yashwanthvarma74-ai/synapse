@@ -1,0 +1,20 @@
+node_modules/
+.next/
+.infra/
+server/.data/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+
+# local-only notes that include throwaway passwords
+TEST_ACCOUNTS.md
+
+.next-e2e/
+e2e/test-results/
+e2e/playwright-report/
+!.env.example
+
+# personal notes and reference material, kept locally
+STUDY.md
+docs/PDF-SPEC-synapse.txt

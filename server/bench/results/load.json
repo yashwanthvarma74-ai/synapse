@@ -1,0 +1,42 @@
+{
+  "when": "2026-10-05T21:59:52.155Z",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "cores": 14,
+    "ramGb": 24,
+    "os": "Darwin 27.0.0",
+    "node": "v26.10.0"
+  },
+  "target": "50+ editors in one room",
+  "rows": [
+    {
+      "editors": 100,
+      "editsPerSecEach": 2,
+      "seconds": 30,
+      "editsSent": 5896,
+      "deliveriesExpected": 583704,
+      "deliveriesReceived": 583704,
+      "deliveredPct": 100,
+      "deliveriesPerSec": 19457,
+      "delayMs": {
+        "n": 291900,
+        "min": 0.21,
+        "p50": 2.12,
+        "p95": 5.26,
+        "p99": 7.54,
+        "max": 19.97,
+        "mean": 2.46
+      },
+      "gatewayCpuPct": {
+        "idle": 0.4,
+        "mean": 18,
+        "peak": 28.7
+      },
+      "gatewayRssMb": {
+        "idle": 154,
+        "peak": 192
+      },
+      "connectedSockets": 100
+    }
+  ]
+}

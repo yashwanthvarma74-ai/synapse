@@ -1,0 +1,109 @@
+# Run the whole of Synapse with one command:
+#
+#   cp .env.example .env      # then set JWT_SECRET (instructions inside)
+#   docker compose up --build
+#
+# Open http://localhost:3000. Data lives in Docker volumes; `docker compose down -v` erases it.
+# Two gateways run behind a small load balancer on purpose: edit in one browser and watch it
+# arrive in another even when the two are connected to different gateways (that is Redis at work).
+name: synapse
+
+services:
+  mongo:
+    image: mongo:8.0.4 # an exact patch: newer releases refuse to start on Linux kernel 6.19+ (SERVER-121912)
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # S3-compatible storage for uploaded images and files (S3Mock: a small S3 server for local use). In
+  # production, point the S3_* settings at Cloudflare R2 or AWS S3 instead and delete this service.
+  # See docs/DEPLOY.md.
+  s3:
+    image: adobe/s3mock:latest
+    user: "0:0" # the image's own user cannot write to a fresh volume
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+    volumes: [s3-data:/data]
+    ports: ["9000:9090"] # browsers upload straight to this address (pre-signed URLs)
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9090"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./server
+    environment: &server-env
+      SERVICE: api
+      API_PORT: "4001"
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}
+      MONGO_DB: synapse
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (see .env.example)}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4001}
+      METRICS_PORT: "9464"
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://s3:9090}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-synapse-uploads}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-synapse}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-change-me-s3-secret}
+      S3_CREATE_BUCKET: "true"
+    ports: ["4001:4001"]
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      s3: { condition: service_healthy }
+
+  gateway-a:
+    build: ./server
+    environment:
+      <<: *server-env
+      SERVICE: gateway
+      GATEWAY_PORT: "4000"
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  gateway-b:
+    build: ./server
+    environment:
+      <<: *server-env
+      SERVICE: gateway
+      GATEWAY_PORT: "4000"
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  gateways:
+    image: caddy:2-alpine
+    volumes: ["./deploy/Caddyfile:/etc/caddy/Caddyfile:ro"]
+    ports: ["4000:4000"]
+    depends_on: [gateway-a, gateway-b]
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4001}
+        NEXT_PUBLIC_GATEWAY_URL: ${PUBLIC_GATEWAY_URL:-ws://localhost:4000}
+    ports: ["3000:3000"]
+    depends_on: [api, gateways]
+
+volumes:
+  mongo-data:
+  s3-data:

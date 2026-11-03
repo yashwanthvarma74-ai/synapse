@@ -1,0 +1,14 @@
+# Prometheus: scrape the Synapse server's /metrics every 5 seconds and evaluate alert rules.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+rule_files:
+  - alerts.yml
+
+scrape_configs:
+  - job_name: synapse
+    static_configs:
+      # gateway + API in one process (SERVICE=both, the development default).
+      # In production, list every gateway and API instance here.
+      - targets: ['127.0.0.1:9464']

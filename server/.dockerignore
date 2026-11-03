@@ -1,0 +1,10 @@
+node_modules
+.next
+.next-e2e
+*.log
+.env
+.env.*
+!.env.example
+bench
+fault
+test

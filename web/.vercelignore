@@ -1,0 +1,7 @@
+# Build output and local files never need to be uploaded; Vercel installs and builds from source.
+node_modules
+.next
+.next-e2e
+.env*
+*.tsbuildinfo
+coverage

@@ -1,0 +1,65 @@
+import { expect as pwExpect, test as base, type APIRequestContext, type Browser, type Page } from '@playwright/test'
+
+// Every spec imports `test` from here. It closes any browser window a test opened by hand (windowFor and
+// browser.newContext), because windows left open pile up through a file and slow the browser to a crawl,
+// WebKit most of all.
+export const test = base.extend<{ closeStrayWindows: void }>({
+  closeStrayWindows: [async ({ browser }, use) => {
+    const before = new Set(browser.contexts())
+    await use()
+    for (const c of browser.contexts()) if (!before.has(c)) await c.close().catch(() => {})
+  }, { auto: true }],
+})
+export const expect = pwExpect
+
+const API = 'http://127.0.0.1:4101'
+
+export interface Guest { token: string; workspaceId: string; docId: string; boardId: string }
+
+// Sign up a guest straight through the API (fast), the same call the "Try it now" button makes
+export async function newGuest(request: APIRequestContext, name = 'Tester'): Promise<Guest> {
+  const r = await (await request.post(`${API}/auth/guest`, { data: { name } })).json()
+  return { token: r.token, workspaceId: r.starter.workspaceId, docId: r.starter.welcomeId, boardId: r.starter.boardId }
+}
+
+export async function inviteCode(request: APIRequestContext, owner: Guest, role: 'editor' | 'commenter' | 'viewer') {
+  const r = await request.post(`${API}/workspaces/${owner.workspaceId}/invites`, { headers: { authorization: `Bearer ${owner.token}` }, data: { role } })
+  return (await r.json()).code as string
+}
+
+// A separate browser window with its own storage, already signed in as this token
+export async function windowFor(browser: Browser, token: string): Promise<Page> {
+  const ctx = await browser.newContext()
+  await ctx.addInitScript((t) => { try { localStorage.setItem('synapse:token', t) } catch {} }, token)
+  return ctx.newPage()
+}
+
+export async function openDoc(page: Page, docId: string) {
+  await page.goto(`/doc/${docId}`)
+  await pwExpect(page.getByRole('textbox', { name: 'Document editor' })).toBeVisible()
+  await pwExpect(page.getByRole('status').filter({ hasText: /Connected/ })).toBeVisible()
+}
+
+export const editor = (page: Page) => page.getByRole('textbox', { name: 'Document editor' })
+export const text = (page: Page) => editor(page).innerText()
+
+// The page's words only: another person's cursor label (their name) is part of the editor's text while they are in it
+export const content = (page: Page) =>
+  editor(page).evaluate((el) => {
+    const copy = el.cloneNode(true) as HTMLElement
+    copy.querySelectorAll('.collaboration-carets__caret').forEach((caret) => caret.remove())
+    return copy.innerText.trim()
+  })
+
+// Put the cursor at the very end of the document and type there. The caret is set through the
+// selection API, so it does not depend on each browser's keyboard shortcut for "go to the end".
+export async function typeAtEnd(page: Page, s: string) {
+  const ed = editor(page)
+  await ed.focus()
+  await ed.evaluate((el) => {
+    const sel = window.getSelection()!
+    sel.selectAllChildren(el)
+    sel.collapseToEnd()
+  })
+  await page.keyboard.type(s)
+}

@@ -1,0 +1,55 @@
+/* What is left here is only what the design system does not provide: small layout helpers and Synapse's own
+   pieces. Buttons, fields, tabs, dialogs, menus, cards, badges, avatars and empty states all come from
+   @yashwanthvarma74/react. */
+.link { background: none; border: 0; color: var(--mrd-color-text-link); cursor: pointer; padding: 3px 4px; min-height: 24px; font-size: 0.875rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.link:hover { color: var(--accent-strong); }
+.link:disabled { opacity: 0.5; cursor: not-allowed; }
+.back-link { display: inline-flex; align-items: center; gap: 4px; padding: 3px 0; min-height: 24px; font-size: 0.9rem; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+
+/* ---- layout helpers ---- */
+label { display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem; font-weight: 500; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.row.spread { justify-content: space-between; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.create-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+/* the design system wraps each field in a span; let those wrappers share the row */
+.row > span:has(> input), .row > span:has(> select) { flex: 1 1 200px; min-width: 0; }
+.create-row > span:has(> input) { flex: 1 1 200px; min-width: 0; }
+.copy-box { display: flex; gap: 8px; align-items: stretch; }
+.copy-box > span { flex: 1; min-width: 0; }
+.copy-box input { font-family: var(--mrd-font-family-mono); font-size: 0.85rem; }
+select { min-width: 0; }
+
+/* a plain notice: white, with a hairline, no tint */
+.banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); margin-bottom: 20px; }
+.banner p { margin: 0; }
+.list { list-style: none; padding: 0; margin: 8px 0; }
+.list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.notice { max-width: 520px; margin: 72px auto; padding: 0 16px; text-align: center; }
+.tab-badge { display: inline-block; margin-left: 6px; min-width: 19px; padding: 0 6px; border-radius: 10px; background: var(--mrd-color-danger-solid); color: #fff; font-size: 0.72rem; line-height: 19px; text-align: center; font-weight: 700; }
+
+/* ---- status and presence ---- */
+.status { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8125rem; color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.dot.connected { background: var(--ok); }
+.dot.connecting, .dot.offline { background: var(--warn); }
+.dot.revoked { background: var(--mrd-color-danger-solid); }
+.presence { display: flex; gap: 8px; align-items: center; }
+.avatars { display: flex; list-style: none; margin: 0; padding: 0; }
+.avatars li + li { margin-left: -8px; }
+.avatars [role='img'] { box-shadow: 0 0 0 2px var(--bg); }
+
+/* ---- the help list in the whiteboard dialog, and the download note ---- */
+.help-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.help-list li { display: flex; gap: 12px; align-items: baseline; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.download { position: relative; }
+.download-note { position: absolute; right: 0; top: calc(100% + 8px); width: max-content; max-width: 280px; margin: 0; }
+.slash-menu { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg); }
+/* links that look like buttons (the design system's buttonClass) are not underlined */
+a[class*='mrd_Button-module_button'], a[class*='mrd_Button-module_button']:hover { text-decoration: none; }
+
+/* the design system's empty state draws an icon in a tinted square; here it is just a heading and a line */
+.empty-plain [class*='EmptyState-module_iconWrap'] { display: none; }
+.who-note { color: var(--muted); font-size: 0.8125rem; }
