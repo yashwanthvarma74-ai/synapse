@@ -3,7 +3,7 @@
 A local-first collaborative workspace: rich-text documents and a shared canvas
 that keep working offline and merge cleanly when you reconnect.
 
-Built by [Yashwanth Varma](https://github.com/yashwanthvarma74-ai). Live demo: <https://synapse-app-beta.vercel.app> (the server sleeps when idle on the free tier, so the first load can take up to a minute).
+Built by [Yashwanth Varma](https://github.com/yashwanthvarmakonduru). Live demo: <https://synapse-app-beta.vercel.app> (the server sleeps when idle on the free tier, so the first load can take up to a minute).
 
 Write-up: [Why I used a CRDT and not OT for a collaborative editor](https://dev.to/yashwanthvarma/why-i-used-a-crdt-and-not-ot-for-a-collaborative-editor-54d5) (dev.to). The longer version is in [docs/blog](docs/blog/why-a-crdt-not-ot.md).
 
@@ -72,7 +72,7 @@ flowchart LR
 
 ### Built with the design system
 
-The interface is built from the published component library [Meridian](https://github.com/yashwanthvarma74-ai/designSystem)
+The interface is built from the published component library [Meridian](https://github.com/yashwanthvarmakonduru/designSystem)
 (`@yashwanthvarma74/react` and `@yashwanthvarma74/tokens`): buttons, fields, dialogs, tabs, menus, cards and
 avatars all come from it, and Synapse's colours are the library's tokens. See [ADR 0019](docs/adr/0019-build-the-ui-with-the-design-system.md).
 

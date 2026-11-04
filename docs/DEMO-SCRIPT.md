@@ -41,7 +41,7 @@ before; only the narration is technical.
 | **0:49** | In A, click at the end of the **opening paragraph** and type `Alice's edit.` In B, click at the **same spot** and type `Bob's edit.` Hold for a second. Neither window shows the other's words. | "Both replicas insert at the same position concurrently. Every operation carries a client ID and a logical clock, so this is a genuine concurrent edit." |
 | **1:00** | Click **Offline mode** again in A, then in B. Both screens now show **both** edits, identical. | "On reconnect each client sends its state vector and receives only the updates it is missing. No rebase, no conflict resolution step: both inserts are kept in a deterministic order and the replicas converge." |
 | **1:12** | Cut to the landing page. Scroll to **What sets it apart**. Pause on "10,000 / 10,000", then "0.82 ms". | "In the benchmark, 30 minutes of simulated offline typing merges in 44 to 58 milliseconds. 10,000 randomized concurrent-edit runs ended with identical state on every replica. Server fan-out is 0.82 milliseconds at p95 on loopback, and across two gateways through Redis pub/sub it is 1.25." |
-| **1:25** | End card (hold 3 seconds). Plain white slide: **Synapse**, your name, and `github.com/yashwanthvarma74-ai/synapse`. | "The ADRs and the benchmark methodology are in the repository." |
+| **1:25** | End card (hold 3 seconds). Plain white slide: **Synapse**, your name, and `github.com/yashwanthvarmakonduru/synapse`. | "The ADRs and the benchmark methodology are in the repository." |
 
 Total: about 90 seconds and about 235 spoken words, so speak at an even pace and do not rush the reconnect
 line (1:00), which is the one the whole demo exists for. If you run long, drop the 0:31 typing step first

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "Synapse: local first, real time collaborative workspace", template: "%s | Synapse" },
   description: DESCRIPTION,
-  authors: [{ name: "Yashwanth Varma", url: "https://github.com/yashwanthvarma74-ai" }],
+  authors: [{ name: "Yashwanth Varma", url: "https://github.com/yashwanthvarmakonduru" }],
   creator: "Yashwanth Varma",
   openGraph: {
     type: "website",

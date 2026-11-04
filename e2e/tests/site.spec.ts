@@ -4,8 +4,8 @@ test('every page credits the author and links to the source', async ({ page }) =
     await page.goto(path)
     const footer = page.getByRole('contentinfo')
     await expect(footer).toContainText('Built by')
-    await expect(footer.getByRole('link', { name: /Yashwanth Varma/ })).toHaveAttribute('href', 'https://github.com/yashwanthvarma74-ai')
-    await expect(footer.getByRole('link', { name: /Source code on GitHub/ })).toHaveAttribute('href', 'https://github.com/yashwanthvarma74-ai/synapse')
+    await expect(footer.getByRole('link', { name: /Yashwanth Varma/ })).toHaveAttribute('href', 'https://github.com/yashwanthvarmakonduru')
+    await expect(footer.getByRole('link', { name: /Source code on GitHub/ })).toHaveAttribute('href', 'https://github.com/yashwanthvarmakonduru/synapse')
   }
 })
 
