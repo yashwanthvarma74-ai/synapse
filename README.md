@@ -5,6 +5,8 @@ that keep working offline and merge cleanly when you reconnect.
 
 Built by [Yashwanth Varma](https://github.com/yashwanthvarma74-ai). Live demo: <https://synapse-app-beta.vercel.app> (the server sleeps when idle on the free tier, so the first load can take up to a minute).
 
+Write-up: [Why I used a CRDT and not OT for a collaborative editor](https://dev.to/yashwanthvarma/why-i-used-a-crdt-and-not-ot-for-a-collaborative-editor-54d5) (dev.to). The longer version is in [docs/blog](docs/blog/why-a-crdt-not-ot.md).
+
 ![Synapse landing page](docs/images/landing.jpg)
 
 ## Try it in one minute
