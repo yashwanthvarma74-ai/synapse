@@ -33,8 +33,8 @@ export default function Dashboard() {
     }
   }
 
-  if (!ready) return <div className="page"><p className="muted">Loading…</p></div>
-  if (!user) return <Landing />
+  // show the landing page while the session check runs, so a visitor never waits on a blank "Loading" screen
+  if (!ready || !user) return <Landing />
 
   return (
     <div className="page">
