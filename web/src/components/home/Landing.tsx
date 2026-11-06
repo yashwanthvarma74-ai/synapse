@@ -2,9 +2,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, buttonClass } from '@yashwanthvarma74/react'
-import { startGuest } from '@/lib/guest'
+import { startGuest, wakeServer } from '@/lib/guest'
 import { CRDT_POST, REPO } from '@/lib/site'
 import { BoardIcon, CheckIcon, CommentIcon, DownloadIcon, HistoryIcon, LinkIcon, SearchIcon } from '../ui/Icons'
 import { ConvergeDiagram, DomainsDiagram, GatewaysDiagram, LatencyDiagram, LocalFirstDiagram, ObservabilityDiagram } from './Diagrams'
@@ -45,23 +45,53 @@ const STEPS = [
   { title: 'Merge deterministically', text: 'Every update has a unique ID and a causal position, so concurrent edits merge in any order and every replica converges.' },
 ]
 
+// After this long without an answer, the server is probably waking up, so say so
+const WAKING_AFTER_MS = 4000
+
+type Cta = 'hero' | 'end'
+
 // What a first-time visitor sees: what this is, a real look at it, and one clear way in.
 export default function Landing() {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [waking, setWaking] = useState(false)
+  const [clicked, setClicked] = useState<Cta>('hero')
 
-  async function tryIt() {
+  useEffect(() => {
+    wakeServer()
+  }, [])
+
+  async function tryIt(from: Cta) {
+    setClicked(from)
     setBusy(true)
     setError('')
+    const timer = setTimeout(() => setWaking(true), WAKING_AFTER_MS)
     try {
       const s = await startGuest()
       router.push(`/doc/${s.welcomeId}`)
     } catch (e) {
       setError((e as Error).message || 'Could not start. Is the server running?')
       setBusy(false)
+    } finally {
+      clearTimeout(timer)
+      setWaking(false)
     }
   }
+
+  const label = waking ? 'Waking the server…' : busy ? 'Setting things up…' : 'Try it now'
+  // Shown under whichever button was pressed, so it is on screen
+  const notices = (at: Cta) =>
+    clicked === at && (
+      <>
+        {waking && (
+          <p role="status" className="meta">
+            The demo server sleeps when nobody is using it (free hosting). Waking it can take up to a minute.
+          </p>
+        )}
+        {error && <p role="alert" className="error">{error}</p>}
+      </>
+    )
 
   return (
     <div className="landing">
@@ -72,13 +102,13 @@ export default function Landing() {
           first, and replicas converge without conflicts after any network partition.
         </p>
         <div className="cta-row">
-          <Button variant="primary" size="lg" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now'}</Button>
+          <Button variant="primary" size="lg" onClick={() => tryIt('hero')} disabled={busy}>{label}</Button>
           <a className={buttonClass({ variant: 'secondary', size: 'lg' })} href={REPO} target="_blank" rel="noopener">
             View source<span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
         <p className="meta">No sign up needed. Open source, MIT licence.</p>
-        {error && <p role="alert" className="error">{error}</p>}
+        {notices('hero')}
         <figure className="product">
           <Image
             src="/product.jpg"
@@ -168,9 +198,10 @@ export default function Landing() {
           ))}
         </ol>
         <div className="cta-row">
-          <Button variant="primary" size="lg" onClick={tryIt} disabled={busy}>{busy ? 'Setting things up…' : 'Try it now'}</Button>
+          <Button variant="primary" size="lg" onClick={() => tryIt('end')} disabled={busy}>{label}</Button>
           <Link className={buttonClass({ variant: 'secondary', size: 'lg' })} href="/login">Sign in</Link>
         </div>
+        {notices('end')}
       </section>
     </div>
   )

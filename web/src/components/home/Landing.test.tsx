@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const push = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 const startGuest = vi.fn()
-vi.mock('@/lib/guest', () => ({ startGuest: () => startGuest() }))
+const wakeServer = vi.fn()
+vi.mock('@/lib/guest', () => ({ startGuest: () => startGuest(), wakeServer: () => wakeServer() }))
 
 import Landing from './Landing'
 import { violationsIn } from '@/test/axe'
@@ -14,6 +15,8 @@ afterEach(() => {
   cleanup()
   push.mockReset()
   startGuest.mockReset()
+  wakeServer.mockReset()
+  vi.useRealTimers()
 })
 
 describe('Landing page', () => {
@@ -73,6 +76,35 @@ describe('Landing page', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('Could not reach the server')
     expect((button as HTMLButtonElement).disabled).toBe(false) // can click again
     expect(push).not.toHaveBeenCalled()
+  })
+
+  it('starts waking the server as soon as the page loads', () => {
+    render(<Landing />)
+    expect(wakeServer).toHaveBeenCalledTimes(1)
+  })
+
+  it('says the server is waking up when starting takes more than a few seconds', async () => {
+    vi.useFakeTimers()
+    let finish: (s: unknown) => void = () => {}
+    startGuest.mockReturnValue(new Promise((r) => { finish = r }))
+    render(<Landing />)
+    fireEvent.click(screen.getAllByRole('button', { name: /try it now/i })[0])
+    expect(screen.queryByRole('status')).toBeNull()
+    await act(async () => { vi.advanceTimersByTime(4000) })
+    expect(screen.getByRole('status').textContent).toMatch(/can take up to a minute/)
+    expect(screen.getAllByRole('button', { name: /waking the server/i }).length).toBe(2)
+    await act(async () => { finish({ workspaceId: 'w1', welcomeId: 'welcome1', boardId: 'b1' }) })
+    expect(push).toHaveBeenCalledWith('/doc/welcome1')
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('shows the notice under the lower button when that one was pressed', async () => {
+    startGuest.mockRejectedValueOnce(new Error('Could not reach the server'))
+    const { container } = render(<Landing />)
+    const buttons = screen.getAllByRole('button', { name: /try it now/i })
+    fireEvent.click(buttons[1])
+    const alert = await screen.findByRole('alert')
+    expect(container.querySelector('section[aria-labelledby="ready-title"]')?.contains(alert)).toBe(true)
   })
 
   it('also offers sign in', () => {

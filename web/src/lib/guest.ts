@@ -1,4 +1,10 @@
-import { api, tokenStore, type User } from './api'
+import { API, api, tokenStore, type User } from './api'
+
+// The hosted API sleeps when idle (free tier) and takes up to a minute to wake. Pinging it as soon
+// as the landing page loads means it is usually awake by the time the visitor clicks "Try it now".
+export function wakeServer() {
+  fetch(`${API}/health`).catch(() => {})
+}
 
 export interface Starter { workspaceId: string; welcomeId: string; boardId: string }
 
