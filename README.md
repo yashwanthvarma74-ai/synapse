@@ -74,7 +74,7 @@ flowchart LR
 
 The interface is built from the published component library [Meridian](https://github.com/yashwanthvarmakonduru/designSystem)
 (`@yashwanthvarma74/react` and `@yashwanthvarma74/tokens`): buttons, fields, dialogs, tabs, menus, cards and
-avatars all come from it, and Synapse's colours are the library's tokens. See [ADR 0019](docs/adr/0019-build-the-ui-with-the-design-system.md).
+avatars all come from it, and Synapse's colours are the library's tokens.
 
 ### Two consistency domains (the central design decision)
 
@@ -95,12 +95,12 @@ See [ADR 0002](docs/adr/0002-two-consistency-domains.md).
 - **Offline editing** with merge on reconnect; reconnect uses exponential backoff with jitter.
 - **Network simulator** ("Offline mode"): go offline, or add 200 ms to 3 s of delay, in one click.
 - **Comments** anchored to text with Yjs relative positions, so they keep their place while others type.
-- **Chat** for each document: live messages between the people on the page, saved and checked by the server on every message (viewers read, others write), with an unread count and screen-reader announcements ([ADR 0017](docs/adr/0017-chat.md)).
+- **Chat** for each document: live messages between the people on the page, saved and checked by the server on every message (viewers read, others write), with an unread count and screen-reader announcements.
 - **Version history**: named versions, preview, restore (current content is saved first).
-- **Workspaces**: create as many as you like; the owner can delete one (everything in it goes, after typing its name to confirm; [ADR 0018](docs/adr/0018-workspace-deletion-and-first-landing.md)).
+- **Workspaces**: create as many as you like; the owner can delete one (everything in it goes, after typing its name to confirm).
 - **Sharing and roles**: owner, editor, commenter, viewer, enforced by the server. **Invite links** and **guest accounts** make it usable in seconds. Removing someone closes their open connection within about two seconds and clears their offline copy.
 - **Search** across your workspaces with **Atlas Search** (typo tolerant, scoped to your workspaces), falling back to a MongoDB text index off Atlas.
-- **Uploads**: images and files go straight from the browser to S3 / R2 (or any S3 compatible store) through pre-signed URLs ([ADR 0014](docs/adr/0014-uploads-with-presigned-urls.md)).
+- **Uploads**: images and files go straight from the browser to S3 / R2 (or any S3 compatible store) through pre-signed URLs.
 - **Observability**: one Grafana dashboard for sync latency, typing latency, reconnects, sockets, database writes, the Redis relay and the API; 12 alert rules including error-budget burn alerts for the 99.9% target; an uptime probe; structured JSON logs (Pino). See [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md).
 - **Accessibility**: WCAG 2.2 AA as the target, axe in real Chromium and WebKit, real keyboard testing; see [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md) (**no screen reader was run**).
 
@@ -114,14 +114,14 @@ See [ADR 0002](docs/adr/0002-two-consistency-domains.md).
 | CRDT | Yjs | Proven shared types, compact binary updates ([ADR 0001](docs/adr/0001-crdt-yjs-over-ot.md)) |
 | Offline | `y-indexeddb` | Stores updates in the browser |
 | Presence | Yjs awareness | Cursors are broadcast, never persisted |
-| Client state | TanStack Query + Zustand | Query for server data (roles, comments), Zustand for UI-only state ([ADR 0015](docs/adr/0015-client-state-query-and-zustand.md)) |
+| Client state | TanStack Query + Zustand | Query for server data (roles, comments), Zustand for UI-only state |
 | Realtime | Node + `ws` + `y-protocols`, written by hand | The sync protocol is the learning ([ADR 0003](docs/adr/0003-custom-ws-gateway.md)) |
 | Fan-out | Redis pub/sub | Any gateway can serve any room ([ADR 0006](docs/adr/0006-stateless-gateways-redis.md)) |
 | API | Express 5 + Zod | Every request body validated |
-| Database | MongoDB Atlas + Atlas Search | Binary updates keyed by document, plus search ([ADR 0005](docs/adr/0005-mongodb-storage.md), [0013](docs/adr/0013-atlas-search.md)) |
-| Storage | S3 / Cloudflare R2 (S3Mock locally) | Uploads straight from the browser ([ADR 0014](docs/adr/0014-uploads-with-presigned-urls.md)) |
-| Auth | scrypt passwords, signed JWTs (`jose`), guests, invite links | ([ADR 0007](docs/adr/0007-authentication.md), [0012](docs/adr/0012-guest-accounts-and-invite-links.md)) |
-| Observability | OpenTelemetry (metrics) + Prometheus + Grafana, Pino logs | ([ADR 0011](docs/adr/0011-observability.md)) |
+| Database | MongoDB Atlas + Atlas Search | Binary updates keyed by document, plus search |
+| Storage | S3 / Cloudflare R2 (S3Mock locally) | Uploads straight from the browser |
+| Auth | scrypt passwords, signed JWTs (`jose`), guests, invite links | Passwords hashed with scrypt, tokens signed with `jose` |
+| Observability | OpenTelemetry (metrics) + Prometheus + Grafana, Pino logs | Metrics through OpenTelemetry, scraped by Prometheus |
 | Testing | Vitest + fast-check, Playwright, k6, `promtool` | Property-based convergence, multi-browser end-to-end, WebSocket load, alert rules |
 
 Architecture decision records are in [`docs/adr/`](docs/adr/) (including failure handling, observability, uploads, chat and workspace deletion).

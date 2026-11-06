@@ -44,7 +44,7 @@ gateway is a cache plus a relay.
   subscriber is disconnected when it is published. Fault injection confirmed
   this, and showed it was worse than "missed until reconnect": the other
   gateway's in-memory copy stayed stale and nothing repaired it. It is now
-  repaired by **anti-entropy** (see [ADR 0010](0010-failure-handling.md)): rooms
+  repaired by **anti-entropy** (see [fault injection](../FAULT-INJECTION.md)): rooms
   re-read the stored state when the relay reconnects and every 60 seconds.
   Nothing is ever lost from MongoDB. **Remaining gap:** a loss with no
   disconnect (for example a dropped message) heals only at the next periodic
